@@ -140,7 +140,7 @@ jobs:
       UBI_IMAGE_NAME: ghcr.io/fluentdo/agent/ubi
       DISTROLESS_IMAGE_NAME: ghcr.io/fluentdo/agent/debian
       OUTPUT_IMAGE_NAME: ghcr.io/fluentdo/agent
-      TAG: ${{ needs.get-meta.outputs.version }}
+      TAG: ${{ needs.build-image.outputs.version }}
     steps:
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -188,7 +188,7 @@ jobs:
     with:
       kind-version: ${{ matrix.kind-version }}
       image: ${{ matrix.image-base }}
-      image-tag: ${{ needs.get-meta.outputs.version }}
+      image-tag: ${{ needs.build-image.outputs.version }}
       ref: ${{ github.ref }}
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -257,7 +257,7 @@ jobs:
 
       - uses: anchore/sbom-action@v0
         with:
-          image: ghcr.io/fluentdo/agent:${{ needs.get-meta.outputs.version }}
+          image: ghcr.io/fluentdo/agent:${{ needs.build-image.outputs.version }}
           artifact-name: image-sbom.spdx
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
@@ -265,7 +265,7 @@ jobs:
 
       - uses: anchore/sbom-action@v0
         with:
-          image: ghcr.io/fluentdo/agent:${{ needs.get-meta.outputs.version }}
+          image: ghcr.io/fluentdo/agent:${{ needs.build-image.outputs.version }}
           artifact-name: image-slim-sbom.spdx
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
@@ -277,13 +277,13 @@ jobs:
             --all \
             --remove-signatures \
             --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
-            "docker://ghcr.io/fluentdo/agent:${{ needs.get-meta.outputs.version }}" \
+            "docker://ghcr.io/fluentdo/agent:${{ needs.build-image.outputs.version }}" \
             "oci-archive:output/fluent-do-agent-container.tar"
           skopeo copy \
             --all \
             --remove-signatures \
             --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
-            "docker://ghcr.io/fluentdo/agent:${{ needs.get-meta.outputs.version }}-slim" \
+            "docker://ghcr.io/fluentdo/agent:${{ needs.build-image.outputs.version }}-slim" \
             "oci-archive:output/fluent-do-agent-container-slim.tar"
           tar -czvf output/fluent-do-agent-container.tar.gz output/fluent-do-agent-container.tar output/fluent-do-agent-container-slim.tar
           rm -f output/fluent-do-agent-container.tar output/fluent-do-agent-container-slim.tar
