@@ -1,8 +1,4 @@
 self-hosted-runner:
   labels:
-    - self-ubuntu-latest
-    - self-ubuntu-latest-arm
-    - namespace-profile-default
-    - namespace-profile-default-arm
-    - namespace-profile-ubuntu-latest
-    - namespace-profile-ubuntu-latest-arm
+    - namespace-profile-*
+

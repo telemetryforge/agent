@@ -188,7 +188,7 @@ jobs:
     with:
       kind-version: ${{ matrix.kind-version }}
       image: ${{ matrix.image-base }}
-      image-tag: ${{ needs.build-image.outputs.version }}
+      image-tag: ${{ needs.get-meta.outputs.version }}
       ref: ${{ github.ref }}
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
