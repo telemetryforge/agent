@@ -122,10 +122,12 @@ jobs:
       # Pick the Dockerfile to use for each image
       definition: ${{ (contains(matrix.image-base, 'debian') && 'Dockerfile.debian') || 'Dockerfile.ubi' }}
 
-
-  # We now want to copy the UBI image to ghcr.io/fluentdo/agent:version and
+  # We want to copy the UBI image to ghcr.io/fluentdo/agent:version and
   # the distroless image to ghcr.io/fluentdo/agent:version-slim
   copy-common-images:
+    # Only run for releases to reduce unnecessary load on the registry
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    name: Copy common container images to main image names
     needs:
       - get-meta
       - build-image
@@ -233,6 +235,11 @@ jobs:
       actions: read
       contents: write
       id-token: write
+    env:
+      UBI_IMAGE_NAME: ghcr.io/fluentdo/agent/ubi
+      DISTROLESS_IMAGE_NAME: ghcr.io/fluentdo/agent/debian
+      OUTPUT_IMAGE_NAME: ghcr.io/fluentdo/agent
+      TAG: ${{ needs.build-image.outputs.version }}
     steps:
       - uses: actions/checkout@v5
 
@@ -257,19 +264,19 @@ jobs:
 
       - uses: anchore/sbom-action@v0
         with:
-          image: ghcr.io/fluentdo/agent:${{ needs.build-image.outputs.version }}
-          artifact-name: image-sbom.spdx
+          image: ${{ env.UBI_IMAGE_NAME }}:${{ env.TAG }}
+          artifact-name: image-ubi-sbom.spdx
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
-          output-file: output/image-sbom.spdx
+          output-file: output/image-ubi-sbom.spdx
 
       - uses: anchore/sbom-action@v0
         with:
-          image: ghcr.io/fluentdo/agent:${{ needs.build-image.outputs.version }}
-          artifact-name: image-slim-sbom.spdx
+          image: ${{ env.DISTROLESS_IMAGE_NAME }}:${{ env.TAG }}
+          artifact-name: image-debian-sbom.spdx
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
-          output-file: output/image-sbom.spdx
+          output-file: output/image-debian-sbom.spdx
 
       - name: Save image as tarball
         run: |
@@ -277,13 +284,13 @@ jobs:
             --all \
             --remove-signatures \
             --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
-            "docker://ghcr.io/fluentdo/agent:${{ needs.build-image.outputs.version }}" \
+            "docker://${{ env.UBI_IMAGE_NAME }}:${{ env.TAG }}" \
             "oci-archive:output/fluent-do-agent-container.tar"
           skopeo copy \
             --all \
             --remove-signatures \
             --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
-            "docker://ghcr.io/fluentdo/agent:${{ needs.build-image.outputs.version }}-slim" \
+            "docker://${{ env.DISTROLESS_IMAGE_NAME }}:${{ env.TAG }}" \
             "oci-archive:output/fluent-do-agent-container-slim.tar"
           tar -czvf output/fluent-do-agent-container.tar.gz output/fluent-do-agent-container.tar output/fluent-do-agent-container-slim.tar
           rm -f output/fluent-do-agent-container.tar output/fluent-do-agent-container-slim.tar
@@ -313,7 +320,8 @@ jobs:
 
             Targets: ${{ needs.get-meta.outputs.linux-targets }}
             Images:
-              - ${{ needs.build-image.outputs.tag }}
+              - ${{ env.UBI_IMAGE_NAME }}:${{ env.TAG }}
+              - ${{ env.DISTROLESS_IMAGE_NAME }}:${{ env.TAG }}
           files: |
             output/*.spdx
             output/*.json
