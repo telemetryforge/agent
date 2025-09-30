@@ -35,8 +35,12 @@ jobs:
           ref: ${{ inputs.ref }}
           repository: FluentDo/agent
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      # Not required on Namespace and can break builds
+      # - name: Set up QEMU
+      #   uses: docker/setup-qemu-action@v3
+
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3
 
       - name: Format the matrix string
         uses: frabert/replace-string-action@v2.5
@@ -46,9 +50,6 @@ jobs:
           string: "${{ matrix.distro }}"
           replace-with: "$1-$2"
           flags: "g"
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
 
       - name: Log in to the GHCR registry
         uses: docker/login-action@v3
