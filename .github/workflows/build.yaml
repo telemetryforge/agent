@@ -227,7 +227,6 @@ jobs:
     needs:
       - get-meta
       - build-image
-      - copy-common-images
       - build-linux
     runs-on: ubuntu-latest
     permissions:
@@ -238,7 +237,6 @@ jobs:
     env:
       UBI_IMAGE_NAME: ghcr.io/fluentdo/agent/ubi
       DISTROLESS_IMAGE_NAME: ghcr.io/fluentdo/agent/debian
-      OUTPUT_IMAGE_NAME: ghcr.io/fluentdo/agent
       TAG: ${{ needs.build-image.outputs.version }}
     steps:
       - uses: actions/checkout@v5
