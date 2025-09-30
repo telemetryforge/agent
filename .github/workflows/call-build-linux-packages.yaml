@@ -20,7 +20,7 @@ on:
 jobs:
   build-packages:
     name: agent - ${{ matrix.distro }} package build and upload
-    runs-on: ${{ (contains(matrix.distro, 'arm') && 'namespace-profile-default-arm') || 'namespace-profile-default' }}
+    runs-on: ${{ (contains(matrix.distro, 'arm') && 'namespace-profile-default-arm64') || 'namespace-profile-default' }}
     permissions:
       contents: read
       packages: read
