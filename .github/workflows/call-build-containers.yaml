@@ -53,7 +53,7 @@ jobs:
         target:
           - production
     name: ${{ matrix.platform }}/${{ matrix.target }} container image build
-    runs-on: ${{ (contains(matrix.platform, 'arm') && 'namespace-profile-default-arm64') || 'namespace-profile-default' }}
+    runs-on: ${{ (contains(matrix.platform, 'arm') && 'namespace-profile-ubuntu-latest-arm') || 'namespace-profile-ubuntu-latest' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5

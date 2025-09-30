@@ -4,3 +4,5 @@ self-hosted-runner:
     - self-ubuntu-latest-arm
     - namespace-profile-default
     - namespace-profile-default-arm
+    - namespace-profile-ubuntu-latest
+    - namespace-profile-ubuntu-latest-arm
