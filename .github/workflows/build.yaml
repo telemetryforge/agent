@@ -8,11 +8,13 @@ on:
       - synchronize
       - reopened
       - labeled
+
+  # Only do full build nightly and for releases
   push:
-    branches:
-      - main
     tags:
       - v*
+  schedule:
+    - cron: '0 0 * * *' # Every day at midnight UTC
 
 # Cancel any running jobs for PRs on a new commit
 concurrency:
@@ -73,8 +75,6 @@ jobs:
           echo "Using version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
         shell: bash
-        env:
-          INPUT_VERSION: ${{ (github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/') && github.ref_name) || '' }}
 
       - name: Extract the configuration from the JSON file
         # Read from the file and remove newline characters: https://stackoverflow.com/a/64627966
