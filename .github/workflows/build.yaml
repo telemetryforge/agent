@@ -125,8 +125,9 @@ jobs:
 
   # We now want to copy the UBI image to ghcr.io/fluentdo/agent:version and
   # the distroless image to ghcr.io/fluentdo/agent:version-slim
-  copy-top-images:
+  copy-common-images:
     needs:
+      - get-meta
       - build-image
     runs-on: ubuntu-latest
     permissions:
@@ -139,7 +140,7 @@ jobs:
       UBI_IMAGE_NAME: ghcr.io/fluentdo/agent/ubi
       DISTROLESS_IMAGE_NAME: ghcr.io/fluentdo/agent/debian
       OUTPUT_IMAGE_NAME: ghcr.io/fluentdo/agent
-      TAG: ${{ needs.build-image.outputs.version }}
+      TAG: ${{ needs.get-meta.outputs.version }}
     steps:
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -147,12 +148,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Log in to the docker.io registry
-        uses: docker/login-action@v3
-        with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Promote UBI images
         run: |
@@ -172,7 +167,7 @@ jobs:
 
       - name: Promote distroless images
         run: |
-          docker pull "$UBI_IMAGE_NAME:$TAG"
+          docker pull "$DISTROLESS_IMAGE_NAME:$TAG"
           docker run --rm  \
             quay.io/skopeo/stable:latest \
             copy \
@@ -209,7 +204,8 @@ jobs:
       matrix:
         kind-version: ${{ fromJson(needs.get-meta.outputs.kind-versions) }}
         image-base:
-          - "ghcr.io/fluentdo/agent"
+          - "ghcr.io/fluentdo/agent/ubi"
+          - "ghcr.io/fluentdo/agent/debian"
 
   build-linux:
     # Only build Linux packages if we are not a pull request or have a label set
@@ -229,6 +225,7 @@ jobs:
     needs:
       - get-meta
       - build-image
+      - copy-common-images
       - build-linux
     runs-on: ubuntu-latest
     permissions:
@@ -260,8 +257,16 @@ jobs:
 
       - uses: anchore/sbom-action@v0
         with:
-          image: ${{ needs.build-image.outputs.tag }}
+          image: ghcr.io/fluentdo/agent:${{ needs.get-meta.outputs.version }}"
           artifact-name: image-sbom.spdx
+          registry-username: ${{ github.actor }}
+          registry-password: ${{ secrets.GITHUB_TOKEN }}
+          output-file: output/image-sbom.spdx
+
+      - uses: anchore/sbom-action@v0
+        with:
+          image: ghcr.io/fluentdo/agent:${{ needs.get-meta.outputs.version }}"
+          artifact-name: image-slim-sbom.spdx
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
           output-file: output/image-sbom.spdx
@@ -272,10 +277,16 @@ jobs:
             --all \
             --remove-signatures \
             --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
-            "docker://${{ needs.build-image.outputs.tag }}" \
+            "docker://ghcr.io/fluentdo/agent:${{ needs.get-meta.outputs.version }}" \
             "oci-archive:output/fluent-do-agent-container.tar"
-          tar -czvf output/fluent-do-agent-container.tar.gz output/fluent-do-agent-container.tar
-          rm -f output/fluent-do-agent-container.tar
+          skopeo copy \
+            --all \
+            --remove-signatures \
+            --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+            "docker://ghcr.io/fluentdo/agent:${{ needs.get-meta.outputs.version }}-slim" \
+            "oci-archive:output/fluent-do-agent-container-slim.tar"
+          tar -czvf output/fluent-do-agent-container.tar.gz output/fluent-do-agent-container.tar output/fluent-do-agent-container-slim.tar"
+          rm -f output/fluent-do-agent-container.tar output/fluent-do-agent-container-slim.tar"
         shell: bash
 
       - name: Construct release info
@@ -325,7 +336,7 @@ jobs:
         uses: google-github-actions/upload-cloud-storage@v3
         with:
           path: output/
-          destination: lts_deliverables/${{ needs.get-meta.outputs.build-type }}/${{ needs.get-meta.outputs.version }}/
+          destination: fluentdo-agent-${{ needs.get-meta.outputs.build-type }}/${{ needs.get-meta.outputs.version }}/
 
   update-docs:
     needs:

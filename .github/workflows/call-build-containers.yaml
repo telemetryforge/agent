@@ -137,7 +137,7 @@ jobs:
           tags: |
             # Ensure we strip the 'v' prefix
             type=semver,pattern={{version}},event=tag
-            Add the input version as well for releases
+            # Add the input version as well for releases
             type=raw,value=${{ inputs.version }},event=tag
             # defaults for others
             type=schedule

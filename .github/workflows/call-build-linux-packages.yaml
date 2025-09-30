@@ -103,35 +103,36 @@ jobs:
           FLB_CHUNK_TRACE: Off
 
           # Pass all the above as build args to ensure they are used in the docker build, this is the way build.sh passes them.
-          FLB_ARG: '--build-arg FLB_IN_CALYPTIA_FLEET=Off
-                    --build-arg FLB_IN_DOCKER=Off
-                    --build-arg FLB_IN_DOCKER_EVENTS=Off
-                    --build-arg FLB_IN_EXEC_WASI=Off
-                    --build-arg FLB_IN_MQTT=Off
-                    --build-arg FLB_IN_NETIF=Off
-                    --build-arg FLB_IN_NGINX_EXPORTER_METRICS=Off
-                    --build-arg FLB_IN_SERIAL=Off
-                    --build-arg FLB_IN_THERMAL=Off
-                    --build-arg FLB_FILTER_ALTER_SIZE=Off
-                    --build-arg FLB_FILTER_CHECKLIST=Off
-                    --build-arg FLB_FILTER_GEOIP2=Off
-                    --build-arg FLB_FILTER_NIGHTFALL=Off
-                    --build-arg FLB_FILTER_WASM=Off
-                    --build-arg FLB_OUT_CALYPTIA=Off
-                    --build-arg FLB_OUT_LOGDNA=Off
-                    --build-arg FLB_OUT_PGSQL=Off
-                    --build-arg FLB_OUT_TD=Off
-                    --build-arg FLB_OUT_VIVO_EXPORTER=Off
-                    --build-arg FLB_STREAM_PROCESSOR=Off
-                    --build-arg FLB_WASM=Off
-                    --build-arg FLB_ZIG=Off
-                    --build-arg FLB_PROXY_GO=Off
-                    --build-arg FLB_SHARED_LIB=Off
-                    --build-arg FLB_EXAMPLES=Off
-                    --build-arg FLB_RELEASE=On
-                    --build-arg FLB_SIMD=On
-                    --build-arg FLB_TRACE=Off
-                    --build-arg FLB_CHUNK_TRACE=Off '
+          FLB_ARG: |
+            --build-arg FLB_IN_CALYPTIA_FLEET=Off
+            --build-arg FLB_IN_DOCKER=Off
+            --build-arg FLB_IN_DOCKER_EVENTS=Off
+            --build-arg FLB_IN_EXEC_WASI=Off
+            --build-arg FLB_IN_MQTT=Off
+            --build-arg FLB_IN_NETIF=Off
+            --build-arg FLB_IN_NGINX_EXPORTER_METRICS=Off
+            --build-arg FLB_IN_SERIAL=Off
+            --build-arg FLB_IN_THERMAL=Off
+            --build-arg FLB_FILTER_ALTER_SIZE=Off
+            --build-arg FLB_FILTER_CHECKLIST=Off
+            --build-arg FLB_FILTER_GEOIP2=Off
+            --build-arg FLB_FILTER_NIGHTFALL=Off
+            --build-arg FLB_FILTER_WASM=Off
+            --build-arg FLB_OUT_CALYPTIA=Off
+            --build-arg FLB_OUT_LOGDNA=Off
+            --build-arg FLB_OUT_PGSQL=Off
+            --build-arg FLB_OUT_TD=Off
+            --build-arg FLB_OUT_VIVO_EXPORTER=Off
+            --build-arg FLB_STREAM_PROCESSOR=Off
+            --build-arg FLB_WASM=Off
+            --build-arg FLB_ZIG=Off
+            --build-arg FLB_PROXY_GO=Off
+            --build-arg FLB_SHARED_LIB=Off
+            --build-arg FLB_EXAMPLES=Off
+            --build-arg FLB_RELEASE=On
+            --build-arg FLB_SIMD=On
+            --build-arg FLB_TRACE=Off
+            --build-arg FLB_CHUNK_TRACE=Off
         working-directory: source/packaging
         shell: bash
 
