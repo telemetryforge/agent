@@ -108,7 +108,6 @@ jobs:
       fail-fast: false
       matrix:
         image-base:
-          - "ghcr.io/fluentdo/agent"
           - "ghcr.io/fluentdo/agent/ubi"
           - "ghcr.io/fluentdo/agent/debian"
     permissions:
@@ -124,6 +123,70 @@ jobs:
 
       # Pick the Dockerfile to use for each image
       definition: ${{ (contains(matrix.image-base, 'debian') && 'Dockerfile.debian') || 'Dockerfile.ubi' }}
+
+
+  # We now want to copy the UBI image to ghcr.io/fluentdo/agent:version and
+  # the distroless image to ghcr.io/fluentdo/agent:version-slim
+  copy-top-images:
+    needs:
+      - build-image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
+    env:
+      UBI_IMAGE_NAME: ghcr.io/fluentdo/agent/ubi
+      DISTROLESS_IMAGE_NAME: ghcr.io/fluentdo/agent/debian
+      OUTPUT_IMAGE_NAME: ghcr.io/fluentdo/agent
+      TAG: ${{ needs.build-image.outputs.version }}
+    steps:
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to the docker.io registry
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Promote UBI images
+        run: |
+          docker pull "$UBI_IMAGE_NAME:$TAG"
+          docker run --rm  \
+            quay.io/skopeo/stable:latest \
+            copy \
+              --all \
+              --retry-times 10 \
+              --src-no-creds \
+              --dest-creds "$DEST_CREDS" \
+              "docker://$UBI_IMAGE_NAME:$TAG" \
+              "docker://$OUTPUT_IMAGE_NAME:$TAG"
+        env:
+          DEST_CREDS: ${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+
+      - name: Promote distroless images
+        run: |
+          docker pull "$UBI_IMAGE_NAME:$TAG"
+          docker run --rm  \
+            quay.io/skopeo/stable:latest \
+            copy \
+              --all \
+              --retry-times 10 \
+              --src-no-creds \
+              --dest-creds "$DEST_CREDS" \
+              "docker://$DISTROLESS_IMAGE_NAME:$TAG" \
+              "docker://$OUTPUT_IMAGE_NAME:${TAG:?}-slim"
+        env:
+          DEST_CREDS: ${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}
+        shell: bash
 
   test_kubernetes:
     # Only run Kubernetes tests if we are not a pull request or have a label set
