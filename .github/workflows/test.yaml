@@ -41,6 +41,7 @@ jobs:
           JSON_FILE_NAME: build-config.json
 
   test-containers:
+    name: Run container tests
     uses: ./.github/workflows/call-test-containers.yaml
     needs:
       - get-meta

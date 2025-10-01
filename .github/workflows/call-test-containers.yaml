@@ -16,24 +16,42 @@ on:
         description: The image tag to test.
         required: true
         type: string
-      kind-version:
-        description: The version of kind to use for the tests.
-        required: true
-        type: string
     secrets:
       github-token:
         description: Token to use to pull images from GitHub Container Registry.
         required: true
 jobs:
-  test-containers:
-    name: Test K8S version ${{ inputs.kind-version }} with ${{ inputs.image }}:${{ inputs.image-tag }}
+
+  get-meta:
+    name: Get meta information required
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      kind-versions: ${{ steps.set-meta.outputs.kind-versions }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          repository: FluentDo/agent
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Extract the configuration from the JSON file
+        id: set-meta
+        run: |
+          KIND_VERSIONS=$(cat "$JSON_FILE_NAME"|jq -c .kind_versions )
+          echo "kind-versions=$KIND_VERSIONS"
+          echo "kind-versions=$KIND_VERSIONS" >> $GITHUB_OUTPUT
+        shell: bash
+        env:
+          JSON_FILE_NAME: build-config.json
+
+  test-container-config:
+    name: Test config of ${{ inputs.image }}:${{ inputs.image-tag }}
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: fluent-agent-test
       IMAGE: ${{ inputs.image }}
       IMAGE_TAG: ${{ inputs.image-tag }}
-      KIND_CLUSTER_NAME: test-cluster-${{ inputs.kind-version }}-${{ github.run_id }}
-      KIND_VERSION: ${{ inputs.kind-version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -53,39 +71,30 @@ jobs:
         run: ./testing/verify-config.sh
         shell: bash
 
-      - name: Set up Helm
-        uses: azure/setup-helm@v4
+  test-kubernetes:
+    name: Run container tests
+    uses: ./.github/workflows/call-test-containers-k8s.yaml
+    needs:
+      - get-meta
+      - test-container-config
+    with:
+      kind-version: ${{ matrix.kind-version }}
+      image: ${{ inputs.image }}
+      image-tag: ${{ inputs.image-tag }}
+      ref: ${{ inputs.ref }}
+    secrets:
+      github-token: ${{ secrets.github-token }}
+    strategy:
+      matrix:
+        kind-version: ${{ fromJson(needs.get-meta.outputs.kind-versions) }}
 
-      - name: Set up Kubectl
-        uses: azure/setup-kubectl@v4
-
-      - name: Create k8s Kind Cluster
-        uses: helm/kind-action@v1
-        with:
-          install_only: true
-          version: v0.30.0
-
-      - name: Run test
-        run: ./testing/run-k8s-tests.sh
-        shell: bash
-
-      # Debugging steps to run if something goes wrong
-      - name: Debug - List all pods
-        if: always()
-        run: kubectl get pods -A
-        shell: bash
-
-      - name: Debug - Describe pods
-        if: always()
-        run: kubectl describe pods -n "$NAMESPACE"
-        shell: bash
-
-      - name: Debug - Get logs from pods
-        if: always()
-        run: |
-          for pod in $(kubectl get pods -n "$NAMESPACE" -o jsonpath='{.items[*].metadata.name}'); do
-            echo "Logs from pod: $pod"
-            kubectl logs $pod -n "$NAMESPACE" || echo "No logs available for pod: $pod"
-            echo "-----------------------------------"
-          done
+  test-complete:
+    name: All container tests complete
+    runs-on: ubuntu-latest
+    needs:
+      - test-kubernetes
+      - test-container-config
+    steps:
+      - name: All tests passed
+        run: echo "All tests passed for ${{ inputs.image }}:${{ inputs.image-tag }}"
         shell: bash

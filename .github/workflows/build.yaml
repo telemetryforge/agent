@@ -29,7 +29,6 @@ jobs:
       build-type: ${{ steps.set-build-type.outputs.build-type }}
       date: ${{ steps.set-meta.outputs.date }}
       linux-targets: ${{ steps.set-meta.outputs.linux-targets }}
-      kind-versions: ${{ steps.set-meta.outputs.kind-versions }}
       version: ${{ steps.set-version.outputs.version }}
       oss-version: ${{ steps.set-oss-version.outputs.oss-version }}
     steps:
@@ -73,21 +72,6 @@ jobs:
           echo "Using version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
         shell: bash
-
-      - name: Extract the configuration from the JSON file
-        # Read from the file and remove newline characters: https://stackoverflow.com/a/64627966
-        id: set-meta
-        run: |
-          LINUX_TARGETS=$(cat "$JSON_FILE_NAME"|jq -c .linux_targets )
-          echo "linux-targets=$LINUX_TARGETS"
-          echo "linux-targets=$LINUX_TARGETS" >> $GITHUB_OUTPUT
-
-          KIND_VERSIONS=$(cat "$JSON_FILE_NAME"|jq -c .kind_versions )
-          echo "kind-versions=$KIND_VERSIONS"
-          echo "kind-versions=$KIND_VERSIONS" >> $GITHUB_OUTPUT
-        shell: bash
-        env:
-          JSON_FILE_NAME: build-config.json
 
       - name: Get the OSS version
         # Read from the file and remove newline characters: https://stackoverflow.com/a/64627966
@@ -183,31 +167,20 @@ jobs:
           DEST_CREDS: ${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}
         shell: bash
 
-  test_kubernetes:
-    # Only run Kubernetes tests if we are not a pull request or have a label set
-    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'run-integration-tests') }}
+  test-containers:
+    name: Test container images
     uses: ./.github/workflows/call-test-containers.yaml
     with:
-      kind-version: ${{ matrix.kind-version }}
       image: ${{ matrix.image-base }}
       image-tag: ${{ needs.build-image.outputs.version }}
       ref: ${{ github.ref }}
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
     needs:
-      - get-meta
       - build-image
     permissions:
       packages: read
       contents: read
-    strategy:
-      # We want all tests to complete in case it is an issue just on one version.
-      fail-fast: false
-      matrix:
-        kind-version: ${{ fromJson(needs.get-meta.outputs.kind-versions) }}
-        image-base:
-          - "ghcr.io/fluentdo/agent/ubi"
-          - "ghcr.io/fluentdo/agent/debian"
 
   build-linux:
     # Only build Linux packages if we are not a pull request or have a label set
