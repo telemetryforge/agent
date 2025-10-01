@@ -39,7 +39,7 @@ jobs:
       - name: Extract the configuration from the JSON file
         id: set-meta
         run: |
-          KIND_VERSIONS=$(cat "$JSON_FILE_NAME"|jq -c .kind_versions )
+          KIND_VERSIONS=$(cat "$JSON_FILE_NAME" | jq -c .kind_versions )
           echo "kind-versions=$KIND_VERSIONS"
           echo "kind-versions=$KIND_VERSIONS" >> $GITHUB_OUTPUT
         shell: bash

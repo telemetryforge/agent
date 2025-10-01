@@ -111,7 +111,7 @@ kubectl port-forward -n "$NAMESPACE" service/fluent-agent-fluent-bit 2020:2020 &
 PORT_FORWARD_PID=$!
 sleep 5
 METRICS=$(curl -s http://localhost:2020/api/v2/metrics/prometheus)
-kill $PORT_FORWARD_PID
+kill $PORT_FORWARD_PID || true
 
 # For debugging purposes
 echo "DEBUG: $METRICS"
