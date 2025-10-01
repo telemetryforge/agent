@@ -210,6 +210,19 @@ jobs:
       target-matrix: ${{ needs.get-meta.outputs.linux-targets }}
       nightly-build-info: ${{ needs.get-meta.outputs.date }}
 
+
+  # Placeholder to make it simple to create a status check on this, do not change name
+  tests-complete:
+    name: All tests complete
+    needs:
+      - test-containers
+      # Add additional jobs here as required that must complete
+    runs-on: ubuntu-latest
+    steps:
+      - name: All tests complete
+        run: echo "All tests complete"
+        shell: bash
+
   # runs for every commit except only versioned releases are pushed. this allows dry running the job for every PR and
   # allows dependent downstream jobs to dry run as well.
   release:
