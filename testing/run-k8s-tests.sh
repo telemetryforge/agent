@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euxo pipefail
+set -euo pipefail
 
 # This does not work with a symlink to this script
 # SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -25,13 +25,13 @@ KIND_NODE_IMAGE=${KIND_NODE_IMAGE:-kindest/node:$KIND_VERSION}
 
 CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
 
-echo "Using container image: $CONTAINER_IMAGE"
-echo "Using namespace: $NAMESPACE"
-echo "Using KIND cluster name: $KIND_CLUSTER_NAME"
-echo "Using KIND node image: $KIND_NODE_IMAGE"
+echo "INFO: Using container image: $CONTAINER_IMAGE"
+echo "INFO: Using namespace: $NAMESPACE"
+echo "INFO: Using KIND cluster name: $KIND_CLUSTER_NAME"
+echo "INFO: Using KIND node image: $KIND_NODE_IMAGE"
 
 function cleanup() {
-  echo "Cleaning up"
+  echo "INFO: Cleaning up"
   kind delete cluster --name "$KIND_CLUSTER_NAME" || true
 }
 
@@ -42,7 +42,7 @@ if ! "$CONTAINER_RUNTIME" pull "$CONTAINER_IMAGE"; then
 	echo "ERROR: Image does not exist"
 	exit 1
 else
-	echo "Image exists"
+	echo "INFO: Image exists"
 fi
 
 if ! command -v kubectl &> /dev/null ; then
@@ -58,26 +58,26 @@ if ! command -v kind &> /dev/null ; then
 	exit 1
 fi
 
-echo "Validating configuration file"
+echo "INFO: Validating configuration file"
 "$CONTAINER_RUNTIME" run --rm -t \
 	-v "$SCRIPT_DIR/../config":/fluent-bit/etc:ro \
 	"$CONTAINER_IMAGE" \
 	/fluent-bit/bin/fluent-bit -c /fluent-bit/etc/fluent-bit.yaml --dry-run
-echo "Configuration is valid"
+echo "INFO: Configuration is valid"
 
-echo "Creating KIND cluster"
+echo "INFO: Creating KIND cluster"
 kind create cluster --name "$KIND_CLUSTER_NAME" --image "$KIND_NODE_IMAGE" --wait 120s
 
-echo "Loading image into KIND"
+echo "INFO: Loading image into KIND"
 kind load docker-image "$CONTAINER_IMAGE" --name "$KIND_CLUSTER_NAME"
 
-echo "Creating namespace $NAMESPACE"
+echo "INFO: Creating namespace $NAMESPACE"
 kubectl create namespace "$NAMESPACE" || echo "Namespace $NAMESPACE already exists"
 
-echo "Setting kubectl context to use the new namespace"
+echo "INFO: Setting kubectl context to use the new namespace"
 kubectl config set-context --current --namespace="$NAMESPACE"
 
-echo "Deploying Fluent Bit using Helm"
+echo "INFO: Deploying Fluent Bit using Helm"
 helm repo add fluent https://fluent.github.io/helm-charts --force-update
 helm repo update --fail-on-repo-update-fail
 
@@ -98,14 +98,23 @@ helm upgrade --install fluent-agent fluent/fluent-bit \
 	--set securityContext.runAsUser=0 \
 	--namespace "$NAMESPACE" --create-namespace --wait
 
-echo "Wait 30s for metrics to be generated"
+echo "INFO: Wait 30s for metrics to be generated"
 sleep 30
 
-echo "Check metrics on plugins are non-zero"
+echo "INFO: Check metrics on plugins are non-zero"
 
-METRICS=$(kubectl exec -t -n "$NAMESPACE" ds/fluent-agent-fluent-bit -- curl -s http://localhost:2020/api/v2/metrics/prometheus)
+# We cannot use kubectl exec here as the image may not have a shell
+#METRICS=$(kubectl exec -t -n "$NAMESPACE" ds/fluent-agent-fluent-bit -- curl -s http://localhost:2020/api/v2/metrics/prometheus)
+
+# Instead we scrape the metrics endpoint from outside the pod
+kubectl port-forward -n "$NAMESPACE" service/fluent-agent-fluent-bit 2020:2020 &
+PORT_FORWARD_PID=$!
+sleep 5
+METRICS=$(curl -s http://localhost:2020/api/v2/metrics/prometheus)
+kill $PORT_FORWARD_PID
+
 # For debugging purposes
-echo "$METRICS"
+echo "DEBUG: $METRICS"
 
 # Check for a standalone zero value for the metrics we expect to be non-zero
 # We have to do it this way as the metrics output is not stable in order or spacing
@@ -118,6 +127,6 @@ if ! echo "$METRICS" | grep 'fluentbit_output_proc_records_total{name="output_st
 	echo "ERROR: No records sent to output"
 	exit 1
 fi
-echo "Metrics check passed"
+echo "INFO: Metrics check passed"
 
-echo "Test completed successfully"
+echo "INFO: Test completed successfully"
