@@ -73,6 +73,17 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
         shell: bash
 
+      - name: Extract the configuration from the JSON file
+        # Read from the file and remove newline characters: https://stackoverflow.com/a/64627966
+        id: set-meta
+        run: |
+          LINUX_TARGETS=$(cat "$JSON_FILE_NAME"|jq -c .linux_targets )
+          echo "linux-targets=$LINUX_TARGETS"
+          echo "linux-targets=$LINUX_TARGETS" >> $GITHUB_OUTPUT
+        shell: bash
+        env:
+          JSON_FILE_NAME: build-config.json
+
       - name: Get the OSS version
         # Read from the file and remove newline characters: https://stackoverflow.com/a/64627966
         id: set-oss-version
@@ -181,6 +192,12 @@ jobs:
     permissions:
       packages: read
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        image-base:
+          - "ghcr.io/fluentdo/agent/ubi"
+          - "ghcr.io/fluentdo/agent/debian"
 
   build-linux:
     # Only build Linux packages if we are not a pull request or have a label set

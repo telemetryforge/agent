@@ -46,12 +46,8 @@ jobs:
     needs:
       - get-meta
     with:
-      kind-version: ${{ matrix.kind-version }}
       image: ${{ github.event.inputs.image }}
       image-tag: ${{ github.event.inputs.image-tag }}
       ref: ${{ github.event.inputs.ref }}
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
-    strategy:
-      matrix:
-        kind-version: ${{ fromJson(needs.get-meta.outputs.kind-versions) }}

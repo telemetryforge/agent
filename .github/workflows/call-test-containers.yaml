@@ -72,11 +72,10 @@ jobs:
         shell: bash
 
   test-kubernetes:
-    name: Run container tests
+    name: Run container tests for ${{ inputs.image }}:${{ inputs.image-tag }} on K8S version ${{ matrix.kind-version }}
     uses: ./.github/workflows/call-test-containers-k8s.yaml
     needs:
       - get-meta
-      - test-container-config
     with:
       kind-version: ${{ matrix.kind-version }}
       image: ${{ inputs.image }}
