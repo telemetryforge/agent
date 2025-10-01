@@ -29,9 +29,10 @@ function check_help_output() {
 	do
 		if echo "$output" | grep -q "$disabledFeature"; then
 			echo "ERROR: $disabledFeature support is enabled but should be disabled"
-			echo "Output was: $output"
+			echo "ERROR: Output was: $output"
 			exit 1
 		fi
+		echo "INFO: $disabledFeature support is correctly disabled"
 	done
 
 	for requiredFeature in \
@@ -42,12 +43,13 @@ function check_help_output() {
 	do
 		if ! echo "$output" | grep -q "$requiredFeature"; then
 			echo "ERROR: $requiredFeature support is missing but should be enabled"
-			echo "Output was: $output"
+			echo "ERROR: Output was: $output"
 			exit 1
 		fi
+		echo "INFO: $requiredFeature support is correctly enabled"
 	done
 
-	echo "Help output checks passed"
+	echo "INFO: Help output checks passed"
 }
 
 # Specify IMAGE to use a container image
@@ -58,19 +60,19 @@ if [[ -n "$IMAGE" ]]; then
 	IMAGE_TAG=${IMAGE_TAG:?"IMAGE_TAG is not set"}
 
 	CONTAINER_IMAGE="${IMAGE}:${IMAGE_TAG}"
-	echo "Using image: $CONTAINER_IMAGE"
+	echo "INFO: Using image: $CONTAINER_IMAGE"
 	CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
-	echo "Using container runtime: $CONTAINER_RUNTIME"
+	echo "INFO: Using container runtime: $CONTAINER_RUNTIME"
 
 	if ! "$CONTAINER_RUNTIME" pull "$CONTAINER_IMAGE"; then
 		echo "ERROR: Image does not exist"
 		exit 1
 	else
-		echo "Image exists"
+		echo "INFO: Image exists"
 	fi
-	check_help_output "$CONTAINER_RUNTIME run --rm -t \"$CONTAINER_IMAGE\""
+	check_help_output "$CONTAINER_RUNTIME run --rm -t $CONTAINER_IMAGE"
 elif [[ -x "${FLUENT_BIT_BINARY:-/fluent-bit/bin/fluent-bit}" ]]; then
-  echo "Testing binary: $FLUENT_BIT_BINARY"
+  echo "INFO: Testing binary: $FLUENT_BIT_BINARY"
   check_help_output "$FLUENT_BIT_BINARY"
 else
   echo "ERROR: No image or binary to test"
