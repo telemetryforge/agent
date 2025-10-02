@@ -3,18 +3,15 @@ name: Build Windows packages
 on:
   workflow_call:
     inputs:
-      version:
-        description: The version of Fluent Bit to create.
-        type: string
-        required: true
       ref:
         description: The commit, tag or branch of Fluent Bit to checkout for building that creates the version above.
         type: string
         required: true
-    secrets:
-      token:
-        description: The Github token or similar to authenticate with.
-        required: true
+      nightly-build-info:
+        description: Any special information to add to the nightly build information string.
+        required: false
+        type: string
+        default: ""
 jobs:
 
   call-build-windows-package:
@@ -61,6 +58,12 @@ jobs:
         uses: crazy-max/ghaction-chocolatey@v3
         with:
           args: install gzip nsis -y
+
+      - name: Get Date
+        id: get-date
+        run: |
+          echo "date=$(/bin/date -u "+%Y%m%d")" >> $GITHUB_OUTPUT
+        shell: bash
 
       - name: Restore cached packages of vcpkg
         id: cache-vcpkg-sources

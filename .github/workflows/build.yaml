@@ -218,7 +218,6 @@ jobs:
       - get-meta
     with:
       ref: ${{ github.ref }}
-      target-matrix: ${{ needs.get-meta.outputs.linux-targets }}
       nightly-build-info: ${{ needs.get-meta.outputs.date }}
 
   # Placeholder to make it simple to create a status check on this, do not change name
