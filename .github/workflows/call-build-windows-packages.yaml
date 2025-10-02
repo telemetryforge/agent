@@ -14,7 +14,7 @@ on:
         default: ""
 jobs:
   call-build-windows-package:
-    runs-on: windows-latest
+    runs-on: namespace-profile-windows-2022
     strategy:
       fail-fast: false
       matrix:
@@ -29,6 +29,8 @@ jobs:
     # Default environment variables can be overridden below. To prevent library pollution - without this other random libraries may be found on the path leading to failures.
     env:
       PATH: C:\ProgramData\Chocolatey\bin;c:/Program Files/Git/cmd;c:/Windows/system32;C:/Windows/System32/WindowsPowerShell/v1.0;$ENV:WIX/bin;C:/Program Files/CMake/bin;C:\vcpkg;
+      VCPKG_BUILD_TYPE: release `
+      VCPKG_LIBRARY_LINKAGE: static
     steps:
       - name: Checkout vcpkg to set up
         if: contains(runner.name, 'namespace-')
@@ -162,26 +164,12 @@ jobs:
           cpack
         working-directory: source/build
 
-      - name: Debug
-        if: failure()
-        run: |
-          cat source/build/_CPack_Packages/win64/NSIS/PreinstallOutput.log
-        shell: bash
-
-      - name: Debug SSH
-        if: failure()
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 5
-        with:
-          limit-access-to-actor: true
-
-
       - name: Upload build packages
         uses: actions/upload-artifact@v4
         with:
           name: package-windows-${{ matrix.config.arch }}
           path: |
-            source/build/*-bit-*.exe
-            source/build/*-bit-*.msi
-            source/build/*-bit-*.zip
+            source/build/fluent-do-agent-*.exe
+            source/build/fluent-do-agent-*.msi
+            source/build/fluent-do-agent-*.zip
           if-no-files-found: error
