@@ -201,7 +201,7 @@ jobs:
 
   build-linux:
     # Only build Linux packages if we are not a pull request or have a label set
-    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'build-packages') || contains(github.event.pull_request.labels.*.name, 'build-linux')}}
+    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'build-packages') || contains(github.event.pull_request.labels.*.name, 'build-linux') }}
     uses: ./.github/workflows/call-build-linux-packages.yaml
     needs:
       - get-meta
@@ -211,7 +211,7 @@ jobs:
       nightly-build-info: ${{ needs.get-meta.outputs.date }}
 
   build-windows:
-    # Only build Linux packages if we are not a pull request or have a label set
+    # Only build Windows packages if we are not a pull request or have a label set
     if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'build-packages') || contains(github.event.pull_request.labels.*.name, 'build-windows') }}
     uses: ./.github/workflows/call-build-windows-packages.yaml
     needs:

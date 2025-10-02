@@ -29,7 +29,7 @@ jobs:
     # Default environment variables can be overridden below. To prevent library pollution - without this other random libraries may be found on the path leading to failures.
     env:
       PATH: C:\ProgramData\Chocolatey\bin;c:/Program Files/Git/cmd;c:/Windows/system32;C:/Windows/System32/WindowsPowerShell/v1.0;$ENV:WIX/bin;C:/Program Files/CMake/bin;C:\vcpkg;
-      VCPKG_BUILD_TYPE: release `
+      VCPKG_BUILD_TYPE: release
       VCPKG_LIBRARY_LINKAGE: static
     steps:
       - name: Checkout vcpkg to set up
@@ -108,6 +108,11 @@ jobs:
           C:\vcpkg\vcpkg install --recurse libyaml --triplet ${{ matrix.config.vcpkg_triplet }}
         shell: cmd
 
+      - name: Build libgit2 with vcpkg
+        run: |
+          C:\vcpkg\vcpkg install --recurse libgit2 --triplet ${{ matrix.config.vcpkg_triplet }}
+        shell: cmd
+
       - name: Upgrade any outdated vcpkg packages
         run: |
           C:\vcpkg\vcpkg upgrade --no-dry-run
@@ -129,6 +134,8 @@ jobs:
             -DOPENSSL_ROOT_DIR='C:\vcpkg\installed\${{ matrix.config.vcpkg_triplet }}' `
             ${{ matrix.config.cmake_additional_opt }} `
             -DFLB_LIBYAML_DIR='C:\vcpkg\installed\${{ matrix.config.vcpkg_triplet }}' `
+            -DLIBGIT2_INCLUDE_DIR='C:\vcpkg\installed\libgit2_${{ matrix.config.vcpkg_triplet }}\include' `
+            -DLIBGIT2_LIBRARY='C:\vcpkg\installed\libgit2_${{ matrix.config.vcpkg_triplet }}\git2.lib' `
             -DFLB_IN_CALYPTIA_FLEET=Off `
             -DFLB_IN_DOCKER=Off `
             -DFLB_IN_DOCKER_EVENTS=Off `
