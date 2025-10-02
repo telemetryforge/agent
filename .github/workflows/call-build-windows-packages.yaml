@@ -14,7 +14,7 @@ on:
         default: ""
 jobs:
   call-build-windows-package:
-    runs-on: namespace-profile-windows-server-2022
+    runs-on: windows-2025
     strategy:
       fail-fast: false
       matrix:
@@ -32,18 +32,6 @@ jobs:
       VCPKG_BUILD_TYPE: release
       VCPKG_LIBRARY_LINKAGE: static
     steps:
-      - name: Checkout vcpkg to set up
-        uses: actions/checkout@v5
-        with:
-          repository: microsoft/vcpkg
-          path: c:\vcpkg
-
-      - name: Bootstrap vcpkg
-        run: |
-          .\bootstrap-vcpkg.bat -disableMetrics
-        shell: cmd
-        working-directory: c:\vcpkg
-
       - name: Checkout ${{ inputs.ref }} code
         uses: actions/checkout@v5
         with:
