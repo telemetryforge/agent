@@ -201,7 +201,7 @@ jobs:
 
   build-linux:
     # Only build Linux packages if we are not a pull request or have a label set
-    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'build-packages') }}
+    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'build-packages') || contains(github.event.pull_request.labels.*.name, 'build-linux')}}
     uses: ./.github/workflows/call-build-linux-packages.yaml
     needs:
       - get-meta
@@ -210,6 +210,16 @@ jobs:
       target-matrix: ${{ needs.get-meta.outputs.linux-targets }}
       nightly-build-info: ${{ needs.get-meta.outputs.date }}
 
+  build-windows:
+    # Only build Linux packages if we are not a pull request or have a label set
+    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'build-packages') || contains(github.event.pull_request.labels.*.name, 'build-windows') }}
+    uses: ./.github/workflows/call-build-windows-packages.yaml
+    needs:
+      - get-meta
+    with:
+      ref: ${{ github.ref }}
+      target-matrix: ${{ needs.get-meta.outputs.linux-targets }}
+      nightly-build-info: ${{ needs.get-meta.outputs.date }}
 
   # Placeholder to make it simple to create a status check on this, do not change name
   tests-complete:
@@ -231,6 +241,10 @@ jobs:
       - get-meta
       - build-image
       - build-linux
+      - build-windows
+      # Deliberately exclude the following for a release and also to dry run PRs
+      # - copy-common-images
+      # - tests-complete
     runs-on: ubuntu-latest
     permissions:
       packages: read
@@ -244,13 +258,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Log in to the Container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Download all artefacts
         uses: actions/download-artifact@v5
         with:
@@ -262,6 +269,13 @@ jobs:
         run: |
           tar -czvf $GITHUB_WORKSPACE/deliverables.tar.gz -C output .
         shell: bash
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: anchore/sbom-action@v0
         with:
@@ -300,10 +314,11 @@ jobs:
       - name: Construct release info
         # Add target info and OSS version to new JSON file
         run: |
-          jq '. += { "oss_version": "${{ needs.get-meta.outputs.oss-version }}"}' build-config.json > output/release.json
+          jq '. += { "oss_version": "${{ needs.get-meta.outputs.oss-version }}"}' build-config.json | tee output/release.json
         shell: bash
 
       - name: Debug
+        if: always()
         run: ls -lR
         shell: bash
 

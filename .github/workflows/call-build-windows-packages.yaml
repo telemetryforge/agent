@@ -1,0 +1,115 @@
+---
+name: Build Windows packages
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: The version of Fluent Bit to create.
+        type: string
+        required: true
+      ref:
+        description: The commit, tag or branch of Fluent Bit to checkout for building that creates the version above.
+        type: string
+        required: true
+    secrets:
+      token:
+        description: The Github token or similar to authenticate with.
+        required: true
+jobs:
+
+  call-build-windows-package:
+    runs-on: namespace-profile-windows-server-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - name: "Windows 64bit"
+            arch: x64
+            cmake_additional_opt: ""
+            vcpkg_triplet: x64-windows-static
+            cmake_version: "3.31.6"
+    permissions:
+      contents: read
+    # Default environment variables can be overridden below. To prevent library pollution - without this other random libraries may be found on the path leading to failures.
+    env:
+      PATH: C:\ProgramData\Chocolatey\bin;c:/Program Files/Git/cmd;c:/Windows/system32;C:/Windows/System32/WindowsPowerShell/v1.0;$ENV:WIX/bin;C:/Program Files/CMake/bin;C:\vcpkg;
+    steps:
+      - name: Checkout ${{ inputs.ref }} code
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+          repository: FluentDo/agent
+
+      - name: Get dependencies
+        run: |
+          Invoke-WebRequest -OutFile winflexbison.zip $env:WINFLEXBISON
+          Expand-Archive winflexbison.zip -Destination C:\WinFlexBison
+          Copy-Item -Path C:\WinFlexBison/win_bison.exe C:\WinFlexBison/bison.exe
+          Copy-Item -Path C:\WinFlexBison/win_flex.exe C:\WinFlexBison/flex.exe
+          echo "C:\WinFlexBison" | Out-File -FilePath $env:GITHUB_PATH -Append
+          choco install cmake --version "${{ matrix.config.cmake_version }}" --force
+        env:
+          WINFLEXBISON: https://github.com/lexxmark/winflexbison/releases/download/v2.5.22/win_flex_bison-2.5.22.zip
+        shell: pwsh
+
+      - name: Set up with Developer Command Prompt for Microsoft Visual C++
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.config.arch }}
+
+      - name: Get gzip command and nsis w/ chocolatey
+        uses: crazy-max/ghaction-chocolatey@v3
+        with:
+          args: install gzip nsis -y
+
+      - name: Restore cached packages of vcpkg
+        id: cache-vcpkg-sources
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            C:\vcpkg\installed
+          key: ${{ runner.os }}-${{ matrix.config.arch }}-vcpkg-installed-${{ steps.get-date.outputs.date }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.config.arch }}-vcpkg-installed-
+          enableCrossOsArchive: false
+
+      - name: Build openssl with vcpkg
+        run: |
+          C:\vcpkg\vcpkg install --recurse openssl --triplet ${{ matrix.config.vcpkg_triplet }}
+        shell: cmd
+
+      - name: Build libyaml with vcpkg
+        run: |
+          C:\vcpkg\vcpkg install --recurse libyaml --triplet ${{ matrix.config.vcpkg_triplet }}
+        shell: cmd
+
+      - name: Upgrade any outdated vcpkg packages
+        run: |
+          C:\vcpkg\vcpkg upgrade --no-dry-run
+        shell: cmd
+
+      - name: Save packages of vcpkg
+        id: save-vcpkg-sources
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            C:\vcpkg\installed
+          key: ${{ steps.cache-vcpkg-sources.outputs.cache-primary-key }}
+          enableCrossOsArchive: false
+
+      - name: Build Fluent Bit packages
+        run: |
+          cmake -G "NMake Makefiles" -DOPENSSL_ROOT_DIR='C:\vcpkg\installed\${{ matrix.config.vcpkg_triplet }}' ${{ matrix.config.cmake_additional_opt }} -DFLB_LIBYAML_DIR='C:\vcpkg\installed\${{ matrix.config.vcpkg_triplet }}' ../
+          cmake --build .
+          cpack
+        working-directory: build
+
+      - name: Upload build packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-windows-${{ matrix.config.arch }}
+          path: |
+            build/*-bit-*.exe
+            build/*-bit-*.msi
+            build/*-bit-*.zip
+          if-no-files-found: error
