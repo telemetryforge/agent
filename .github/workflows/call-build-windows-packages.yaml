@@ -147,6 +147,12 @@ jobs:
           cpack
         working-directory: source/build
 
+      - name: Debug
+        if: failure()
+        run: |
+          cat source/build/_CPack_Packages/win64/NSIS/PreinstallOutput.log
+        shell: bash
+
       - name: Debug SSH
         if: failure()
         uses: mxschmitt/action-tmate@v3
