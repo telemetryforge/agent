@@ -112,35 +112,6 @@ jobs:
             -DOPENSSL_ROOT_DIR='C:\vcpkg\installed\${{ matrix.config.vcpkg_triplet }}' `
             ${{ matrix.config.cmake_additional_opt }} `
             -DFLB_LIBYAML_DIR='C:\vcpkg\installed\${{ matrix.config.vcpkg_triplet }}' `
-            -DFLB_IN_CALYPTIA_FLEET=Off `
-            -DFLB_IN_DOCKER=Off `
-            -DFLB_IN_DOCKER_EVENTS=Off `
-            -DFLB_IN_EXEC_WASI=Off `
-            -DFLB_IN_MQTT=Off `
-            -DFLB_IN_NETIF=Off `
-            -DFLB_IN_NGINX_EXPORTER_METRICS=Off `
-            -DFLB_IN_SERIAL=Off `
-            -DFLB_IN_THERMAL=Off `
-            -DFLB_FILTER_ALTER_SIZE=Off `
-            -DFLB_FILTER_CHECKLIST=Off `
-            -DFLB_FILTER_GEOIP2=Off `
-            -DFLB_FILTER_NIGHTFALL=Off `
-            -DFLB_FILTER_WASM=Off `
-            -DFLB_OUT_CALYPTIA=Off `
-            -DFLB_OUT_LOGDNA=Off `
-            -DFLB_OUT_PGSQL=Off `
-            -DFLB_OUT_TD=Off `
-            -DFLB_OUT_VIVO_EXPORTER=Off `
-            -DFLB_STREAM_PROCESSOR=Off `
-            -DFLB_WASM=Off `
-            -DFLB_ZIG=Off `
-            -DFLB_PROXY_GO=Off `
-            -DFLB_SHARED_LIB=Off `
-            -DFLB_EXAMPLES=Off `
-            -DFLB_RELEASE=On `
-            -DFLB_SIMD=On `
-            -DFLB_TRACE=Off `
-            -DFLB_CHUNK_TRACE=Off `
             -DFLB_PROCESSOR_DEDUP=Off `
             ../
           cmake --build .
