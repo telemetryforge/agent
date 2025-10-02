@@ -135,8 +135,8 @@ jobs:
             -DFLB_PROXY_GO=Off `
             -DFLB_SHARED_LIB=Off `
             -DFLB_EXAMPLES=Off `
-            -DFLB_RELEASE=On
-            -DFLB_SIMD=On
+            -DFLB_RELEASE=On `
+            -DFLB_SIMD=On `
             -DFLB_TRACE=Off `
             -DFLB_CHUNK_TRACE=Off `
             -DFLB_PROCESSOR_DEDUPE=Off `
