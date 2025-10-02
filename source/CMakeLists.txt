@@ -1160,6 +1160,9 @@ if(FLB_REGEX)
   endif()
   add_subdirectory(${FLB_PATH_LIB_ONIGMO} EXCLUDE_FROM_ALL)
   target_include_directories(onigmo-static INTERFACE ${FLB_PATH_ROOT_SOURCE}/${FLB_PATH_LIB_ONIGMO})
+
+  # Required to prevent missing headers
+  include_directories(${FLB_PATH_LIB_ONIGMO})
 endif()
 
 # tutf8e (UTF8 Encoding)

@@ -30,6 +30,20 @@ jobs:
     env:
       PATH: C:\ProgramData\Chocolatey\bin;c:/Program Files/Git/cmd;c:/Windows/system32;C:/Windows/System32/WindowsPowerShell/v1.0;$ENV:WIX/bin;C:/Program Files/CMake/bin;C:\vcpkg;
     steps:
+      - name: Checkout vcpkg to set up
+        if: contains(runner.name, 'namespace-')
+        uses: actions/checkout@v5
+        with:
+          repository: microsoft/vcpkg
+          path: c:\vcpkg
+
+      - name: Bootstrap vcpkg
+        if: contains(runner.name, 'namespace-')
+        run: |
+          .\bootstrap-vcpkg.bat -disableMetrics
+        shell: cmd
+        working-directory: c:\vcpkg
+
       - name: Checkout ${{ inputs.ref }} code
         uses: actions/checkout@v5
         with:
@@ -109,6 +123,7 @@ jobs:
       - name: Build hardened Fluent Bit packages
         run: |
           cmake -G "NMake Makefiles" `
+            -DCMAKE_VERBOSE_MAKEFILE=On `
             -DOPENSSL_ROOT_DIR='C:\vcpkg\installed\${{ matrix.config.vcpkg_triplet }}' `
             ${{ matrix.config.cmake_additional_opt }} `
             -DFLB_LIBYAML_DIR='C:\vcpkg\installed\${{ matrix.config.vcpkg_triplet }}' `
