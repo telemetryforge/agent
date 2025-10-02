@@ -15,7 +15,7 @@ on:
 jobs:
 
   call-build-windows-package:
-    runs-on: namespace-profile-windows-server-2022
+    runs-on: windows-2022
     strategy:
       fail-fast: false
       matrix:
@@ -31,22 +31,6 @@ jobs:
     env:
       PATH: C:\ProgramData\Chocolatey\bin;c:/Program Files/Git/cmd;c:/Windows/system32;C:/Windows/System32/WindowsPowerShell/v1.0;$ENV:WIX/bin;C:/Program Files/CMake/bin;C:\vcpkg;
     steps:
-      - name: Install chocolatey
-        run: |
-          Invoke-WebRequest -OutFile Install-Chocolatey.ps1 https://github.com/actions/runner-images/raw/refs/heads/main/images/windows/scripts/build/Install-Chocolatey.ps1
-          Invoke-Expression -Command .\Install-Chocolatey.ps1
-        shell: pwsh
-
-
-      - name: Install VS studio and other runner tools
-        run: |
-          choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --includeOptional --quiet --norestart" -y
-          choco install git -y
-          choco install vcpkg -y
-          refreshenv
-          printenv
-        shell: pwsh
-
       - name: Checkout ${{ inputs.ref }} code
         uses: actions/checkout@v5
         with:
