@@ -49,6 +49,8 @@ jobs:
         shell: pwsh
 
       - name: Set up with Developer Command Prompt for Microsoft Visual C++
+        # Note this messes with VCPKG_ROOT incorrectly hence the use of explicit pathing to vcpkg later
+        # https://github.com/actions/runner-images/issues/9269#issuecomment-1921607066
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.config.arch }}
@@ -139,11 +141,12 @@ jobs:
             -DFLB_SIMD=On `
             -DFLB_TRACE=Off `
             -DFLB_CHUNK_TRACE=Off `
-            -DFLB_PROCESSOR_DEDUPE=Off `
+            -DFLB_PROCESSOR_DEDUP=Off `
             ../
           cmake --build .
           cpack
         working-directory: source/build
+
       - name: Upload build packages
         uses: actions/upload-artifact@v4
         with:
