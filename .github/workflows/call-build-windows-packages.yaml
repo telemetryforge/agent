@@ -33,14 +33,12 @@ jobs:
       VCPKG_LIBRARY_LINKAGE: static
     steps:
       - name: Checkout vcpkg to set up
-        if: contains(runner.name, 'namespace-')
         uses: actions/checkout@v5
         with:
           repository: microsoft/vcpkg
           path: c:\vcpkg
 
       - name: Bootstrap vcpkg
-        if: contains(runner.name, 'namespace-')
         run: |
           .\bootstrap-vcpkg.bat -disableMetrics
         shell: cmd
