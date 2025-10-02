@@ -13,7 +13,6 @@ on:
         type: string
         default: ""
 jobs:
-
   call-build-windows-package:
     runs-on: windows-2022
     strategy:
@@ -65,6 +64,11 @@ jobs:
           echo "date=$(/bin/date -u "+%Y%m%d")" >> $GITHUB_OUTPUT
         shell: bash
 
+      - name: Ensure we have the build directory
+        run: |
+          mkdir source\build
+        shell: cmd
+
       - name: Restore cached packages of vcpkg
         id: cache-vcpkg-sources
         uses: actions/cache/restore@v4
@@ -105,14 +109,14 @@ jobs:
           cmake -G "NMake Makefiles" -DOPENSSL_ROOT_DIR='C:\vcpkg\installed\${{ matrix.config.vcpkg_triplet }}' ${{ matrix.config.cmake_additional_opt }} -DFLB_LIBYAML_DIR='C:\vcpkg\installed\${{ matrix.config.vcpkg_triplet }}' ../
           cmake --build .
           cpack
-        working-directory: build
+        working-directory: source/build
 
       - name: Upload build packages
         uses: actions/upload-artifact@v4
         with:
           name: package-windows-${{ matrix.config.arch }}
           path: |
-            build/*-bit-*.exe
-            build/*-bit-*.msi
-            build/*-bit-*.zip
+            source/build/*-bit-*.exe
+            source/build/*-bit-*.msi
+            source/build/*-bit-*.zip
           if-no-files-found: error
