@@ -161,7 +161,7 @@ jobs:
         with:
           name: package-windows-${{ matrix.config.arch }}
           path: |
-            source/build/fluent-do-agent-*.exe
-            source/build/fluent-do-agent-*.msi
-            source/build/fluent-do-agent-*.zip
+            source/build/fluentdo-agent-*.exe
+            source/build/fluentdo-agent-*.msi
+            source/build/fluentdo-agent-*.zip
           if-no-files-found: error
