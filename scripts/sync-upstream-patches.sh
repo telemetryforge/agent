@@ -177,7 +177,43 @@ setup_upstream() {
     fi
 
     log_info "Fetching versions from upstream..."
-    git fetch "$UPSTREAM_REMOTE" "$FROM_VERSION" "$TO_VERSION" --no-tags 2>/dev/null
+
+    # Detect if FROM_VERSION or TO_VERSION are commit SHAs (not refs)
+    # SHAs are 7-40 hex characters without 'v' prefix or 'refs/' prefix
+    local fetch_refs=()
+
+    if [[ "$FROM_VERSION" =~ ^[0-9a-f]{7,40}$ ]]; then
+        log_info "FROM_VERSION appears to be a commit SHA, fetching tags and branches..."
+    else
+        fetch_refs+=("$FROM_VERSION")
+    fi
+
+    if [[ "$TO_VERSION" =~ ^[0-9a-f]{7,40}$ ]]; then
+        log_info "TO_VERSION appears to be a commit SHA, fetching tags and branches..."
+    else
+        fetch_refs+=("$TO_VERSION")
+    fi
+
+    # If either version is a SHA, fetch the relevant branch (e.g., 4.0) to get all commits
+    if [[ "$FROM_VERSION" =~ ^[0-9a-f]{7,40}$ ]] || [[ "$TO_VERSION" =~ ^[0-9a-f]{7,40}$ ]]; then
+        # Try to infer branch from FROM_VERSION if it's a tag (e.g., v4.0.11 -> 4.0)
+        local branch=""
+        if [[ "$FROM_VERSION" =~ ^v([0-9]+\.[0-9]+) ]]; then
+            branch="${BASH_REMATCH[1]}"
+            log_info "Fetching branch $branch to include commit SHAs..."
+            fetch_refs+=("$branch")
+        else
+            # Fallback: fetch all tags to find the commits
+            log_info "Fetching all tags to locate commits..."
+            git fetch "$UPSTREAM_REMOTE" --tags 2>/dev/null || true
+        fi
+    fi
+
+    # Fetch the specific refs if any were identified
+    if [[ ${#fetch_refs[@]} -gt 0 ]]; then
+        git fetch "$UPSTREAM_REMOTE" "${fetch_refs[@]}" --no-tags 2>/dev/null || true
+    fi
+
     log_success "Fetched upstream versions"
 }
 
