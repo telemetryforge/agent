@@ -75,8 +75,12 @@
 ### Docker
 
 ```bash
-docker run -v /var/log:/var/log ghcr.io/fluentdo/agent:main
+docker run --rm -it -v /var/log/containers:/var/log/containers:ro ghcr.io/fluentdo/agent:main -c /fluent-bit/etc/fluent-bit.yaml
 ```
+
+Ensure any files mounted are readable via the container user ([`cat Dockerfile.ubi|grep USER`](./Dockerfile.ubi)).
+
+To specify a different configuration just mount it in as well and pass it on the command line to use.
 
 ### Package Installation
 
@@ -93,14 +97,38 @@ brew install fluentdo/tap/agent
 
 ### Building from Source
 
+To compile for a specific target, run the container-based build using the upstream [`source/packaging/build.sh`](./source/packaging/build.sh) script with the specified distribution you want to build for:
+
 ```bash
 git clone https://github.com/FluentDo/agent.git
 cd agent
-./scripts/setup-code.sh
+./source/packaging/build.sh -d rockylinux/9
+```
+
+To build the UBI or distroless containers:
+
+```bash
+git clone https://github.com/FluentDo/agent.git
+cd agent
+docker build -f Dockerfile.ubi .
+docker build -f Dockerfile.debian .
+```
+
+To compile natively (requires relevant dependencies installed):
+
+```bash
+git clone https://github.com/FluentDo/agent.git
+cd agent
 cd source/build
 cmake ..
 make
 ```
+
+Refer to the CI for full examples of different target builds:
+
+- [Container builds](./.github/workflows/call-build-containers.yaml)
+- [Linux builds](./.github/workflows/call-build-linux-packages.yaml)
+- [Windows builds](./.github/workflows/call-build-windows-packages.yaml)
 
 ---
 
