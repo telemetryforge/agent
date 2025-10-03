@@ -25,30 +25,6 @@
 #include <fluent-bit/flb_log_event_decoder.h>
 #include <fluent-bit/flb_log_event_encoder.h>
 
-#define IN_FW_OWNED_MEMBER(type, name) \
-    type name;                   \
-    int own_##name
-
-#define IN_FW_DESTROY_OWNED_MEMBER(cfg_ptr, member_name, destroy_func)        \
-    do {                                                                \
-        if ((cfg_ptr)->own_##member_name && (cfg_ptr)->member_name) {   \
-            destroy_func((cfg_ptr)->member_name);                       \
-        }                                                               \
-        (cfg_ptr)->member_name = NULL;                                  \
-        (cfg_ptr)->own_##member_name = 0;                               \
-    } while (0)
-
-#define IN_FW_SET_OWNED_NEW(cfg_ptr, member_name, create_func, destroy_func, on_err_stmt) \
-    do {                                                                \
-        void *__newp = (void *) create_func;                            \
-        if (!__newp) { on_err_stmt; }                                   \
-        if ((cfg_ptr)->own_##member_name && (cfg_ptr)->member_name) {   \
-            destroy_func((cfg_ptr)->member_name);                       \
-        }                                                               \
-        (cfg_ptr)->member_name = __newp;                                \
-        (cfg_ptr)->own_##member_name = 1;                               \
-    } while (0)
-
 enum {
     FW_HANDSHAKE_HELO        = 1,
     FW_HANDSHAKE_PINGPONG    = 2,
@@ -84,7 +60,7 @@ struct flb_in_fw_config {
     flb_sds_t unix_perm_str;        /* Permission (config map)     */
 
     /* secure forward */
-    IN_FW_OWNED_MEMBER(flb_sds_t, shared_key);  /* shared key      */
+    flb_sds_t shared_key;        /* shared key                   */
     flb_sds_t self_hostname;     /* hostname used in certificate  */
     struct mk_list users;        /* username and password pairs  */
     int empty_shared_key;        /* use an empty string as shared key */

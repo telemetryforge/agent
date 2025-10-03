@@ -87,13 +87,10 @@ struct flb_in_fw_config *fw_config_init(struct flb_input_instance *i_ins)
 
     /* Shared Key */
     if (config->empty_shared_key) {
-        IN_FW_SET_OWNED_NEW(config, shared_key,
-                            flb_sds_create(""),    /* create_func */
-                            flb_sds_destroy,       /* destroy_func */
-                            {
-                                flb_plg_error(i_ins, "empty shared_key alloc failed");
-                                return NULL;
-                            });
+        if (config->shared_key) {
+            flb_sds_destroy(config->shared_key);
+        }
+        config->shared_key = flb_sds_create("");
     }
 
     /* Self Hostname */
@@ -134,7 +131,7 @@ int fw_config_destroy(struct flb_in_fw_config *config)
         flb_free(config->tcp_port);
     }
 
-    IN_FW_DESTROY_OWNED_MEMBER(config, shared_key, flb_sds_destroy);
+    flb_sds_destroy(config->shared_key);
     flb_sds_destroy(config->self_hostname);
 
     flb_free(config);
