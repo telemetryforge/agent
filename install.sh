@@ -8,7 +8,7 @@ set -e
 RELEASE_VERSION=${FLUENTDO_AGENT_VERSION:-25.10.1}
 
 # Provided primarily to simplify testing for staging, etc.
-RELEASE_URL=${FLUENTDO_AGENT_PACKAGES_URL:-https://https://storage.googleapis.com/fluentdo-agent-releases}
+RELEASE_URL=${FLUENTDO_AGENT_PACKAGES_URL:-https://packages.fluent.do}
 RELEASE_KEY=${FLUENTDO_AGENT_PACKAGES_KEY:-$RELEASE_URL/fluentdo-agent.key}
 
 # Determine if we need to run with sudo
