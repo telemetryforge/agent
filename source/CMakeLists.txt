@@ -1395,7 +1395,7 @@ endif()
 # ============================
 
 set(CPACK_PACKAGE_VERSION ${FLB_VERSION_STR})
-set(CPACK_PACKAGE_NAME "fluent-do-agent")
+set(CPACK_PACKAGE_NAME "fluentdo-agent")
 
 set(CPACK_PACKAGE_RELEASE 1)
 set(CPACK_PACKAGE_CONTACT "Fluent Do <info@fluent.do>")

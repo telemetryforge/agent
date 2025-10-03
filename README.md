@@ -131,6 +131,7 @@ If you discover a potential security issue, **DO NOT** create a public GitHub is
 📧 **Email**: [security@fluent.do](mailto:security@fluent.do)
 
 Please include:
+
 - Description of the vulnerability
 - Steps to reproduce
 - Potential impact

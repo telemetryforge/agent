@@ -127,7 +127,7 @@ if [[ -n "$CPACK_PACKAGE_NAME_SUFFIX" ]] && [[ $CPACK_PACKAGE_NAME_SUFFIX != -* 
 fi
 echo "CPACK_PACKAGE_NAME_SUFFIX: $CPACK_PACKAGE_NAME_SUFFIX"
 
-sed_wrapper -i "s/CPACK_PACKAGE_NAME \"fluent-bit\"/CPACK_PACKAGE_NAME \"fluent-do-agent${CPACK_PACKAGE_NAME_SUFFIX}\"/g" "$FLB_CMAKE"
+sed_wrapper -i "s/CPACK_PACKAGE_NAME \"fluent-bit\"/CPACK_PACKAGE_NAME \"fluentdo-agent${CPACK_PACKAGE_NAME_SUFFIX}\"/g" "$FLB_CMAKE"
 
 sed_wrapper -i "s/CPACK_PACKAGE_VENDOR \"Fluent Bit\"/CPACK_PACKAGE_VENDOR \"Fluent Do\"/g" "$FLB_CMAKE"
 sed_wrapper -i "s/Eduardo Silva <eduardo.silva@chronosphere.io>/Fluent Do <info@fluent.do>/g" "$FLB_CMAKE"
