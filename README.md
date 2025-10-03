@@ -75,7 +75,8 @@
 ### Docker
 
 ```bash
-docker run --rm -it -v /var/log/containers:/var/log/containers:ro ghcr.io/fluentdo/agent:main -c /fluent-bit/etc/fluent-bit.yaml
+docker run --rm -it -v /var/log/containers:/var/log/containers:ro ghcr.io/fluentdo/agent/ubi:main -c /fluent-bit/etc/fluent-bit.yaml
+docker run --rm -it -v /var/log/containers:/var/log/containers:ro ghcr.io/fluentdo/agent/debian:main -c /fluent-bit/etc/fluent-bit.yaml
 ```
 
 Ensure any files mounted are readable via the container user ([`cat Dockerfile.ubi|grep USER`](./Dockerfile.ubi)).
