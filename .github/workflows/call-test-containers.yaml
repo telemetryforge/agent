@@ -105,7 +105,9 @@ jobs:
 
       - name: Image debug
         continue-on-error: true
-        run: docker inspect ${{ inputs.image }}:${{ inputs.image-tag }}
+        run: |
+          docker pull ${{ inputs.image }}:${{ inputs.image-tag }}
+          docker inspect ${{ inputs.image }}:${{ inputs.image-tag }}
         shell: bash
 
   test-kubernetes:

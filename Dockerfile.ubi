@@ -97,6 +97,12 @@ RUN [ -n "$MAKE_EXTRA_ARGS" ] && make ${MAKE_EXTRA_ARGS} || make -j "$(getconf _
 
 # The release image now
 FROM registry.access.redhat.com/ubi9/ubi-minimal:9.5 AS production
+
+# We need to override any base image labels
+LABEL vendor='FluentDo <https://fluent.do>'
+LABEL maintainer='FluentDo <info@fluent.do>'
+LABEL name='FluentDo Agent'
+
 # hadolint ignore=DL3041
 RUN microdnf update -y && microdnf install -y openssl libyaml && microdnf clean all
 

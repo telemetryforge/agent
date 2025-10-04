@@ -80,6 +80,13 @@ jobs:
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
+        with:
+          labels: |
+            build-date={{date 'YYYYMMDD-HHmmss'}}
+            vendor=FluentDo <https://fluent.do>
+            maintainer=FluentDo <info@fluent.do>
+            name=FluentDo Agent
+            description=FluentDo Agent is a stable, secure by default, OSS (Apache-licensed) downstream distribution of Fluent Bit with predictable releases and long-term supported versions for 24 months.
 
       - name: Build and push by digest the standard ${{ matrix.target }} image
         id: production
