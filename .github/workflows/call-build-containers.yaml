@@ -76,6 +76,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Used to set default labels and the like to overwrite base image ones
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+
       - name: Build and push by digest the standard ${{ matrix.target }} image
         id: production
         uses: docker/build-push-action@v6
@@ -86,6 +91,8 @@ jobs:
           outputs: type=image,name=${{ inputs.image-base }},push-by-digest=true,name-canonical=true,push=true
           platforms: linux/${{ matrix.platform }}
           target: ${{ matrix.target }}
+          # Make sure we push our custom labels to the image
+          labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             FLUENTDO_AGENT_VERSION=${{ inputs.version }}
           provenance: false

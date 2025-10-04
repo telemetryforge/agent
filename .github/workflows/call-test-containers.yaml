@@ -89,11 +89,23 @@ jobs:
           password: ${{ secrets.github-token }}
 
       - name: Set up preflight binary
-        run: curl -sSfLO https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/download/1.14.1/preflight-linux-amd64
+        run: |
+          curl -sSfLO https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/download/1.14.1/preflight-linux-amd64
+          chmod a+x ./preflight-linux-amd64
         shell: bash
 
       - name: Run tests
         run: ./preflight-linux-amd64 check container ${{ inputs.image }}:${{ inputs.image-tag }}
+        shell: bash
+
+      - name: Preflight log
+        continue-on-error: true
+        run: cat preflight.log
+        shell: bash
+
+      - name: Image debug
+        continue-on-error: true
+        run: docker inspect ${{ inputs.image }}:${{ inputs.image-tag }}
         shell: bash
 
   test-kubernetes:
