@@ -98,6 +98,20 @@ jobs:
         run: ./preflight-linux-amd64 check container ${{ inputs.image }}:${{ inputs.image-tag }}
         shell: bash
 
+      # https://github.com/redhat-openshift-ecosystem/openshift-preflight/issues/1235
+      # https://github.com/redhat-openshift-ecosystem/openshift-preflight/issues/535
+      - name: Ensure we pass as preflight does not use error code exit
+        run: |
+          if grep 'Preflight result: FAILED' preflight.log; then
+            echo "ERROR: failed checks"
+            exit 1
+          elif ! grep 'Preflight result: PASSED' preflight.log; then
+            echo "ERROR: checks did not pass"
+            exit 1
+          fi
+          echo "INFO: checks passed"
+        shell: bash
+
       - name: Preflight log
         continue-on-error: true
         run: cat preflight.log
