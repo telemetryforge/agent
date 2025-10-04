@@ -147,6 +147,8 @@ jobs:
     needs:
       - test-kubernetes
       - test-container-config
+      # Sometimes skipped so we do not wait for it, if it fails will be caught higher up
+      # - test-redhat-certification
     steps:
       - name: All tests passed
         run: echo "All tests passed for ${{ inputs.image }}:${{ inputs.image-tag }}"
