@@ -90,8 +90,9 @@ jobs:
 
       - name: Set up preflight binary
         run: |
-          curl -sSfLO https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/download/1.14.1/preflight-linux-amd64
+          curl -sSfLO https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/latest/download/preflight-linux-amd64
           chmod a+x ./preflight-linux-amd64
+          ./preflight-linux-amd64 -v
         shell: bash
 
       - name: Run tests
