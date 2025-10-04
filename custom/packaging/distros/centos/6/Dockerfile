@@ -53,10 +53,10 @@ WORKDIR /m4
 RUN ./configure && make -j "$(getconf _NPROCESSORS_ONLN)" && make install
 
 # Bison needs to be built from source unfortunately
-ARG BISON_VER=3.7.2
-ARG BISON_URL=http://ftp.gnu.org/gnu/bison
+ARG BISON_VER=3.8.2
+ARG BISON_URL=https://www.mirrorservice.org/sites/ftp.gnu.org/gnu/bison/
 ARG FLEX_VER=2.6.4
-ARG FLEX_URL=https://github.com/westes/flex/files/981163
+ARG FLEX_URL=https://github.com/westes/flex/releases/download/v${FLEX_VER}
 ADD ${BISON_URL}/bison-${BISON_VER}.tar.gz /bison/
 ADD ${FLEX_URL}/flex-${FLEX_VER}.tar.gz /flex/
 RUN tar -xzvf /bison/bison-${BISON_VER}.tar.gz -C /bison/ && tar -xzvf /flex/flex-${FLEX_VER}.tar.gz -C /flex/

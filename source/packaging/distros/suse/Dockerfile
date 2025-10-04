@@ -81,7 +81,7 @@ RUN CMAKE_ARCH=$(uname -m); \
     ln -sf /opt/cmake/bin/cpack /usr/local/bin/cpack
 
 # Bison needs to be built from source unfortunately as at least one target does not provide it so we want to be common for all
-ARG BISON_VER=3.7.2
+ARG BISON_VER=3.8.2
 ARG BISON_URL=https://www.mirrorservice.org/sites/ftp.gnu.org/gnu/bison/
 ARG FLEX_VER=2.6.4
 ARG FLEX_URL=https://github.com/westes/flex/files/981163
