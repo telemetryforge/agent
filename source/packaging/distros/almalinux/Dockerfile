@@ -93,7 +93,6 @@ RUN yum -y update && \
     cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel pkgconf-pkg-config && \
     yum clean all
 
-# almalinux/8.arm64v8 base image
 # hadolint ignore=DL3029
 FROM --platform=arm64 almalinux:10 AS almalinux-10.arm64v8-base
 
