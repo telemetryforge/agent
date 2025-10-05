@@ -344,7 +344,10 @@ jobs:
             Version: ${{ needs.get-meta.outputs.version }}
             OSS Version: ${{ needs.get-meta.outputs.oss-version }}
 
-            Targets: ${{ needs.get-meta.outputs.linux-targets }}
+            Targets:
+              - Windows: 2022/2025
+              - Linux: ${{ needs.get-meta.outputs.linux-targets }}
+
             Images:
               - ${{ env.UBI_IMAGE_NAME }}:${{ env.TAG }}
               - ${{ env.DISTROLESS_IMAGE_NAME }}:${{ env.TAG }}
