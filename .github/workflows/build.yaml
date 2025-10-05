@@ -28,7 +28,8 @@ jobs:
     outputs:
       build-type: ${{ steps.set-build-type.outputs.build-type }}
       date: ${{ steps.set-meta.outputs.date }}
-      linux-targets: ${{ steps.set-meta.outputs.linux-targets }}
+      # For PRs we can build for all possible targets but we use a reduced set for main/releases to keep costs/time down
+      linux-targets: ${{ github.event_name == 'pull_request' && steps.set-meta.outputs.pr-linux-targets || steps.set-meta.outputs.main-linux-targets }}
       version: ${{ steps.set-version.outputs.version }}
       oss-version: ${{ steps.set-oss-version.outputs.oss-version }}
     steps:
@@ -77,9 +78,13 @@ jobs:
         # Read from the file and remove newline characters: https://stackoverflow.com/a/64627966
         id: set-meta
         run: |
-          LINUX_TARGETS=$(cat "$JSON_FILE_NAME"|jq -c .linux_targets )
-          echo "linux-targets=$LINUX_TARGETS"
-          echo "linux-targets=$LINUX_TARGETS" >> $GITHUB_OUTPUT
+          PR_LINUX_TARGETS=$(cat "$JSON_FILE_NAME"|jq -c .linux_targets )
+          echo "pr-linux-targets=$PR_LINUX_TARGETS"
+          echo "pr-linux-targets=$PR_LINUX_TARGETS" >> $GITHUB_OUTPUT
+
+          MAIN_LINUX_TARGETS=$(cat "$JSON_FILE_NAME"|jq -c .release.linux_targets )
+          echo "main-linux-targets=$MAIN_LINUX_TARGETS"
+          echo "main-linux-targets=$MAIN_LINUX_TARGETS" >> $GITHUB_OUTPUT
         shell: bash
         env:
           JSON_FILE_NAME: build-config.json

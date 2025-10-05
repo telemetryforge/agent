@@ -16,6 +16,8 @@
     "centos/9.arm64v8",
     "centos/10",
     "centos/10.arm64v8",
+    "mariner/2",
+    "mariner/2.arm64v8",
     "rockylinux/8",
     "rockylinux/8.arm64v8",
     "rockylinux/9",
@@ -39,6 +41,32 @@
     "suse/15",
     "suse/15.arm64v8"
   ],
+  "release": {
+    "linux_targets": [
+      "amazonlinux/2023",
+      "amazonlinux/2023.arm64v8",
+      "centos/6",
+      "centos/7",
+      "centos/10",
+      "centos/10.arm64v8",
+      "rockylinux/8",
+      "rockylinux/8.arm64v8",
+      "rockylinux/9",
+      "rockylinux/9.arm64v8",
+      "rockylinux/10",
+      "rockylinux/10.arm64v8",
+      "debian/bookworm",
+      "debian/bookworm.arm64v8",
+      "debian/trixie",
+      "debian/trixie.arm64v8",
+      "ubuntu/22.04",
+      "ubuntu/22.04.arm64v8",
+      "ubuntu/24.04",
+      "ubuntu/24.04.arm64v8",
+      "suse/15",
+      "suse/15.arm64v8"
+    ]
+  },
   "kind_versions": [
     "v1.31.12",
     "v1.32.8",
