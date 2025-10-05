@@ -124,7 +124,6 @@ jobs:
     secrets:
       dockerhub-token: ${{ secrets.DOCKERHUB_PUBLIC_READ_TOKEN }}
 
-
   # We want to copy the UBI image to ghcr.io/fluentdo/agent:version and
   # the distroless image to ghcr.io/fluentdo/agent:version-slim
   copy-common-images:
@@ -352,6 +351,7 @@ jobs:
               - ${{ env.UBI_IMAGE_NAME }}:${{ env.TAG }}
               - ${{ env.DISTROLESS_IMAGE_NAME }}:${{ env.TAG }}
           files: |
+            install.sh
             output/*.spdx
             output/*.json
             deliverables.tar.gz
