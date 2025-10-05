@@ -80,8 +80,7 @@ case ${OS} in
 	# TODO: Add Fedora support
 	amzn|amazonlinux|centos|centoslinux|rhel|redhatenterpriselinuxserver|fedora|almalinux|rocky|rockylinux)
 		# We need variable expansion and non-expansion on the URL line to pick up the base URL.
-		# Therefore we combine things with sed to handle it.
-		VERSION_SUBSTR=$(echo "$VERSION_ID" | sed 's/\..*//')
+		VERSION_SUBSTR=${VERSION_ID//\..*/}
 		# Pick the specific package for what we need
 		DISTRO=$(echo "$OS" | sed 's/amazonlinux/amzn/;s/centos/centoslinux/;s/rhel/redhatenterpriselinuxserver/;s/rockylinux/rocky/')
 		if [ "$DISTRO" = "amzn" ] && [ "$VERSION_SUBSTR" != "2023" ]; then
@@ -108,11 +107,11 @@ case ${OS} in
 			echo "ERROR: Unsupported RockyLinux version: $VERSION_ID" >&2
 			exit 1
 		fi
-		$SUDO rpm --import $RELEASE_KEY
-		if [ $? -ne 0 ]; then
-			echo "ERROR: Failed to download or install GPG key for FluentDo agent package." >&2
-			exit 1
-		fi
+		# TODO: provide GPG key
+		# if ! $SUDO rpm --import "$RELEASE_KEY" ; then
+		# 	echo "ERROR: Failed to download or install GPG key for FluentDo agent package." >&2
+		# 	exit 1
+		# fi
 
 		PACKAGE_URL="$RELEASE_URL/${YUM_VERSION}/output/package-${DISTRO}-${YUM_VERSION}"
 		if [ "$ARCH" = "aarch64" ]; then
@@ -121,8 +120,7 @@ case ${OS} in
 		PACKAGE_URL+="/fluentdo-agent-${YUM_VERSION}-1.${RPM_SUFFIX}.rpm"
 		echo "Using package URL: $PACKAGE_URL"
 
-		$SUDO rpm -Uvh "$PACKAGE_URL"
-		if [ $? -ne 0 ]; then
+		if ! $SUDO rpm -Uvh "$PACKAGE_URL"; then
 			echo "ERROR: Failed to install FluentDo agent package for RHEL-compatible target ($OS)" >&2
 			exitCode=1
 		fi
@@ -163,14 +161,12 @@ case ${OS} in
 		# 	exit 1
 		# fi
 
-		$CURL_CMD "$PACKAGE_URL" -O /tmp/fluentdo-agent.deb
-		if [ $? -ne 0 ]; then
+		if ! $CURL_CMD "$PACKAGE_URL" -O /tmp/fluentdo-agent.deb; then
 			echo "ERROR: Failed to download FluentDo agent package for Debian-compatible target ($OS)" >&2
 			exit 1
 		fi
 
-		$SUDO dpkg -i /tmp/fluentdo-agent.deb || $SUDO apt-get install -f -y
-		if [ $? -ne 0 ]; then
+		if ! $SUDO dpkg -i /tmp/fluentdo-agent.deb || $SUDO apt-get install -f -y; then
 			echo "ERROR: Failed to install FluentDo agent package for Debian-compatible target ($OS)" >&2
 			exit 1
 		fi
