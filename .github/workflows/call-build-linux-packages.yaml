@@ -17,6 +17,22 @@ on:
         required: false
         type: string
         default: ""
+      dockerhub-username:
+        description: The Dockerhub username to use for authenticated pulls.
+        required: false
+        type: string
+        default: "fluentdo"
+
+    secrets:
+      gpg_private_key:
+        description: The optional GPG key to use for signing the packages.
+        required: false
+      gpg_private_key_password:
+        description: If the GPG key requires a password then specify here, otherwise not required.
+        required: false
+      dockerhub-token:
+        description: The Dockerhub token to use for authenticated pulls (not pushes).
+        required: true
 jobs:
   build-packages:
     name: agent - ${{ matrix.distro }} package build and upload
@@ -54,8 +70,8 @@ jobs:
       - name: Log in to docker.io for authorised pulls
         uses: docker/login-action@v3
         with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ inputs.dockerhub-username }}
+          password: ${{ secrets.dockerhub-token }}
 
       - name: Log in to the GHCR registry
         uses: docker/login-action@v3

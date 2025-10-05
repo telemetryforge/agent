@@ -118,9 +118,12 @@ jobs:
       version: ${{ needs.get-meta.outputs.version }}
       ref: ${{ github.ref }}
       image-base: ${{ matrix.image-base }}
-
       # Pick the Dockerfile to use for each image
       definition: ${{ (contains(matrix.image-base, 'debian') && 'Dockerfile.debian') || 'Dockerfile.ubi' }}
+      dockerhub-username: ${{ vars.DOCKERHUB_USERNAME }}
+    secrets:
+      dockerhub-token: ${{ secrets.DOCKERHUB_PUBLIC_READ_TOKEN }}
+
 
   # We want to copy the UBI image to ghcr.io/fluentdo/agent:version and
   # the distroless image to ghcr.io/fluentdo/agent:version-slim
@@ -214,6 +217,9 @@ jobs:
       ref: ${{ github.ref }}
       target-matrix: ${{ needs.get-meta.outputs.linux-targets }}
       nightly-build-info: ${{ needs.get-meta.outputs.date }}
+      dockerhub-username: ${{ vars.DOCKERHUB_USERNAME }}
+    secrets:
+      dockerhub-token: ${{ secrets.DOCKERHUB_PUBLIC_READ_TOKEN }}
 
   build-windows:
     # Only build Windows packages if we are not a pull request or have a label set
