@@ -5,7 +5,7 @@ set -e
 # Currently supports Debian/Ubuntu and RHEL/CentOS/AlmaLinux/RockyLinux
 
 # Optionally specify the version to install, this is updated on every release so we can just pull the install script for the tag.
-RELEASE_VERSION=${FLUENTDO_AGENT_VERSION:-25.10.1}
+RELEASE_VERSION=${FLUENTDO_AGENT_VERSION:-25.10.2}
 
 # Provided primarily to simplify testing for staging, etc.
 RELEASE_URL=${FLUENTDO_AGENT_PACKAGES_URL:-https://packages.fluent.do}
@@ -35,6 +35,10 @@ if [ -f /etc/os-release ]; then
 	. /etc/os-release
 	OS=$( echo "${ID}" | tr '[:upper:]' '[:lower:]')
 	CODENAME=$( echo "${VERSION_CODENAME}" | tr '[:upper:]' '[:lower:]')
+elif [ -f /etc/centos-release ]; then
+    OS=centos
+    # shellcheck disable=SC2002
+    VERSION_ID=$(cat /etc/centos-release | tr -dc '0-9.' | cut -d \. -f1)
 elif lsb_release &>/dev/null; then
 	OS=$(lsb_release -is | tr '[:upper:]' '[:lower:]')
 	CODENAME=$(lsb_release -cs)
@@ -125,6 +129,29 @@ case ${OS} in
 			exitCode=1
 		fi
 		;;
+	opensuse-leap|opensuse)
+        SUSE_VERSION=${VERSION_ID%%.*}
+        if [ "$SUSE_VERSION" == "42" ]; then
+            SUSE_VERSION="12"
+        fi
+		# TODO: provide GPG key
+		# if ! $SUDO rpm --import "$RELEASE_KEY" ; then
+		# 	echo "ERROR: Failed to download or install GPG key for FluentDo agent package." >&2
+		# 	exit 1
+		# fi
+
+		PACKAGE_URL="$RELEASE_URL/${YUM_VERSION}/output/package-suse-${SUSE_VERSION}"
+		if [ "$ARCH" = "aarch64" ]; then
+			PACKAGE_URL+=".arm64v8"
+		fi
+		PACKAGE_URL+="/fluentdo-agent-${YUM_VERSION}-1.${RPM_SUFFIX}.rpm"
+		echo "Using package URL: $PACKAGE_URL"
+
+		if ! $SUDO zypper -n install "$PACKAGE_URL"; then
+			echo "ERROR: Failed to install FluentDo agent package for SUSE-compatible target ($OS)" >&2
+			exitCode=1
+		fi
+		;;
 	debian|ubuntu)
 		if [ "$OS" = "debian" ] && [ "$VERSION_ID" -lt 10 ]; then
 			echo "ERROR: Unsupported Debian version: $VERSION_ID" >&2
@@ -173,7 +200,6 @@ case ${OS} in
 		rm -f /tmp/fluentdo-agent.deb
 		;;
 
-	# TODO: Zypper support for SUSE/openSUSE
 	*)
 		echo "ERROR: Unsupported OS: $OS" >&2
 		exitCode=1
