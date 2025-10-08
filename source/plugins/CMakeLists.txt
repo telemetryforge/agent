@@ -14,7 +14,7 @@ macro(REGISTER_CUSTOM_PLUGIN name)
 
   string(TOUPPER ${p_name} NAME)
   if(FLB_${NAME} OR p_path)
-    set(FLB_IN_PLUGINS_DECL "${FLB_CUSTOM_PLUGINS_DECL}extern struct flb_custom_plugin ${p_name}_plugin;\n")
+    set(FLB_CUSTOM_PLUGINS_DECL "${FLB_CUSTOM_PLUGINS_DECL}extern struct flb_custom_plugin ${p_name}_plugin;\n")
 
     # C code
     set(C_CODE          "    custom = flb_malloc(sizeof(struct flb_custom_plugin));\n")
@@ -25,7 +25,7 @@ macro(REGISTER_CUSTOM_PLUGIN name)
     set(C_CODE "${C_CODE}    memcpy(custom, &${p_name}_plugin, sizeof(struct flb_custom_plugin));\n")
     set(C_CODE "${C_CODE}    mk_list_add(&custom->_head, &config->custom_plugins);\n\n")
 
-    set(FLB_IN_PLUGINS_ADD "${FLB_CUSTOM_PLUGINS_ADD}${C_CODE}")
+    set(FLB_CUSTOM_PLUGINS_ADD "${FLB_CUSTOM_PLUGINS_ADD}${C_CODE}")
 
     if (p_path)
       add_subdirectory(${p_path} ${p_path})
@@ -246,6 +246,9 @@ endmacro()
 if(LIBGIT2_FOUND)
   REGISTER_CUSTOM_PLUGIN("custom_git_config")
 endif()
+
+REGISTER_CUSTOM_PLUGIN("custom_fluentdo")
+REGISTER_IN_PLUGIN("in_fluentdo")
 
 REGISTER_IN_PLUGIN("in_blob")
 

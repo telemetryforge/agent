@@ -56,6 +56,39 @@ struct reload_ctx {
     flb_sds_t cfg_path;
 };
 
+/* Sanitize repository URL by masking credentials */
+static flb_sds_t sanitize_repo_url(const char *url)
+{
+    flb_sds_t sanitized;
+    char *at_sign;
+    char *proto_end;
+    size_t proto_len;
+    size_t cred_len;
+
+    if (!url) {
+        return NULL;
+    }
+
+    sanitized = flb_sds_create(url);
+    if (!sanitized) {
+        return NULL;
+    }
+
+    at_sign = strstr(sanitized, "@");
+    proto_end = strstr(sanitized, "://");
+
+    if (at_sign && proto_end && at_sign > proto_end) {
+        /* Replace credentials with *** */
+        proto_len = (proto_end - sanitized) + 3; /* include :// */
+        cred_len = at_sign - sanitized - proto_len;
+        if (cred_len > 0) {
+            memset(sanitized + proto_len, '*', cred_len);
+        }
+    }
+
+    return sanitized;
+}
+
 /* Get config path for a given SHA */
 static flb_sds_t get_config_path_for_sha(struct flb_in_git_config *ctx, const char *sha)
 {
@@ -276,6 +309,7 @@ static int cb_git_config_collect(struct flb_input_instance *ins,
     flb_sds_t remote_sha = NULL;
     flb_sds_t config_content = NULL;
     flb_sds_t sha_config_path = NULL;
+    flb_sds_t sanitized_repo = NULL;
     int ret;
     FILE *fp;
 #ifdef FLB_HAVE_METRICS
@@ -289,12 +323,18 @@ static int cb_git_config_collect(struct flb_input_instance *ins,
     ts = cfl_time_now();
 #endif
 
-    flb_plg_debug(ctx->ins, "polling repository %s (ref: %s)", ctx->repo, ctx->ref);
+    sanitized_repo = sanitize_repo_url(ctx->repo);
+    flb_plg_debug(ctx->ins, "polling repository %s (ref: %s)",
+                  sanitized_repo ? sanitized_repo : ctx->repo, ctx->ref);
 
     /* Get remote SHA */
     remote_sha = flb_git_remote_sha(ctx->git_ctx);
     if (!remote_sha) {
-        flb_plg_error(ctx->ins, "failed to get remote SHA from %s", ctx->repo);
+        flb_plg_error(ctx->ins, "failed to get remote SHA from %s",
+                      sanitized_repo ? sanitized_repo : ctx->repo);
+        if (sanitized_repo) {
+            flb_sds_destroy(sanitized_repo);
+        }
 #ifdef FLB_HAVE_METRICS
         /* Increment poll errors counter */
         cmt_counter_inc(ctx->cmt_poll_errors_total, ts, 1, (char *[]) {name});
@@ -396,6 +436,9 @@ static int cb_git_config_collect(struct flb_input_instance *ins,
 #endif
 
     flb_sds_destroy(sha_config_path);
+    if (sanitized_repo) {
+        flb_sds_destroy(sanitized_repo);
+    }
     return 0;
 }
 
@@ -455,8 +498,15 @@ static int cb_git_config_init(struct flb_input_instance *ins,
         ctx->poll_interval = 60;
     }
 
+    /* Sanitize repo URL for logging (mask credentials) */
+    flb_sds_t sanitized_repo = sanitize_repo_url(ctx->repo);
+
     flb_plg_info(ins, "git_config initialized: repo=%s ref=%s path=%s poll_interval=%ds",
-                 ctx->repo, ctx->ref, ctx->path, ctx->poll_interval);
+                 sanitized_repo ? sanitized_repo : ctx->repo, ctx->ref, ctx->path, ctx->poll_interval);
+
+    if (sanitized_repo) {
+        flb_sds_destroy(sanitized_repo);
+    }
 
     /* Initialize git library */
     ret = flb_git_init();
@@ -467,7 +517,7 @@ static int cb_git_config_init(struct flb_input_instance *ins,
     }
 
     flb_plg_debug(ins, "cloning repository %s (ref: %s) to %s",
-                  ctx->repo, ctx->ref, ctx->clone_path);
+                  sanitized_repo ? sanitized_repo : ctx->repo, ctx->ref, ctx->clone_path);
 
     /* Create git context with clone_path for git operations */
     ctx->git_ctx = flb_git_ctx_create(ctx->repo, ctx->ref, ctx->clone_path);

@@ -9,7 +9,13 @@ endmacro()
 # Add the FLB_MINIMAL option
 option(FLB_MINIMAL "Enable minimal build configuration" No)
 
+# Custom Plugins
+# ===============
+DEFINE_OPTION(FLB_CUSTOM_FLUENTDO "Enable Fluentdo custom plugin" ON)
+
 # Inputs (sources, data collectors)
+# =================================
+DEFINE_OPTION(FLB_IN_FLUENTDO "Enable FluentDo input plugin" ON)
 # =================================
 DEFINE_OPTION(FLB_IN_BLOB                     "Enable Blob input plugin"                     ON)
 DEFINE_OPTION(FLB_IN_CALYPTIA_FLEET           "Enable Calyptia Fleet input plugin"           OFF)

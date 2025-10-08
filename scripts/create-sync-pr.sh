@@ -349,8 +349,8 @@ create_pr() {
         # Enable auto-merge if requested
         if [[ "$AUTO_MERGE" == true ]] && [[ "$DRAFT" == false ]]; then
             log_info "Enabling auto-merge..."
-            gh pr merge "$pr_url" --auto --squash
-            log_success "Auto-merge enabled"
+            gh pr merge "$pr_url" --auto --rebase
+            log_success "Auto-merge enabled (rebase mode - preserves commits)"
         fi
     else
         log_error "Failed to create PR"

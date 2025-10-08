@@ -30,6 +30,7 @@
 
 extern struct flb_output_plugin *flb_zig_native_output_plugin_init(void *);
 
+@FLB_CUSTOM_PLUGINS_DECL@
 @FLB_IN_PLUGINS_DECL@
 @FLB_OUT_PLUGINS_DECL@
 @FLB_FILTER_PLUGINS_DECL@

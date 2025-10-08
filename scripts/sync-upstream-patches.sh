@@ -189,12 +189,17 @@ generate_patches() {
     rm -rf "$PATCH_DIR"
     mkdir -p "$PATCH_DIR"
 
-    # Generate patches
+    # Generate patches - handle both tags and branch references
+    local to_ref="$TO_VERSION"
+    if [[ "$TO_VERSION" == "master" ]] || [[ "$TO_VERSION" == "main" ]]; then
+        to_ref="upstream/$TO_VERSION"
+    fi
+
     local patch_count
-    patch_count=$(git rev-list --count "${FROM_VERSION}".."${TO_VERSION}")
+    patch_count=$(git rev-list --count "${FROM_VERSION}".."${to_ref}")
     log_info "Found $patch_count commits between versions"
 
-    git format-patch "${FROM_VERSION}".."${TO_VERSION}" -o "$PATCH_DIR" --no-stat
+    git format-patch "${FROM_VERSION}".."${to_ref}" -o "$PATCH_DIR" --no-stat
     log_success "Generated $patch_count patch files in $PATCH_DIR"
 }
 
