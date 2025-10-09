@@ -16,25 +16,6 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
-# hadolint ignore=DL3033
-RUN sed -i -e "s/^mirrorlist=http:\/\/mirrorlist.centos.org/#mirrorlist=http:\/\/mirrorlist.centos.org/g" /etc/yum.repos.d/CentOS-Base.repo && \
-    sed -i -e "s/^#baseurl=http:\/\/mirror.centos.org/baseurl=http:\/\/vault.centos.org/g" /etc/yum.repos.d/CentOS-Base.repo && \
-    yum -y update && \
-    yum install -y rpm-build curl ca-certificates gcc gcc-c++ make bash \
-    wget unzip systemd-devel wget flex bison \
-    cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libcurl-devel pkgconf-pkg-config \
-    postgresql-libs postgresql-devel postgresql-server postgresql libyaml-devel libgit2-devel \
-    tar gzip && \
-    yum install -y epel-release && \
-    yum install -y cmake3 && \
-    yum clean all && \
-    mkdir -p "${CMAKE_HOME}" && \
-    cmake_download_url="${CMAKE_URL}/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
-    echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
-    curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
-
-ENV PATH="${CMAKE_HOME}/bin:${PATH}"
-
 # Install DevToolset 9 as it is required for RocksDB to use C++17
 RUN cat > /etc/yum.repos.d/scl.repo <<'EOF'
 [centos-sclo-rh]
@@ -49,8 +30,33 @@ baseurl=http://vault.centos.org/centos/7/sclo/$basearch/sclo/
 gpgcheck=0
 enabled=1
 EOF
-RUN yum update -y && yum install -y scl-utils-build devtoolset-9 && yum clean all && scl enable devtoolset-9 bash && echo "source /opt/rh/devtoolset-9/enable" >> /etc/bashrc
+
+# Enable vault repos now main are EOL
+RUN sed -i -e "s/^mirrorlist=http:\/\/mirrorlist.centos.org/#mirrorlist=http:\/\/mirrorlist.centos.org/g" /etc/yum.repos.d/CentOS-Base.repo && \
+    sed -i -e "s/^#baseurl=http:\/\/mirror.centos.org/baseurl=http:\/\/vault.centos.org/g" /etc/yum.repos.d/CentOS-Base.repo
+
+# hadolint ignore=DL3033,DL3032
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked \
+    yum -y update && \
+    yum install -y rpm-build curl ca-certificates gcc gcc-c++ make bash \
+    wget unzip systemd-devel wget flex bison \
+    cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libcurl-devel pkgconf-pkg-config \
+    libyaml-devel libgit2-devel \
+    tar gzip && \
+    yum install -y epel-release && \
+    yum install -y cmake3 && \
+    yum install -y scl-utils-build devtoolset-9
+# Split into separate layer to allow us to cache above
+RUN yum clean all && scl enable devtoolset-9 bash && echo "source /opt/rh/devtoolset-9/enable" >> /etc/bashrc
 SHELL ["/bin/bash", "--login", "-c"]
+
+# hadolint ignore=DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
+    cmake_download_url="${CMAKE_URL}/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
+    echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
+    curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
+
+ENV PATH="${CMAKE_HOME}/bin:${PATH}"
 
 # centos/7.arm64v8 base image
 FROM arm64v8/centos:7 AS centos-7.arm64v8-base
@@ -61,25 +67,6 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
-# hadolint ignore=DL3033
-RUN sed -i -e "s/^mirrorlist=http:\/\/mirrorlist.centos.org/#mirrorlist=http:\/\/mirrorlist.centos.org/g" /etc/yum.repos.d/CentOS-Base.repo && \
-    sed -i -e "s/^#baseurl=http:\/\/mirror.centos.org/baseurl=http:\/\/vault.centos.org/g" /etc/yum.repos.d/CentOS-Base.repo && \
-    yum -y update && \
-    yum install -y rpm-build curl ca-certificates gcc gcc-c++ make bash \
-    wget unzip systemd-devel wget flex bison \
-    cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libcurl-devel pkgconf-pkg-config \
-    postgresql-libs postgresql-devel postgresql-server postgresql libyaml-devel libgit2-devel \
-    tar gzip && \
-    yum install -y epel-release && \
-    yum install -y cmake3 && \
-    yum clean all && \
-    mkdir -p "${CMAKE_HOME}" && \
-    cmake_download_url="${CMAKE_URL}/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
-    echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
-    curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
-
-ENV PATH="${CMAKE_HOME}/bin:${PATH}"
-
 # Install DevToolset 9 as it is required for RocksDB to use C++17
 RUN cat > /etc/yum.repos.d/scl.repo <<'EOF'
 [centos-sclo-rh]
@@ -94,12 +81,32 @@ baseurl=http://vault.centos.org/centos/7/sclo/$basearch/sclo/
 gpgcheck=0
 enabled=1
 EOF
-RUN yum update -y && yum install -y scl-utils-build devtoolset-9 && yum clean all && scl enable devtoolset-9 bash && echo "source /opt/rh/devtoolset-9/enable" >> /etc/bashrc
+
+# Enable vault repos now main are EOL
+RUN sed -i -e "s/^mirrorlist=http:\/\/mirrorlist.centos.org/#mirrorlist=http:\/\/mirrorlist.centos.org/g" /etc/yum.repos.d/CentOS-Base.repo && \
+    sed -i -e "s/^#baseurl=http:\/\/mirror.centos.org/baseurl=http:\/\/vault.centos.org/g" /etc/yum.repos.d/CentOS-Base.repo
+
+# hadolint ignore=DL3033,DL3032
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked \
+    yum install -y rpm-build curl ca-certificates gcc gcc-c++ make bash \
+    wget unzip systemd-devel wget flex bison \
+    cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libcurl-devel pkgconf-pkg-config \
+    libyaml-devel libgit2-devel \
+    tar gzip && \
+    yum install -y epel-release && \
+    yum install -y cmake3 && \
+    yum install -y scl-utils-build devtoolset-9
+# Split into separate layer to allow us to cache above
+RUN yum clean all && scl enable devtoolset-9 bash && echo "source /opt/rh/devtoolset-9/enable" >> /etc/bashrc
 SHELL ["/bin/bash", "--login", "-c"]
 
-# There are no postgresql libraries available for this target
-ARG FLB_PROCESSOR_DEDUP=On
-ENV FLB_PROCESSOR_DEDUP=$FLB_PROCESSOR_DEDUP
+# hadolint ignore=DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
+    cmake_download_url="${CMAKE_URL}/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
+    echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
+    curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
+
+ENV PATH="${CMAKE_HOME}/bin:${PATH}"
 
 # Need larger page size
 ARG FLB_JEMALLOC_OPTIONS="--with-lg-page=16 --with-lg-quantum=3"
@@ -119,16 +126,18 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
-# hadolint ignore=DL3033
-RUN yum -y update && \
+# hadolint ignore=DL3033,DL3032
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
-    postgresql-libs postgresql-devel postgresql-server postgresql \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libcurl-devel pkgconf-pkg-config \
     libyaml-devel zlib-devel libgit2-devel \
-    tar gzip && \
-    yum clean all && \
-    mkdir -p "${CMAKE_HOME}" && \
+    tar gzip
+# Split into separate layer to allow us to cache above
+RUN yum clean all
+
+# hadolint ignore=DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
     cmake_download_url="${CMAKE_URL}/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
     echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
     curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
@@ -151,16 +160,18 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
-# hadolint ignore=DL3033
-RUN yum -y update && \
+# hadolint ignore=DL3033,DL3032
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
-    postgresql-libs postgresql-devel postgresql-server postgresql \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libcurl-devel pkgconf-pkg-config \
     libyaml-devel zlib-devel libgit2-devel \
-    tar gzip && \
-    yum clean all && \
-    mkdir -p "${CMAKE_HOME}" && \
+    tar gzip
+# Split into separate layer to allow us to cache above
+RUN yum clean all
+
+# hadolint ignore=DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
     cmake_download_url="${CMAKE_URL}/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
     echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
     curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
@@ -177,18 +188,22 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
-# Add for the YAML development libraries
-# hadolint ignore=DL3033,DL3041
-RUN dnf -y install 'dnf-command(config-manager)' && dnf -y config-manager --set-enabled crb && \
+# hadolint ignore=DL3040,DL3041
+RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked \
+    dnf -y install 'dnf-command(config-manager)' && \
+    dnf -y config-manager --set-enabled crb && \
     dnf -y install epel-release && \
     dnf -y install rpm-build ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
-    postgresql-libs postgresql-devel postgresql-server postgresql \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libcurl-devel pkgconf-pkg-config \
     libyaml-devel zlib-devel libgit2-devel \
-    tar gzip && \
-    dnf clean all && \
-    mkdir -p "${CMAKE_HOME}" && \
+    tar gzip
+
+# Split into separate layer to allow us to cache above
+RUN dnf clean all
+
+# hadolint ignore=DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
     cmake_download_url="${CMAKE_URL}/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
     echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
     curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
@@ -204,18 +219,21 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
-# Add for the YAML development libraries
-# hadolint ignore=DL3033,DL3041
-RUN dnf -y install 'dnf-command(config-manager)' && dnf -y config-manager --set-enabled crb && \
+# hadolint ignore=DL3040,DL3041
+RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked \
+    dnf -y install 'dnf-command(config-manager)' && dnf -y config-manager --set-enabled crb && \
     dnf -y install epel-release && \
     dnf -y install rpm-build ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
-    postgresql-libs postgresql-devel postgresql-server postgresql \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libcurl-devel pkgconf-pkg-config \
     libyaml-devel zlib-devel libgit2-devel \
-    tar gzip && \
-    dnf clean all && \
-    mkdir -p "${CMAKE_HOME}" && \
+    tar gzip
+
+# Split into separate layer to allow us to cache above
+RUN dnf clean all
+
+# hadolint ignore=DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
     cmake_download_url="${CMAKE_URL}/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
     echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
     curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
@@ -232,18 +250,21 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
-# Add for the YAML development libraries
-# hadolint ignore=DL3033,DL3041
-RUN dnf -y install 'dnf-command(config-manager)' && dnf -y config-manager --set-enabled crb && \
+# hadolint ignore=DL3040,DL3041
+RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked \
+    dnf -y install 'dnf-command(config-manager)' && dnf -y config-manager --set-enabled crb && \
     dnf -y install epel-release && \
     dnf -y install rpm-build ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
-    postgresql-libs postgresql-devel postgresql-server postgresql \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libcurl-devel pkgconf-pkg-config \
     libyaml-devel zlib-devel libgit2-devel \
-    tar gzip && \
-    dnf clean all && \
-    mkdir -p "${CMAKE_HOME}" && \
+    tar gzip
+
+# Split into separate layer to allow us to cache above
+RUN dnf clean all
+
+# hadolint ignore=DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
     cmake_download_url="${CMAKE_URL}/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
     echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
     curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
@@ -259,18 +280,21 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
-# Add for the YAML development libraries
-# hadolint ignore=DL3033,DL3041
-RUN dnf -y install 'dnf-command(config-manager)' && dnf -y config-manager --set-enabled crb && \
+# hadolint ignore=DL3040,DL3041
+RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked \
+    dnf -y install 'dnf-command(config-manager)' && dnf -y config-manager --set-enabled crb && \
     dnf -y install epel-release && \
     dnf -y install rpm-build ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
-    postgresql-libs postgresql-devel postgresql-server postgresql \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libcurl-devel pkgconf-pkg-config \
     libyaml-devel zlib-devel libgit2-devel \
-    tar gzip && \
-    dnf clean all && \
-    mkdir -p "${CMAKE_HOME}" && \
+    tar gzip
+
+# Split into separate layer to allow us to cache above
+RUN dnf clean all
+
+# hadolint ignore=DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
     cmake_download_url="${CMAKE_URL}/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
     echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
     curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1

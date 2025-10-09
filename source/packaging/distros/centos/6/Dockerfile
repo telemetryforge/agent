@@ -22,7 +22,7 @@ FROM centos-6.10 AS centos-6-base
 
 # Install required dependencies including GCC 9 and Python 3
 # hadolint ignore=DL3032, DL3033
-RUN yum -y update && \
+RUN RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ make wget tar \
     openssl openss-libs openssl-devel cyrus-sasl-devel \
     postgresql-libs postgresql-devel postgresql-server postgresql \
