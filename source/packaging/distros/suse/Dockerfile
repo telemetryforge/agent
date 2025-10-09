@@ -23,7 +23,8 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # zypper/libcurl has a use-after-free bug that causes segfaults for particular download sequences.
 # If this bug happens to trigger in the future, adding a "zypper -n download" of a subset of the packages can avoid the segfault.
 # hadolint ignore=DL3036,DL3037
-RUN set -x; \
+RUN --mount=type=cache,target=/var/cache/zypp,sharing=locked,id=suse-12 \
+    set -x; \
     # The repo signatures are no longer valid
     # TODO: use checksum verification on updates
     zypper --no-gpg-check refresh 'OSS Update' && \
@@ -44,7 +45,8 @@ ENV FLB_PROCESSOR_DEDUP=$FLB_PROCESSOR_DEDUP
 FROM opensuse/leap:15.3 AS suse-15-base
 
 # hadolint ignore=DL3036,DL3037
-RUN set -x; \
+RUN --mount=type=cache,target=/var/cache/zypp,sharing=locked,id=suse-15 \
+    set -x; \
     zypper -n install curl tar git systemd autoconf automake flex libtool libcurl-devel libopenssl-devel libyajl-devel \
     gcc gcc-c++ zlib-devel rpm-build expect systemd-devel systemd-rpm-macros libgit2-devel && \
     # Allow fluent-bit to find systemd
@@ -59,7 +61,8 @@ FROM --platform=arm64 opensuse/leap:15.3 AS suse-15.arm64v8-base
 COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64-static
 
 # hadolint ignore=DL3036,DL3037
-RUN set -x; \
+RUN --mount=type=cache,target=/var/cache/zypp,sharing=locked,id=suse-15-arm64 \
+    set -x; \
     zypper -n install curl tar git systemd autoconf automake flex libtool libcurl-devel libopenssl-devel libyajl-devel \
     gcc gcc-c++ zlib-devel rpm-build expect systemd-devel systemd-rpm-macros libgit2-devel && \
     # Allow fluent-bit to find systemd

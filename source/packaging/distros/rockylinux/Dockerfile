@@ -16,7 +16,7 @@ FROM rockylinux/rockylinux:8 AS rockylinux-8-base
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/Rocky-PowerTools.repo
 
 # hadolint ignore=DL3032,DL3033
-RUN RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-8 yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-8 yum -y update && \
     yum install -y epel-release && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
@@ -34,7 +34,7 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/Rocky-PowerTools.repo
 
 # hadolint ignore=DL3032,DL3033
-RUN RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-8-arm64 yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-8-arm64 yum -y update && \
     yum install -y epel-release && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
@@ -52,7 +52,7 @@ FROM rockylinux/rockylinux:9 AS rockylinux-9-base
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/rocky-devel.repo
 
 # hadolint ignore=DL3032,DL3033
-RUN RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-9 yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-9 yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
@@ -69,7 +69,7 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/rocky-devel.repo
 
 # hadolint ignore=DL3032,DL3033
-RUN RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-9-arm64 yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-9-arm64 yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
@@ -87,7 +87,7 @@ FROM rockylinux/rockylinux:10 AS rockylinux-10-base
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/rocky-devel.repo
 
 # hadolint ignore=DL3032,DL3033
-RUN RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-10 yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-10 yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
@@ -104,7 +104,7 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/rocky-devel.repo
 
 # hadolint ignore=DL3032,DL3033
-RUN RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-10-arm64 yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-10-arm64 yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
