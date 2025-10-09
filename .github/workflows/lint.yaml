@@ -69,9 +69,9 @@ jobs:
           # Configure which scopes are allowed (newline-delimited).
           # These are regex patterns auto-wrapped in `^ $`.
           # scopes: |
-          #   core
-          #   plugin
-          #   sc-\d+
+          #   oss
+          #   custom
+          #   issue-\d+
           # Configure that a scope doe not have to be provided.
           requireScope: false
           # If the PR contains one of these newline-delimited labels, the
