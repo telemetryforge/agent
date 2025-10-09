@@ -15,13 +15,14 @@ FROM almalinux:8 AS almalinux-8-base
 # Add for the YAML development libraries
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/almalinux-powertools.repo
 
-# hadolint ignore=DL3033
-RUN yum -y update && \
+# hadolint ignore=DL3033,DL3032
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    postgresql-libs postgresql-devel postgresql-server postgresql \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config && \
-    yum clean all
+    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+
+# Split into separate layer to allow us to cache above
+RUN yum clean all
 
 # almalinux/8.arm64v8 base image
 # hadolint ignore=DL3029
@@ -32,13 +33,14 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 # Add for the YAML development libraries
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/almalinux-powertools.repo
 
-# hadolint ignore=DL3033
-RUN yum -y update && \
+# hadolint ignore=DL3033,DL3032
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    postgresql-libs postgresql-devel postgresql-server postgresql \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config && \
-    yum clean all
+    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+
+# Split into separate layer to allow us to cache above
+RUN yum clean all
 
 # Need larger page size
 ARG FLB_JEMALLOC_OPTIONS="--with-lg-page=16 --with-lg-quantum=3"
@@ -49,14 +51,15 @@ FROM almalinux:9 AS almalinux-9-base
 # Add for the YAML development libraries
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/almalinux-crb.repo
 
-# hadolint ignore=DL3033
-RUN yum -y update && \
+# hadolint ignore=DL3033,DL3032
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    postgresql-libs postgresql-devel postgresql-server postgresql \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config && \
-    yum clean all
+    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+
+# Split into separate layer to allow us to cache above
+RUN yum clean all
 
 # almalinux/8.arm64v8 base image
 # hadolint ignore=DL3029
@@ -67,14 +70,15 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 # Add for the YAML development libraries
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/almalinux-crb.repo
 
-# hadolint ignore=DL3033
-RUN yum -y update && \
+# hadolint ignore=DL3033,DL3032
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    postgresql-libs postgresql-devel postgresql-server postgresql \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config && \
-    yum clean all
+    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+
+# Split into separate layer to allow us to cache above
+RUN yum clean all
 
 # Need larger page size
 ARG FLB_JEMALLOC_OPTIONS="--with-lg-page=16 --with-lg-quantum=3"
@@ -85,14 +89,15 @@ FROM almalinux:10 AS almalinux-10-base
 # Add for the YAML development libraries
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/almalinux-crb.repo
 
-# hadolint ignore=DL3033
-RUN yum -y update && \
+# hadolint ignore=DL3033,DL3032
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    postgresql-libs postgresql-devel postgresql-server postgresql \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config && \
-    yum clean all
+    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+
+# Split into separate layer to allow us to cache above
+RUN yum clean all
 
 # hadolint ignore=DL3029
 FROM --platform=arm64 almalinux:10 AS almalinux-10.arm64v8-base
@@ -102,14 +107,15 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 # Add for the YAML development libraries
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/almalinux-crb.repo
 
-# hadolint ignore=DL3033
-RUN yum -y update && \
+# hadolint ignore=DL3033,DL3032
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    postgresql-libs postgresql-devel postgresql-server postgresql \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config && \
-    yum clean all
+    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+
+# Split into separate layer to allow us to cache above
+RUN yum clean all
 
 # Need larger page size
 ARG FLB_JEMALLOC_OPTIONS="--with-lg-page=16 --with-lg-quantum=3"
