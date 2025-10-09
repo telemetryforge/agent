@@ -188,6 +188,7 @@ setup_upstream() {
 
     log_info "Fetching versions from upstream..."
     git fetch "$UPSTREAM_REMOTE" "$FROM_VERSION" "$TO_VERSION" --no-tags 2>/dev/null
+	git fetch "$UPSTREAM_REMOTE" --tags 2>/dev/null
     log_success "Fetched upstream versions"
 }
 
