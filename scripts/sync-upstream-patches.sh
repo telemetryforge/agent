@@ -23,12 +23,12 @@ PATCH_DIR="/tmp/fluent-bit-patches"
 CURRENT_VERSION_FILE="${SOURCE_DIR}/oss_version.txt"
 
 # Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-NC='\033[0m'
+RED=${RED:-'\033[0;31m'}
+GREEN=${GREEN:-'\033[0;32m'}
+YELLOW=${YELLOW:-'\033[1;33m'}
+BLUE=${BLUE:-'\033[0;34m'}
+CYAN=${CYAN:-'\033[0;36m'}
+NC=${NC:-'\033[0m'}
 
 # Default values
 FROM_VERSION=""
@@ -50,12 +50,13 @@ ${GREEN}Required Arguments:${NC}
     --to VERSION      Target version (e.g., v4.0.11)
 
 ${GREEN}Options:${NC}
-    --dry-run         Show what would be done without applying patches
-    --no-interactive  Don't prompt for each patch
-    --auto-commit     Automatically commit after applying (with --single-commit)
-    --per-patch       Commit each patch individually (default)
-    --single-commit   Apply all patches then create one commit
-    -h, --help        Show this help message
+    --dry-run                 Show what would be done without applying patches
+    --no-interactive          Don't prompt for each patch
+    --auto-commit             Automatically commit after applying (with --single-commit)
+    --per-patch               Commit each patch individually (default)
+    --single-commit           Apply all patches then create one commit
+    -h, --help                Show this help message
+    --no-colours, --no-colors Disable control characters in output
 
 ${GREEN}Examples:${NC}
     # Interactive sync from v4.0.10 to v4.0.11
@@ -118,6 +119,15 @@ while [[ $# -gt 0 ]]; do
         -h|--help)
             usage
             ;;
+		--no-colours|--no-colors)
+			RED=''
+			GREEN=''
+			YELLOW=''
+			BLUE=''
+			CYAN=''
+			NC=''
+			shift
+			;;
         *)
             echo -e "${RED}Unknown option: $1${NC}"
             usage
