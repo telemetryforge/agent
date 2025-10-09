@@ -18,8 +18,6 @@ PATCH_DIR=${PATCH_DIR:-$REPO_ROOT/patches}
 PATCH_LIST=${PATCH_LIST:-$PATCH_DIR/patches-agent.files}
 CUSTOM_DIR=${CUSTOM_DIR:-$REPO_ROOT/custom}
 
-export UPSTREAM_VERSION=${UPSTREAM_VERSION:-v4.0.5}
-
 # Change via ./scripts/update-version.sh only
 export FLUENTDO_AGENT_VERSION=${FLUENTDO_AGENT_VERSION:-25.10.2}
 
