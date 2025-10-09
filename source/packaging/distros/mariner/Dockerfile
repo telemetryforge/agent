@@ -39,8 +39,6 @@ COPY . ./
 
 WORKDIR /source/fluent-bit/build/
 # CMake configuration variables
-# Unused
-ARG CFLAGS
 ARG CMAKE_INSTALL_PREFIX=/opt/fluent-do-agent/
 ARG CMAKE_INSTALL_SYSCONFDIR=/etc/
 

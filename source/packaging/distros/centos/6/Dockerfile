@@ -1,5 +1,5 @@
 ARG BASE_BUILDER=centos-6-base
-ARG CMAKE_VERSION=3.23.1
+ARG CMAKE_VERSION=3.31.6
 
 # https://github.com/CentOS/sig-cloud-instance-images/blob/CentOS-6.10/docker/Dockerfile
 FROM scratch AS centos-6.10
@@ -72,7 +72,6 @@ ADD https://github.com/openssl/openssl/releases/download/openssl-3.5.2/openssl-3
 RUN tar -xzvf /openssl/openssl-3.5.2.tar.gz -C /openssl
 WORKDIR /openssl/openssl-3.5.2
 RUN ./Configure && make -j "$(getconf _NPROCESSORS_ONLN)" && make install
-# TODO: static linkage to OpenSSL
 
 # Build libssh2 from source as static library with -fPIC (required for libgit2)
 ARG LIBSSH2_VER=1.11.1
@@ -115,22 +114,8 @@ COPY . ./
 
 WORKDIR /source/fluent-bit/build/
 # CMake configuration variables
-# Unused
-# ARG CFLAGS='-D_GLIBCXX_USE_CXX11_ABI=0 -lstdc++'
-# ARG CXXFLAGS='-D_GLIBCXX_USE_CXX11_ABI=0 -lstdc++'
 ARG CMAKE_INSTALL_PREFIX=/opt/fluent-do-agent/
 ARG CMAKE_INSTALL_SYSCONFDIR=/etc/
-ARG FLB_TD=Off
-ARG FLB_RELEASE=On
-ARG FLB_TRACE=On
-ARG FLB_SQLDB=On
-ARG FLB_HTTP_SERVER=On
-ARG FLB_OUT_KAFKA=On
-ARG FLB_JEMALLOC=On
-# Triggers undefined references during linking
-ARG FLB_OUT_PGSQL=Off
-# YAML support
-ARG FLB_CONFIG_YAML=On
 # Ensure we enable sysvinit set up
 ARG FLB_CPACK_SYSVINIT=On
 # Requires C++11 and uchar.h
@@ -145,25 +130,13 @@ RUN PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig:/usr/local/lib/pkgconfig:$PKG_CON
     -DCMAKE_RULE_MESSAGES:BOOL=OFF -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \
     -DCMAKE_INSTALL_SYSCONFDIR="$CMAKE_INSTALL_SYSCONFDIR" \
     -DCMAKE_CXX_LINK_EXECUTABLE="<CMAKE_CXX_COMPILER> <FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>" \
-    -DFLB_RELEASE="$FLB_RELEASE" \
-    -DFLB_TRACE="$FLB_TRACE" \
-    -DFLB_TD="$FLB_TD" \
-    -DFLB_SQLDB="$FLB_SQLDB" \
-    -DFLB_HTTP_SERVER="$FLB_HTTP_SERVER" \
-    -DFLB_OUT_KAFKA="$FLB_OUT_KAFKA" \
-    -DFLB_OUT_PGSQL="$FLB_OUT_PGSQL" \
     -DFLB_NIGHTLY_BUILD="$FLB_NIGHTLY_BUILD" \
     -DFLB_JEMALLOC_OPTIONS="$FLB_JEMALLOC_OPTIONS" \
-    -DFLB_JEMALLOC="${FLB_JEMALLOC}" \
-    -DFLB_CONFIG_YAML="${FLB_CONFIG_YAML}" \
     -DFLB_CPACK_SYSVINIT="${FLB_CPACK_SYSVINIT}" \
-    -DFLB_UNICODE_ENCODER=Off \
+    -DFLB_UNICODE_ENCODER="${FLB_UNICODE_ENCODER}" \
     -DFLB_PROCESSOR_DEDUP="${FLB_PROCESSOR_DEDUP}" \
     -DOPENSSL_ROOT_DIR=/openssl/openssl-3.5.2 \
     -DOPENSSL_USE_STATIC_LIBS=On \
-    -DFLB_SHARED_LIB=Off \
-    -DFLB_TESTS_RUNTIME=Off \
-    -DFLB_TESTS_INTERNAL=Off \
     ../
 
 VOLUME [ "/output" ]
