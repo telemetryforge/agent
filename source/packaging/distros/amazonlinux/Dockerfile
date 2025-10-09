@@ -17,7 +17,7 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=amazonlinux-2 yum -y update && \
     yum install -y rpm-build curl ca-certificates make bash \
     gcc gcc-c++ \
     wget unzip systemd-devel wget flex bison \
@@ -46,7 +46,7 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=amazonlinux-2-arm64 yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel \
@@ -71,7 +71,7 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=amazonlinux-2023 yum -y update && \
     yum install -y rpm-build curl-minimal ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel \
@@ -99,7 +99,7 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=amazonlinux-2023-arm64 yum -y update && \
     yum install -y rpm-build curl-minimal ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel \

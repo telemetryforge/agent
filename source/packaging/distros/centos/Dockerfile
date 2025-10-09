@@ -36,7 +36,7 @@ RUN sed -i -e "s/^mirrorlist=http:\/\/mirrorlist.centos.org/#mirrorlist=http:\/\
     sed -i -e "s/^#baseurl=http:\/\/mirror.centos.org/baseurl=http:\/\/vault.centos.org/g" /etc/yum.repos.d/CentOS-Base.repo
 
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=centos-7 \
     yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
@@ -87,7 +87,7 @@ RUN sed -i -e "s/^mirrorlist=http:\/\/mirrorlist.centos.org/#mirrorlist=http:\/\
     sed -i -e "s/^#baseurl=http:\/\/mirror.centos.org/baseurl=http:\/\/vault.centos.org/g" /etc/yum.repos.d/CentOS-Base.repo
 
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=centos-7-arm64 \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libcurl-devel pkgconf-pkg-config \
@@ -127,7 +127,8 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=centos-8 \
+    yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libcurl-devel pkgconf-pkg-config \
@@ -161,7 +162,8 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=centos-8-arm64 \
+    yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libcurl-devel pkgconf-pkg-config \
@@ -189,7 +191,7 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3040,DL3041
-RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked,id=centos-9 \
     dnf -y install 'dnf-command(config-manager)' && \
     dnf -y config-manager --set-enabled crb && \
     dnf -y install epel-release && \
@@ -220,7 +222,7 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3040,DL3041
-RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked,id=centos-9-arm64 \
     dnf -y install 'dnf-command(config-manager)' && dnf -y config-manager --set-enabled crb && \
     dnf -y install epel-release && \
     dnf -y install rpm-build ca-certificates gcc gcc-c++ make bash \
@@ -251,7 +253,7 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3040,DL3041
-RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked,id=centos-10 \
     dnf -y install 'dnf-command(config-manager)' && dnf -y config-manager --set-enabled crb && \
     dnf -y install epel-release && \
     dnf -y install rpm-build ca-certificates gcc gcc-c++ make bash \
@@ -281,7 +283,7 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3040,DL3041
-RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked,id=centos-10-arm64 \
     dnf -y install 'dnf-command(config-manager)' && dnf -y config-manager --set-enabled crb && \
     dnf -y install epel-release && \
     dnf -y install rpm-build ca-certificates gcc gcc-c++ make bash \

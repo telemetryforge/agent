@@ -21,8 +21,8 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-1604 \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-1604 \
     apt-get -qq update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
@@ -56,8 +56,8 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-1804 \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-1804 \
     apt-get -qq update && \
     apt-get install -y curl ca-certificates gcc-8 g++-8 libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
@@ -94,8 +94,8 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-1804-arm64 \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-1804-arm64 \
     apt-get update && \
     apt-get install -y curl ca-certificates gcc-8 g++-8 libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
@@ -128,8 +128,8 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-2004 \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-2004 \
     apt-get update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
@@ -157,8 +157,8 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-2004-arm64 \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-2004-arm64 \
     apt-get update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
@@ -184,8 +184,8 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-2204 \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-2204 \
     apt-get update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
@@ -213,8 +213,8 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-2204-arm64 \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-2204-arm64 \
     apt-get update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
@@ -240,8 +240,8 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-2404 \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-2404 \
     apt-get update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
@@ -269,8 +269,8 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-2404-arm64 \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-2404-arm64 \
     apt-get update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \

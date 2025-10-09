@@ -16,7 +16,7 @@ FROM almalinux:8 AS almalinux-8-base
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/almalinux-powertools.repo
 
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=almalinux-8 yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
     cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
@@ -34,7 +34,7 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/almalinux-powertools.repo
 
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=almalinux-8-arm64 yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
     cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
@@ -52,7 +52,7 @@ FROM almalinux:9 AS almalinux-9-base
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/almalinux-crb.repo
 
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=almalinux-9 yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
@@ -61,7 +61,6 @@ RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
 # Split into separate layer to allow us to cache above
 RUN yum clean all
 
-# almalinux/8.arm64v8 base image
 # hadolint ignore=DL3029
 FROM --platform=arm64 almalinux:9 AS almalinux-9.arm64v8-base
 
@@ -71,7 +70,7 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/almalinux-crb.repo
 
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=almalinux-9-arm64 yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
@@ -90,7 +89,7 @@ FROM almalinux:10 AS almalinux-10-base
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/almalinux-crb.repo
 
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=almalinux-10 yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
@@ -108,7 +107,7 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/almalinux-crb.repo
 
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=almalinux-10-arm64 yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \

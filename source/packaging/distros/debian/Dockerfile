@@ -23,8 +23,8 @@ RUN sed -i s/deb.debian.org/archive.debian.org/g /etc/apt/sources.list && \
     sed -i s/security.debian.org/archive.debian.org/g /etc/apt/sources.list
 
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=debian-buster \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=debian-buster \
     apt-get -qq update && \
     apt-get install -y curl ca-certificates build-essential \
     make bash sudo wget unzip dh-make \
@@ -58,8 +58,8 @@ RUN sed -i s/deb.debian.org/archive.debian.org/g /etc/apt/sources.list && \
     sed -i s/security.debian.org/archive.debian.org/g /etc/apt/sources.list
 
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=debian-buster-arm64 \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=debian-buster-arm64 \
     apt-get -qq update && \
     apt-get install -y curl ca-certificates build-essential \
     make bash sudo wget unzip dh-make \
@@ -86,8 +86,8 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=debian-bullseye \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=debian-bullseye \
     apt-get -qq update && \
     apt-get install -y curl ca-certificates build-essential \
     make bash sudo wget unzip dh-make \
@@ -116,8 +116,8 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=debian-bullseye-arm64 \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=debian-bullseye-arm64 \
     apt-get -qq update && \
     apt-get install -y curl ca-certificates build-essential \
     make bash sudo wget unzip dh-make \
@@ -144,8 +144,8 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=debian-bookworm \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=debian-bookworm \
     apt-get -qq update && \
     apt-get install -y curl ca-certificates build-essential \
     make bash sudo wget unzip dh-make \
@@ -174,8 +174,8 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=debian-bookworm-arm64 \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=debian-bookworm-arm64 \
     apt-get -qq update && \
     apt-get install -y curl ca-certificates build-essential \
     make bash sudo wget unzip dh-make \
@@ -202,8 +202,8 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=debian-trixie \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=debian-trixie \
     apt-get -qq update && \
     apt-get install -y curl ca-certificates build-essential \
     make bash sudo wget unzip dh-make \
@@ -232,8 +232,8 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=debian-trixie-arm64 \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=debian-trixie-arm64 \
     apt-get -qq update && \
     apt-get install -y curl ca-certificates build-essential \
     make bash sudo wget unzip dh-make \
