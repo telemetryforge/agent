@@ -24,7 +24,7 @@ rm -rf "${PACKAGING_OUTPUT_DIR:?}/*"
 
 # Iterate over each target and attempt to build it.
 # Verify that an RPM or DEB is created.
-jq -cr '.linux_targets[] | .target' "$JSON_FILE_NAME" | while read -r DISTRO
+jq -cr '.linux_targets[]' "$JSON_FILE_NAME" | while read -r DISTRO
 
 do
     echo "DISTRO: $DISTRO"
