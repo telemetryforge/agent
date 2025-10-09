@@ -45,11 +45,6 @@ fi
 
 exitCode=0
 
-# Copy over any custom code if it exists
-if [[ -d "$CUSTOM_DIR" ]] && [[ "$(ls -A "$CUSTOM_DIR" 2>/dev/null)" ]]; then
-    cp -Rfv "$CUSTOM_DIR/"* "$SOURCE_DIR/"
-fi
-
 echo "Applying patches"
 # If we have a patch config file then we use that to iterate through and apply patches
 if [[ -f "$PATCH_LIST" ]]; then
