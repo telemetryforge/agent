@@ -54,9 +54,14 @@ function check_help_output() {
 
 # Specify IMAGE to use a container image
 # Specify FLUENT_BIT_BINARY to use a raw binary
-# Do not specify both
+# We will first see if there is a binary available at the location specified,
+# if not then we will attempt to use the container and IMAGE_TAG must be set
 IMAGE=${IMAGE:-ghcr.io/fluentdo/agent}
-if [[ -n "$IMAGE" ]]; then
+FLUENT_BIT_BINARY=${FLUENT_BIT_BINARY:-bin/fluent-bit}
+if [[ -x "$FLUENT_BIT_BINARY" ]]; then
+	echo "INFO: Testing binary: $FLUENT_BIT_BINARY"
+	check_help_output "$FLUENT_BIT_BINARY"
+else
 	IMAGE_TAG=${IMAGE_TAG:?"IMAGE_TAG is not set"}
 
 	CONTAINER_IMAGE="${IMAGE}:${IMAGE_TAG}"
@@ -71,10 +76,4 @@ if [[ -n "$IMAGE" ]]; then
 		echo "INFO: Image exists"
 	fi
 	check_help_output "$CONTAINER_RUNTIME run --rm -t $CONTAINER_IMAGE"
-elif [[ -x "${FLUENT_BIT_BINARY:-/fluent-bit/bin/fluent-bit}" ]]; then
-  echo "INFO: Testing binary: $FLUENT_BIT_BINARY"
-  check_help_output "$FLUENT_BIT_BINARY"
-else
-  echo "ERROR: No image or binary to test"
-  exit 1
 fi
