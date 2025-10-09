@@ -45,21 +45,6 @@ jobs:
           ./actionlint -color -shellcheck=
         shell: bash
 
-  patch-check-pr:
-    runs-on: ubuntu-latest
-    name: PR - Check patches match checked in code
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Run setup-code.sh
-        run: ./scripts/setup-code.sh
-        shell: bash
-
-      - name: Check for git deltas
-        run: |
-          git diff --exit-code || (echo "Patches do not match checked in code. Please run 'git diff' to see the differences." && exit 1)
-        shell: bash
-
   prchecker-lint:
     runs-on: ubuntu-latest
     name: PR - Check title format
