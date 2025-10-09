@@ -15,14 +15,14 @@ FROM rockylinux/rockylinux:8 AS rockylinux-8-base
 # Add for the YAML development libraries
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/Rocky-PowerTools.repo
 
-# hadolint ignore=DL3033
-RUN yum -y update && \
+# hadolint ignore=DL3032,DL3033
+RUN RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
     yum install -y epel-release && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    postgresql-libs postgresql-devel postgresql-server postgresql \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config && \
-    yum clean all
+    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+# Split into a separate layer to cache above
+RUN yum clean all
 
 # rockylinux/8.arm64v8 base image
 # hadolint ignore=DL3029
@@ -33,14 +33,14 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 # Add for the YAML development libraries
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/Rocky-PowerTools.repo
 
-# hadolint ignore=DL3033
-RUN yum -y update && \
+# hadolint ignore=DL3032,DL3033
+RUN RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
     yum install -y epel-release && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    postgresql-libs postgresql-devel postgresql-server postgresql \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config && \
-    yum clean all
+    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+# Split into a separate layer to cache above
+RUN yum clean all
 
 # Need larger page size
 ARG FLB_JEMALLOC_OPTIONS="--with-lg-page=16 --with-lg-quantum=3"
@@ -51,14 +51,14 @@ FROM rockylinux/rockylinux:9 AS rockylinux-9-base
 # Add for the YAML development libraries
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/rocky-devel.repo
 
-# hadolint ignore=DL3033
-RUN yum -y update && \
+# hadolint ignore=DL3032,DL3033
+RUN RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    postgresql-libs postgresql-devel postgresql-server postgresql \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config && \
-    yum clean all
+    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+# Split into a separate layer to cache above
+RUN yum clean all
 
 # hadolint ignore=DL3029
 FROM --platform=arm64 rockylinux/rockylinux:9 AS rockylinux-9.arm64v8-base
@@ -68,14 +68,14 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 # Add for the YAML development libraries
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/rocky-devel.repo
 
-# hadolint ignore=DL3033
-RUN yum -y update && \
+# hadolint ignore=DL3032,DL3033
+RUN RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    postgresql-libs postgresql-devel postgresql-server postgresql \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config && \
-    yum clean all
+    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+# Split into a separate layer to cache above
+RUN yum clean all
 
 # Need larger page size
 ARG FLB_JEMALLOC_OPTIONS="--with-lg-page=16 --with-lg-quantum=3"
@@ -86,14 +86,14 @@ FROM rockylinux/rockylinux:10 AS rockylinux-10-base
 # Add for the YAML development libraries
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/rocky-devel.repo
 
-# hadolint ignore=DL3033
-RUN yum -y update && \
+# hadolint ignore=DL3032,DL3033
+RUN RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    postgresql-libs postgresql-devel postgresql-server postgresql \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config && \
-    yum clean all
+    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+# Split into a separate layer to cache above
+RUN yum clean all
 
 # hadolint ignore=DL3029
 FROM --platform=arm64 rockylinux/rockylinux:10 AS rockylinux-10.arm64v8-base
@@ -103,14 +103,14 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 # Add for the YAML development libraries
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/rocky-devel.repo
 
-# hadolint ignore=DL3033
-RUN yum -y update && \
+# hadolint ignore=DL3032,DL3033
+RUN RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    postgresql-libs postgresql-devel postgresql-server postgresql \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config && \
-    yum clean all
+    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+# Split into a separate layer to cache above
+RUN yum clean all
 
 # Need larger page size
 ARG FLB_JEMALLOC_OPTIONS="--with-lg-page=16 --with-lg-quantum=3"
