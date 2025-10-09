@@ -11,6 +11,9 @@ ARG BASE_BUILDER
 # from the cmake download site. This is the version used.
 ARG CMAKE_VERSION=3.31.6
 
+# Used to differentiate in CI from main/PR builds
+ARG CACHE_ID=main
+
 # Multiarch support
 FROM multiarch/qemu-user-static:x86_64-aarch64 as multiarch-aarch64
 
@@ -20,10 +23,11 @@ FROM multiarch/qemu-user-static:x86_64-aarch64 as multiarch-aarch64
 FROM opensuse/archive:42.3 AS suse-12-base
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+ARG CACHE_ID
 # zypper/libcurl has a use-after-free bug that causes segfaults for particular download sequences.
 # If this bug happens to trigger in the future, adding a "zypper -n download" of a subset of the packages can avoid the segfault.
 # hadolint ignore=DL3036,DL3037
-RUN --mount=type=cache,target=/var/cache/zypp,sharing=locked,id=suse-12 \
+RUN --mount=type=cache,target=/var/cache/zypp,sharing=locked,id=suse-12-${CACHE_ID} \
     set -x; \
     # The repo signatures are no longer valid
     # TODO: use checksum verification on updates
@@ -44,8 +48,9 @@ ENV FLB_PROCESSOR_DEDUP=$FLB_PROCESSOR_DEDUP
 # suse/15 base image
 FROM opensuse/leap:15.3 AS suse-15-base
 
+ARG CACHE_ID
 # hadolint ignore=DL3036,DL3037
-RUN --mount=type=cache,target=/var/cache/zypp,sharing=locked,id=suse-15 \
+RUN --mount=type=cache,target=/var/cache/zypp,sharing=locked,id=suse-15-${CACHE_ID} \
     set -x; \
     zypper -n install curl tar git systemd autoconf automake flex libtool libcurl-devel libopenssl-devel libyajl-devel \
     gcc gcc-c++ zlib-devel rpm-build expect systemd-devel systemd-rpm-macros libgit2-devel && \
@@ -60,8 +65,9 @@ ENV FLB_PROCESSOR_DEDUP=$FLB_PROCESSOR_DEDUP
 FROM --platform=arm64 opensuse/leap:15.3 AS suse-15.arm64v8-base
 COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64-static
 
+ARG CACHE_ID
 # hadolint ignore=DL3036,DL3037
-RUN --mount=type=cache,target=/var/cache/zypp,sharing=locked,id=suse-15-arm64 \
+RUN --mount=type=cache,target=/var/cache/zypp,sharing=locked,id=suse-15-arm64-${CACHE_ID} \
     set -x; \
     zypper -n install curl tar git systemd autoconf automake flex libtool libcurl-devel libopenssl-devel libyajl-devel \
     gcc gcc-c++ zlib-devel rpm-build expect systemd-devel systemd-rpm-macros libgit2-devel && \

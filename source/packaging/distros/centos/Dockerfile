@@ -6,6 +6,9 @@ ARG BASE_BUILDER
 # Lookup the name to use below but should follow the '<distro>-base' convention with slashes replaced.
 # Use buildkit to skip unused base images: DOCKER_BUILDKIT=1
 
+# Used to differentiate in CI from main/PR builds
+ARG CACHE_ID=main
+
 # Multiarch support
 FROM multiarch/qemu-user-static:x86_64-aarch64 AS multiarch-aarch64
 
@@ -35,8 +38,9 @@ EOF
 RUN sed -i -e "s/^mirrorlist=http:\/\/mirrorlist.centos.org/#mirrorlist=http:\/\/mirrorlist.centos.org/g" /etc/yum.repos.d/CentOS-Base.repo && \
     sed -i -e "s/^#baseurl=http:\/\/mirror.centos.org/baseurl=http:\/\/vault.centos.org/g" /etc/yum.repos.d/CentOS-Base.repo
 
+ARG CACHE_ID
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=centos-7 \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=centos-7-${CACHE_ID} \
     yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
@@ -86,8 +90,9 @@ EOF
 RUN sed -i -e "s/^mirrorlist=http:\/\/mirrorlist.centos.org/#mirrorlist=http:\/\/mirrorlist.centos.org/g" /etc/yum.repos.d/CentOS-Base.repo && \
     sed -i -e "s/^#baseurl=http:\/\/mirror.centos.org/baseurl=http:\/\/vault.centos.org/g" /etc/yum.repos.d/CentOS-Base.repo
 
+ARG CACHE_ID
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=centos-7-arm64 \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=centos-7-arm64-${CACHE_ID} \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libcurl-devel pkgconf-pkg-config \
@@ -126,8 +131,9 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
+ARG CACHE_ID
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=centos-8 \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=centos-8-${CACHE_ID} \
     yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
@@ -161,8 +167,9 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
+ARG CACHE_ID
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=centos-8-arm64 \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=centos-8-arm64-${CACHE_ID} \
     yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
@@ -190,8 +197,9 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
+ARG CACHE_ID
 # hadolint ignore=DL3040,DL3041
-RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked,id=centos-9 \
+RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked,id=centos-9-${CACHE_ID} \
     dnf -y install 'dnf-command(config-manager)' && \
     dnf -y config-manager --set-enabled crb && \
     dnf -y install epel-release && \
@@ -221,8 +229,9 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
+ARG CACHE_ID
 # hadolint ignore=DL3040,DL3041
-RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked,id=centos-9-arm64 \
+RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked,id=centos-9-arm64-${CACHE_ID} \
     dnf -y install 'dnf-command(config-manager)' && dnf -y config-manager --set-enabled crb && \
     dnf -y install epel-release && \
     dnf -y install rpm-build ca-certificates gcc gcc-c++ make bash \
@@ -252,8 +261,9 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
+ARG CACHE_ID
 # hadolint ignore=DL3040,DL3041
-RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked,id=centos-10 \
+RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked,id=centos-10-${CACHE_ID} \
     dnf -y install 'dnf-command(config-manager)' && dnf -y config-manager --set-enabled crb && \
     dnf -y install epel-release && \
     dnf -y install rpm-build ca-certificates gcc gcc-c++ make bash \
@@ -282,8 +292,9 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
+ARG CACHE_ID
 # hadolint ignore=DL3040,DL3041
-RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked,id=centos-10-arm64 \
+RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked,id=centos-10-arm64-${CACHE_ID} \
     dnf -y install 'dnf-command(config-manager)' && dnf -y config-manager --set-enabled crb && \
     dnf -y install epel-release && \
     dnf -y install rpm-build ca-certificates gcc gcc-c++ make bash \

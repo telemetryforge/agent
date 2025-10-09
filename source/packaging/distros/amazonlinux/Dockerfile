@@ -6,6 +6,9 @@ ARG BASE_BUILDER
 # Lookup the name to use below but should follow the '<distro>-base' convention with slashes replaced.
 # Use buildkit to skip unused base images: DOCKER_BUILDKIT=1
 
+# Used to differentiate in CI from main/PR builds
+ARG CACHE_ID=main
+
 # Multiarch support
 FROM multiarch/qemu-user-static:x86_64-aarch64 AS multiarch-aarch64
 
@@ -16,8 +19,9 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
+ARG CACHE_ID
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=amazonlinux-2 yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=amazonlinux-2-${CACHE_ID} yum -y update && \
     yum install -y rpm-build curl ca-certificates make bash \
     gcc gcc-c++ \
     wget unzip systemd-devel wget flex bison \
@@ -45,8 +49,9 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
+ARG CACHE_ID
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=amazonlinux-2-arm64 yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=amazonlinux-2-arm64-${CACHE_ID} yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel \
@@ -70,8 +75,9 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
+ARG CACHE_ID
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=amazonlinux-2023 yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=amazonlinux-2023-${CACHE_ID} yum -y update && \
     yum install -y rpm-build curl-minimal ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel \
@@ -98,8 +104,9 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
+ARG CACHE_ID
 # hadolint ignore=DL3033,DL3032
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=amazonlinux-2023-arm64 yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=amazonlinux-2023-arm64-${CACHE_ID} yum -y update && \
     yum install -y rpm-build curl-minimal ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel \

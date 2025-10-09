@@ -6,6 +6,9 @@ ARG BASE_BUILDER
 # Lookup the name to use below but should follow the '<distro>-base' convention with slashes replaced.
 # Use buildkit to skip unused base images: DOCKER_BUILDKIT=1
 
+# Used to differentiate in CI from main/PR builds
+ARG CACHE_ID=main
+
 # Multiarch support
 FROM multiarch/qemu-user-static:x86_64-aarch64 AS multiarch-aarch64
 
@@ -15,8 +18,9 @@ FROM rockylinux/rockylinux:8 AS rockylinux-8-base
 # Add for the YAML development libraries
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/Rocky-PowerTools.repo
 
+ARG CACHE_ID
 # hadolint ignore=DL3032,DL3033
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-8 yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-8-${CACHE_ID} yum -y update && \
     yum install -y epel-release && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
@@ -33,8 +37,9 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 # Add for the YAML development libraries
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/Rocky-PowerTools.repo
 
+ARG CACHE_ID
 # hadolint ignore=DL3032,DL3033
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-8-arm64 yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-8-arm64-${CACHE_ID} yum -y update && \
     yum install -y epel-release && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
@@ -51,8 +56,9 @@ FROM rockylinux/rockylinux:9 AS rockylinux-9-base
 # Add for the YAML development libraries
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/rocky-devel.repo
 
+ARG CACHE_ID
 # hadolint ignore=DL3032,DL3033
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-9 yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-9-${CACHE_ID} yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
@@ -68,8 +74,9 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 # Add for the YAML development libraries
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/rocky-devel.repo
 
+ARG CACHE_ID
 # hadolint ignore=DL3032,DL3033
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-9-arm64 yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-9-arm64-${CACHE_ID} yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
@@ -86,8 +93,9 @@ FROM rockylinux/rockylinux:10 AS rockylinux-10-base
 # Add for the YAML development libraries
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/rocky-devel.repo
 
+ARG CACHE_ID
 # hadolint ignore=DL3032,DL3033
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-10 yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-10-${CACHE_ID} yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
@@ -103,8 +111,9 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 # Add for the YAML development libraries
 RUN sed -i 's/enabled=0/enabled=1/g' /etc/yum.repos.d/rocky-devel.repo
 
+ARG CACHE_ID
 # hadolint ignore=DL3032,DL3033
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-10-arm64 yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-10-arm64-${CACHE_ID} yum -y update && \
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \

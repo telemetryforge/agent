@@ -9,8 +9,8 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 FLB_DISTRO=${FLB_DISTRO:-}
 FLB_OUT_DIR=${FLB_OUT_DIR:-}
 FLB_NIGHTLY_BUILD=${FLB_NIGHTLY_BUILD:-}
-FLB_JEMALLOC=${FLB_JEMALLOC:-On}
 DOCKER=${FLB_DOCKER_CLI:-docker}
+CACHE_ID=${CACHE_ID:-main}
 
 # Use this to pass special arguments to docker build
 FLB_ARG=${FLB_ARG:-}
@@ -46,6 +46,7 @@ mkdir -p "$volume"
 # Info
 echo "FLB_DISTRO            => $FLB_DISTRO"
 echo "FLB_OUT_DIR           => $FLB_OUT_DIR"
+echo "CACHE_ID              => $CACHE_ID"
 
 MAIN_IMAGE="flb-$FLB_DISTRO"
 
@@ -69,22 +70,10 @@ fi
 
 # CMake configuration variables, override via environment rather than parameters
 CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX:-/opt/fluent-bit/}
-# This is required to ensure we set the defaults to off for 1.9 builds
-FLB_TD=${FLB_TD:-Off}
-# This is provided for simplifying the build pipeline
-FLB_UNICODE_ENCODER=${FLB_UNICODE_ENCODER:-On}
-
-# We enable this for enterprise with GCC-9
-# if [ "${FLB_DISTRO}" = "centos/6" ] || [ "${FLB_DISTRO}" = "centos/7" ] ||
-#        [ "${FLB_DISTRO}" = "centos/7.arm64v8" ]; then
-#     FLB_UNICODE_ENCODER=Off
-# fi
 
 echo "IMAGE_CONTEXT_DIR     => $IMAGE_CONTEXT_DIR"
 echo "CMAKE_INSTALL_PREFIX  => $CMAKE_INSTALL_PREFIX"
 echo "FLB_NIGHTLY_BUILD     => $FLB_NIGHTLY_BUILD"
-echo "FLB_JEMALLOC          => $FLB_JEMALLOC"
-echo "FLB_UNICODE_ENCODER   => $FLB_UNICODE_ENCODER"
 
 if [ "${DOCKER}" = "docker" ]; then
     export DOCKER_BUILDKIT=1
@@ -97,9 +86,8 @@ fi
 if ! ${DOCKER} build \
     --build-arg CMAKE_INSTALL_PREFIX="$CMAKE_INSTALL_PREFIX" \
     --build-arg FLB_NIGHTLY_BUILD="$FLB_NIGHTLY_BUILD" \
-    --build-arg FLB_JEMALLOC="$FLB_JEMALLOC" \
-    --build-arg FLB_TD="$FLB_TD" \
-    --build-arg FLB_UNICODE_ENCODER="$FLB_UNICODE_ENCODER" \
+    --build-arg CACHE_ID="$CACHE_ID" \
+	--buidl
     $FLB_ARG \
     -t "$MAIN_IMAGE" \
     -f "$IMAGE_CONTEXT_DIR/Dockerfile" \

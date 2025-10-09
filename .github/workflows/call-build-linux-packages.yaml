@@ -105,6 +105,8 @@ jobs:
           FLB_DISTRO: ${{ matrix.distro }}
           FLB_OUT_DIR: agent
           FLB_NIGHTLY_BUILD: ${{ inputs.nightly-build-info }}
+          # Optionally use separate caches for PRs to mainline
+          # CACHE_ID: ${{ github.event_name != 'pull_request' && 'main' || 'pr' }}
         working-directory: source/packaging
         shell: bash
 

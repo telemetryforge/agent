@@ -6,6 +6,9 @@ ARG BASE_BUILDER
 # Lookup the name to use below but should follow the '<distro>-base' convention with slashes replaced.
 # Use buildkit to skip unused base images: DOCKER_BUILDKIT=1
 
+# Used to differentiate in CI from main/PR builds
+ARG CACHE_ID=main
+
 # Multiarch support
 FROM multiarch/qemu-user-static:x86_64-aarch64 AS multiarch-aarch64
 
@@ -20,9 +23,10 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
+ARG CACHE_ID
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-1604 \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-1604 \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-1604-${CACHE_ID} \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-1604-${CACHE_ID} \
     apt-get -qq update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
@@ -55,9 +59,10 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
+ARG CACHE_ID
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-1804 \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-1804 \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-1804-${CACHE_ID} \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-1804-${CACHE_ID} \
     apt-get -qq update && \
     apt-get install -y curl ca-certificates gcc-8 g++-8 libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
@@ -93,9 +98,10 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
+ARG CACHE_ID
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-1804-arm64 \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-1804-arm64 \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-1804-arm64-${CACHE_ID} \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-1804-arm64-${CACHE_ID} \
     apt-get update && \
     apt-get install -y curl ca-certificates gcc-8 g++-8 libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
@@ -127,9 +133,10 @@ ENV DEBIAN_FRONTEND="noninteractive" \
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
+ARG CACHE_ID
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-2004 \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-2004 \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-2004-${CACHE_ID} \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-2004-${CACHE_ID} \
     apt-get update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
@@ -156,9 +163,10 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
+ARG CACHE_ID
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-2004-arm64 \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-2004-arm64 \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-2004-arm64-${CACHE_ID} \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-2004-arm64-${CACHE_ID} \
     apt-get update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
@@ -183,9 +191,10 @@ ENV DEBIAN_FRONTEND="noninteractive" \
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
+ARG CACHE_ID
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-2204 \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-2204 \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-2204-${CACHE_ID} \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-2204-${CACHE_ID} \
     apt-get update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
@@ -212,9 +221,10 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
+ARG CACHE_ID
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-2204-arm64 \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-2204-arm64 \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-2204-arm64-${CACHE_ID} \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-2204-arm64-${CACHE_ID} \
     apt-get update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
@@ -239,9 +249,10 @@ ENV DEBIAN_FRONTEND="noninteractive" \
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
+ARG CACHE_ID
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-2404 \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-2404 \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-2404-${CACHE_ID} \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-2404-${CACHE_ID} \
     apt-get update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
@@ -268,9 +279,10 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
+ARG CACHE_ID
 # hadolint ignore=DL3008,DL3015
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-2404-arm64 \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-2404-arm64 \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-2404-arm64-${CACHE_ID} \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-2404-arm64-${CACHE_ID} \
     apt-get update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \

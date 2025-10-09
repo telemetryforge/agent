@@ -1,5 +1,7 @@
 ARG BASE_BUILDER=centos-6-base
 ARG CMAKE_VERSION=3.31.6
+# Used to differentiate in CI from main/PR builds
+ARG CACHE_ID=main
 
 # https://github.com/CentOS/sig-cloud-instance-images/blob/CentOS-6.10/docker/Dockerfile
 FROM scratch AS centos-6.10
@@ -20,9 +22,10 @@ CMD ["/bin/bash"]
 
 FROM centos-6.10 AS centos-6-base
 
+ARG CACHE_ID
 # Install required dependencies including GCC 9 and Python 3
 # hadolint ignore=DL3032, DL3033
-RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=centos-6 yum -y update && \
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=centos-6-${CACHE_ID} yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ make wget tar \
     openssl openss-libs openssl-devel cyrus-sasl-devel \
     postgresql-libs postgresql-devel postgresql-server postgresql \
