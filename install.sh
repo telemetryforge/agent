@@ -177,7 +177,7 @@ case ${OS} in
 		if [ "$ARCH" = "aarch64" ]; then
 			PACKAGE_URL+=".arm64v8"
 		fi
-		PACKAGE_URL+="/fluentdo-agent_${APT_VERSION}_${APT_SUFFIX}.rpm"
+		PACKAGE_URL+="/fluentdo-agent_${APT_VERSION}_${APT_SUFFIX}.deb"
 		echo "Using package URL: $PACKAGE_URL"
 
 		# TODO: Add the GPG key for the repository when we set up repos
