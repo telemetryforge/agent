@@ -16,17 +16,20 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
-# hadolint ignore=DL3033
-RUN yum -y update && \
+# hadolint ignore=DL3033,DL3032
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
     yum install -y rpm-build curl ca-certificates make bash \
     gcc gcc-c++ \
     wget unzip systemd-devel wget flex bison \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel \
     postgresql-devel postgresql-libs glibc-devel \
     libyaml-devel zlib-devel libcurl-devel libgit2-devel pkgconf-pkg-config \
-    tar gzip && \
-    yum clean all && \
-    mkdir -p "${CMAKE_HOME}" && \
+    tar gzip
+# Split into separate layer to allow us to cache above
+RUN yum clean all
+
+# hadolint ignore=DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
     cmake_download_url="${CMAKE_URL}/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
     echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
     curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
@@ -42,24 +45,24 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
-# hadolint ignore=DL3033
-RUN yum -y update && \
+# hadolint ignore=DL3033,DL3032
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel \
     postgresql-devel postgresql-libs \
     libyaml-devel zlib-devel libcurl-devel libgit2-devel pkgconf-pkg-config \
-    tar gzip && \
-    yum clean all && \
-    mkdir -p "${CMAKE_HOME}" && \
+    tar gzip
+# Split into separate layer to allow us to cache above
+RUN yum clean all
+
+# hadolint ignore=DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
     cmake_download_url="${CMAKE_URL}/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
     echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
     curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
 
-
 ENV PATH="${CMAKE_HOME}/bin:${PATH}"
-ARG FLB_KAFKA=Off
-ENV FLB_KAFKA=$FLB_KAFKA
 
 FROM amazonlinux:2023 AS amazonlinux-2023-base
 
@@ -67,23 +70,24 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
-# hadolint ignore=DL3033
-RUN yum -y update && \
+# hadolint ignore=DL3033,DL3032
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
     yum install -y rpm-build curl-minimal ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel \
     postgresql-devel postgresql-libs \
     libyaml-devel zlib-devel libcurl-devel libgit2-devel pkgconf-pkg-config \
-    tar gzip && \
-    yum clean all && \
-    mkdir -p "${CMAKE_HOME}" && \
+    tar gzip
+# Split into separate layer to allow us to cache above
+RUN yum clean all
+
+# hadolint ignore=DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
     cmake_download_url="${CMAKE_URL}/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
     echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
     curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
 
 ENV PATH="${CMAKE_HOME}/bin:${PATH}"
-ARG FLB_KAFKA=On
-ENV FLB_KAFKA=$FLB_KAFKA
 
 # hadolint ignore=DL3029
 FROM --platform=arm64 amazonlinux:2023 AS amazonlinux-2023.arm64v8-base
@@ -94,24 +98,24 @@ ENV CMAKE_HOME="/opt/cmake"
 ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
-# hadolint ignore=DL3033
-RUN yum -y update && \
+# hadolint ignore=DL3033,DL3032
+RUN --mount=type=cache,target=/var/cache/yum,sharing=locked yum -y update && \
     yum install -y rpm-build curl-minimal ca-certificates gcc gcc-c++ make bash \
     wget unzip systemd-devel wget flex bison \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel \
     postgresql-devel postgresql-libs \
     libyaml-devel zlib-devel libcurl-devel libgit2-devel pkgconf-pkg-config \
-    tar gzip && \
-    yum clean all && \
-    mkdir -p "${CMAKE_HOME}" && \
+    tar gzip
+# Split into separate layer to allow us to cache above
+RUN yum clean all
+
+# hadolint ignore=DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
     cmake_download_url="${CMAKE_URL}/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
     echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
     curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
 
 ENV PATH="${CMAKE_HOME}/bin:${PATH}"
-ARG FLB_KAFKA=On
-ENV FLB_KAFKA=$FLB_KAFKA
-
 
 # Common build for all distributions now
 # hadolint ignore=DL3006
