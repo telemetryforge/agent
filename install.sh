@@ -189,7 +189,7 @@ case ${OS} in
 		# 	exit 1
 		# fi
 
-		if ! $CURL_CMD "$PACKAGE_URL" -O /tmp/fluentdo-agent.deb; then
+		if ! $CURL_CMD "$PACKAGE_URL" -o /tmp/fluentdo-agent.deb; then
 			echo "ERROR: Failed to download FluentDo agent package for Debian-compatible target ($OS)" >&2
 			exit 1
 		fi
