@@ -15,7 +15,7 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 #
 
 # The local file with all the supported build configs in
-JSON_FILE_NAME=${JSON_FILE_NAME:-$SCRIPT_DIR/build-config.json}
+JSON_FILE_NAME=${JSON_FILE_NAME:-$SCRIPT_DIR/../../build-config.json}
 
 # Output checks are easier plus do not want to fill up git
 PACKAGING_OUTPUT_DIR=${PACKAGING_OUTPUT_DIR:-test}
