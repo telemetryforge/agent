@@ -26,12 +26,13 @@ FROM $BASE_BUILDER as builder
 ARG FLB_NIGHTLY_BUILD
 ENV FLB_NIGHTLY_BUILD=$FLB_NIGHTLY_BUILD
 
-# hadolint ignore=DL3033
-RUN tdnf -y update && \
+RUN --mount=type=cache,target=/var/cache/tdnf,sharing=locked tdnf -y update && \
     tdnf install -y bison cmake cyrus-sasl-devel flex gcc-c++ \
     gnutls-devel libpq-devel make openssl-devel pkgconfig systemd-devel systemd-rpm-macros zlib-devel \
-    binutils glibc-devel libyaml-devel libgit2-devel kernel-headers file diffutils gawk rpm-build && \
-    tdnf clean all
+    binutils glibc-devel libyaml-devel libgit2-devel kernel-headers file diffutils gawk rpm-build
+
+# Split into separate layer to allow caching of above
+RUN tdnf clean all
 
 # Docker context must be the base of the repo
 WORKDIR /source/fluent-bit/
