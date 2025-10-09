@@ -61,6 +61,10 @@ jobs:
         env:
           FLUENTDO_AGENT_VERSION: ${{ inputs.version }}
 
+      - name: Deltas
+        run: git diff
+        shell: bash
+
       # Not required on Namespace and can break builds
       # - name: Set up QEMU
       #   uses: docker/setup-qemu-action@v3

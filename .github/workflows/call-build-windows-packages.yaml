@@ -48,6 +48,9 @@ jobs:
         env:
           FLUENTDO_AGENT_VERSION: ${{ inputs.version }}
 
+      - name: Deltas
+        run: git diff
+        shell: bash
 
       - name: Get dependencies
         run: |
