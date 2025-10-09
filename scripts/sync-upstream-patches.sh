@@ -13,7 +13,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT="${SCRIPT_DIR}/.."
-cd "$REPO_ROOT"
+cd "$REPO_ROOT" || exit 1
 
 # Configuration
 UPSTREAM_REPO="https://github.com/fluent/fluent-bit.git"
@@ -238,23 +238,23 @@ analyze_patches() {
         case "$category" in
             TECHNICAL)
                 echo -e "${GREEN}[TECH]${NC} $commit_hash $description"
-                ((technical_count++))
+                ((technical_count++)) || true
                 ;;
             PACKAGING)
                 echo -e "${YELLOW}[PKG]${NC}  $commit_hash $description"
-                ((packaging_count++))
+                ((packaging_count++)) || true
                 ;;
             VERSION)
                 echo -e "${BLUE}[VER]${NC}  $commit_hash $description"
-                ((version_count++))
+                ((version_count++)) || true
                 ;;
             TESTS)
                 echo -e "${CYAN}[TEST]${NC} $commit_hash $description"
-                ((tests_count++))
+                ((tests_count++)) || true
                 ;;
             WORKFLOWS)
                 echo -e "${RED}[WF]${NC}   $commit_hash $description"
-                ((workflows_count++))
+                ((workflows_count++)) || true
                 ;;
         esac
     done
@@ -283,7 +283,7 @@ apply_patch() {
     original_dir=$(pwd)
 
     # Try different patch methods from within SOURCE_DIR
-    cd "$SOURCE_DIR"
+    cd "$SOURCE_DIR" || exit 1
 
     local applied=false
     local method=""
@@ -325,7 +325,7 @@ apply_patch() {
     fi
 
     # Go back to repo root
-    cd "$original_dir"
+    cd "$original_dir" || exit 1
 
     if [[ "$applied" == true ]]; then
         log_success "Applied: $commit_hash via $method"
