@@ -214,6 +214,7 @@ jobs:
     needs:
       - get-meta
     with:
+      version: ${{ needs.get-meta.outputs.version }}
       ref: ${{ github.ref }}
       target-matrix: ${{ needs.get-meta.outputs.linux-targets }}
       nightly-build-info: ${{ needs.get-meta.outputs.date }}
@@ -228,6 +229,7 @@ jobs:
     needs:
       - get-meta
     with:
+      version: ${{ needs.get-meta.outputs.version }}
       ref: ${{ github.ref }}
       nightly-build-info: ${{ needs.get-meta.outputs.date }}
 

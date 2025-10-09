@@ -3,6 +3,10 @@ name: Build Windows packages
 on:
   workflow_call:
     inputs:
+      version:
+        description: The version we are building for (as a numeric value 1.2.3).
+        required: true
+        type: string
       ref:
         description: The commit, tag or branch of Fluent Bit to checkout for building that creates the version above.
         type: string
@@ -37,6 +41,13 @@ jobs:
         with:
           ref: ${{ inputs.ref }}
           repository: FluentDo/agent
+
+      - name: Ensure we apply specific version from tag
+        run: ./scripts/setup-code.sh
+        shell: bash
+        env:
+          FLUENTDO_AGENT_VERSION: ${{ inputs.version }}
+
 
       - name: Get dependencies
         run: |
