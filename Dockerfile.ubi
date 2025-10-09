@@ -1,8 +1,13 @@
 FROM registry.access.redhat.com/ubi9:9.5 AS base-builder
+
+ARG CACHE_ID=main
 # hadolint ignore=DL3041
-RUN dnf update -y && \
-    dnf install -y cmake3 diffutils gcc gcc-c++ git m4 make openssl-devel patch systemd-devel tar unzip libyaml-devel cyrus-sasl-devel zlib-devel pcre2-devel && \
-    dnf clean all && rm -rf /var/cache/dnf
+RUN --mount=type=cache,target=/var/cache/dnf,sharing=locked,id=dockerfile-ubi-${CACHE_ID} \
+    dnf update -y && \
+    dnf install -y cmake3 diffutils gcc gcc-c++ git m4 make openssl-devel patch systemd-devel tar unzip libyaml-devel cyrus-sasl-devel zlib-devel pcre2-devel
+
+# Split into separate layer to allow caching above
+RUN dnf clean all && rm -rf /var/cache/dnf
 
 # Provide the dependencies for record accessor built from source
 ARG BISON_VER=3.8.2
