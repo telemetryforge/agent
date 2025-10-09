@@ -21,10 +21,12 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN apt-get update && \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get -qq update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
-    libpq-dev postgresql-server-dev-all software-properties-common \
+    software-properties-common \
     software-properties-common libyaml-dev apt-transport-https  \
     pkg-config libsasl2-2 libsasl2-dev openssl libssl-dev libssl1.0 \
     libcurl4-openssl-dev zlib1g-dev libgit2-dev \
@@ -33,8 +35,10 @@ RUN apt-get update && \
     gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null && \
     apt-add-repository 'deb https://apt.kitware.com/ubuntu/ xenial main' && \
     apt-get update && \
-    apt-get install -y --reinstall lsb-base lsb-release && \
-    mkdir -p "${CMAKE_HOME}" && \
+    apt-get install -y --reinstall lsb-base lsb-Release
+
+# hadolint ignore=DL4001,DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
     cmake_download_url="https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
     echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
     curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
@@ -52,10 +56,11 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN apt-get update && \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get -qq update && \
     apt-get install -y curl ca-certificates gcc-8 g++-8 libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
-    libpq-dev postgresql-server-dev-all \
     libsasl2-2 libsasl2-dev openssl libssl-dev libssl1.1 libcurl4-openssl-dev \
     software-properties-common libyaml-dev apt-transport-https pkg-config zlib1g-dev libgit2-dev \
     tar gzip && \
@@ -63,10 +68,13 @@ RUN apt-get update && \
     gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null && \
     apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' && \
     apt-get update && \
-    apt-get install -y --reinstall lsb-base lsb-release && \
-    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 1 && \
-    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 1 && \
-    mkdir -p "${CMAKE_HOME}" && \
+    apt-get install -y --reinstall lsb-base lsb-release
+
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 1 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 1
+
+# hadolint ignore=DL4001,DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
     cmake_download_url="https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
     echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
     curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
@@ -86,10 +94,11 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN apt-get update && \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && \
     apt-get install -y curl ca-certificates gcc-8 g++-8 libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
-    libpq-dev postgresql-server-dev-all \
     libsasl2-2 libsasl2-dev openssl libssl-dev libssl1.1 libcurl4-openssl-dev \
     software-properties-common libyaml-dev apt-transport-https pkg-config zlib1g-dev libgit2-dev \
     tar gzip && \
@@ -97,10 +106,13 @@ RUN apt-get update && \
     gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null && \
     apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' && \
     apt-get update && \
-    apt-get install -y --reinstall lsb-base lsb-release && \
-    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 1 && \
-    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 1 && \
-    mkdir -p "${CMAKE_HOME}" && \
+    apt-get install -y --reinstall lsb-base lsb-release
+
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 1 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 1
+
+# hadolint ignore=DL4001,DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
     cmake_download_url="https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
     echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
     curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
@@ -116,15 +128,18 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN apt-get update && \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
-    libpq-dev postgresql-server-dev-all \
     libsasl2-2 libsasl2-dev openssl libssl-dev libssl1.1 libcurl4-openssl-dev \
     libyaml-dev pkg-config zlib1g-dev libgit2-dev \
     tar gzip && \
-    apt-get install -y --reinstall lsb-base lsb-release && \
-    mkdir -p "${CMAKE_HOME}" && \
+    apt-get install -y --reinstall lsb-base lsb-release
+
+# hadolint ignore=DL4001,DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
     cmake_download_url="https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
     echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
     curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
@@ -142,15 +157,18 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN apt-get update && \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
-    libpq-dev postgresql-server-dev-all \
     libsasl2-2 libsasl2-dev openssl libssl-dev libssl1.1 libcurl4-openssl-dev \
     libyaml-dev pkg-config zlib1g-dev libgit2-dev \
     tar gzip && \
-    apt-get install -y --reinstall lsb-base lsb-release && \
-    mkdir -p "${CMAKE_HOME}" && \
+    apt-get install -y --reinstall lsb-base lsb-release
+
+# hadolint ignore=DL4001,DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
     cmake_download_url="https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
     echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
     curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
@@ -166,15 +184,18 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN apt-get update && \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
-    libpq-dev postgresql-server-dev-all libpq5 \
     libsasl2-2 libsasl2-dev openssl libssl-dev libssl3 libcurl4-openssl-dev \
     libyaml-dev pkg-config zlib1g-dev libgit2-dev \
     tar gzip && \
-    apt-get install -y --reinstall lsb-base lsb-release && \
-    mkdir -p "${CMAKE_HOME}" && \
+    apt-get install -y --reinstall lsb-base lsb-release
+
+# hadolint ignore=DL4001,DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
     cmake_download_url="https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
     echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
     curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
@@ -192,15 +213,18 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN apt-get update && \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
-    libpq-dev postgresql-server-dev-all libpq5 \
     libsasl2-2 libsasl2-dev openssl libssl-dev libssl3 libcurl4-openssl-dev \
     libyaml-dev pkg-config zlib1g-dev libgit2-dev \
     tar gzip && \
-    apt-get install -y --reinstall lsb-base lsb-release && \
-    mkdir -p "${CMAKE_HOME}" && \
+    apt-get install -y --reinstall lsb-base lsb-release
+
+# hadolint ignore=DL4001,DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
     cmake_download_url="https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
     echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
     curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
@@ -216,15 +240,18 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN apt-get update && \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
-    libpq-dev postgresql-server-dev-all libpq5 \
     libsasl2-2 libsasl2-dev openssl libssl-dev libssl3 libcurl4-openssl-dev \
     libyaml-dev pkg-config zlib1g-dev libgit2-dev \
     tar gzip && \
-    apt-get install -y --reinstall lsb-base lsb-release && \
-    mkdir -p "${CMAKE_HOME}" && \
+    apt-get install -y --reinstall lsb-base lsb-release
+
+# hadolint ignore=DL4001,DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
     cmake_download_url="https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
     echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
     curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
@@ -242,15 +269,18 @@ ARG CMAKE_VERSION="3.31.6"
 ARG CMAKE_URL="https://github.com/Kitware/CMake/releases/download"
 
 # hadolint ignore=DL3008,DL3015
-RUN apt-get update && \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
-    libpq-dev postgresql-server-dev-all libpq5 \
     libsasl2-2 libsasl2-dev openssl libssl-dev libssl3 libcurl4-openssl-dev \
     libyaml-dev pkg-config zlib1g-dev libgit2-dev \
     tar gzip && \
-    apt-get install -y --reinstall lsb-base lsb-release && \
-    mkdir -p "${CMAKE_HOME}" && \
+    apt-get install -y --reinstall lsb-base lsb-release
+
+# hadolint ignore=DL4001,DL4006
+RUN mkdir -p "${CMAKE_HOME}" && \
     cmake_download_url="https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-$(uname -m).tar.gz" && \
     echo "Downloading CMake ${CMAKE_VERSION}: ${cmake_download_url} -> ${CMAKE_HOME}" && \
     curl -jksSL "${cmake_download_url}" | tar -xzf - -C "${CMAKE_HOME}" --strip-components 1
