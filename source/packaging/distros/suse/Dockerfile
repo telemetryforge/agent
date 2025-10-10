@@ -45,6 +45,9 @@ RUN --mount=type=cache,target=/var/cache/zypp,sharing=locked,id=suse-12-${CACHE_
 ARG FLB_PROCESSOR_DEDUP=Off
 ENV FLB_PROCESSOR_DEDUP=$FLB_PROCESSOR_DEDUP
 
+ARG FLB_JEMALLOC_OPTIONS
+ENV FLB_JEMALLOC_OPTIONS=${FLB_JEMALLOC_OPTIONS}
+
 # suse/15 base image
 FROM opensuse/leap:15.3 AS suse-15-base
 
@@ -76,6 +79,9 @@ RUN --mount=type=cache,target=/var/cache/zypp,sharing=locked,id=suse-15-arm64-${
 
 ARG FLB_PROCESSOR_DEDUP=On
 ENV FLB_PROCESSOR_DEDUP=$FLB_PROCESSOR_DEDUP
+
+ARG FLB_JEMALLOC_OPTIONS
+ENV FLB_JEMALLOC_OPTIONS=${FLB_JEMALLOC_OPTIONS}
 
 # Common build for all distributions now
 # hadolint ignore=DL3006
@@ -112,6 +118,9 @@ RUN ./Configure && make -j "$(getconf _NPROCESSORS_ONLN)" && make install
 
 ARG FLB_NIGHTLY_BUILD
 ENV FLB_NIGHTLY_BUILD=$FLB_NIGHTLY_BUILD
+
+ARG FLB_JEMALLOC_OPTIONS
+ENV FLB_JEMALLOC_OPTIONS=${FLB_JEMALLOC_OPTIONS}
 
 # Docker context must be the base of the repo
 WORKDIR /source/fluent-bit/

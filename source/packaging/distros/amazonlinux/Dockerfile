@@ -26,7 +26,7 @@ RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=amazonlinux-2-${C
     gcc gcc-c++ \
     wget unzip systemd-devel wget flex bison \
     cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel \
-    postgresql-devel postgresql-libs glibc-devel \
+    glibc-devel \
     libyaml-devel zlib-devel libcurl-devel libgit2-devel pkgconf-pkg-config \
     tar gzip
 # Split into separate layer to allow us to cache above

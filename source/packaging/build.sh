@@ -87,7 +87,6 @@ if ! ${DOCKER} build \
     --build-arg CMAKE_INSTALL_PREFIX="$CMAKE_INSTALL_PREFIX" \
     --build-arg FLB_NIGHTLY_BUILD="$FLB_NIGHTLY_BUILD" \
     --build-arg CACHE_ID="$CACHE_ID" \
-	--buidl
     $FLB_ARG \
     -t "$MAIN_IMAGE" \
     -f "$IMAGE_CONTEXT_DIR/Dockerfile" \

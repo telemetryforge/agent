@@ -29,14 +29,14 @@ ARG CACHE_ID
 # hadolint ignore=DL3008,DL3015
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=debian-buster-${CACHE_ID} \
     --mount=type=cache,target=/var/lib/apt,sharing=locked,id=debian-buster-${CACHE_ID} \
-    apt-get -qq update && \
+    apt-get update && \
     apt-get install -y curl ca-certificates build-essential \
     make bash sudo wget unzip dh-make \
     libsystemd-dev zlib1g-dev flex bison \
     libssl1.1 libssl-dev \
     libsasl2-2 libsasl2-dev libyaml-dev libcurl4-openssl-dev pkg-config libgit2-dev \
     tar gzip && \
-    apt-get install -y --reinstall lsb-base lsb-Release
+    apt-get install -y --reinstall lsb-base lsb-release
 
 # hadolint ignore=DL4006
 RUN mkdir -p "${CMAKE_HOME}" && \
@@ -65,14 +65,14 @@ ARG CACHE_ID
 # hadolint ignore=DL3008,DL3015
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=debian-buster-arm64-${CACHE_ID} \
     --mount=type=cache,target=/var/lib/apt,sharing=locked,id=debian-buster-arm64-${CACHE_ID} \
-    apt-get -qq update && \
+    apt-get update && \
     apt-get install -y curl ca-certificates build-essential \
     make bash sudo wget unzip dh-make \
     libsystemd-dev zlib1g-dev flex bison \
     libssl1.1 libssl-dev \
     libsasl2-2 libsasl2-dev libyaml-dev libcurl4-openssl-dev pkg-config libgit2-dev \
     tar gzip && \
-    apt-get install -y --reinstall lsb-base lsb-Release
+    apt-get install -y --reinstall lsb-base lsb-release
 
 # hadolint ignore=DL4006
 RUN mkdir -p "${CMAKE_HOME}" && \
@@ -94,14 +94,14 @@ ARG CACHE_ID
 # hadolint ignore=DL3008,DL3015
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=debian-bullseye-${CACHE_ID} \
     --mount=type=cache,target=/var/lib/apt,sharing=locked,id=debian-bullseye-${CACHE_ID} \
-    apt-get -qq update && \
+    apt-get update && \
     apt-get install -y curl ca-certificates build-essential \
     make bash sudo wget unzip dh-make \
     libsystemd-dev zlib1g-dev flex bison \
     libssl1.1 libssl-dev \
     libsasl2-2 libsasl2-dev libyaml-dev libcurl4-openssl-dev pkg-config libgit2-dev \
     tar gzip && \
-    apt-get install -y --reinstall lsb-base lsb-Release
+    apt-get install -y --reinstall lsb-base lsb-release
 
 # hadolint ignore=DL4006
 RUN mkdir -p "${CMAKE_HOME}" && \
@@ -125,14 +125,14 @@ ARG CACHE_ID
 # hadolint ignore=DL3008,DL3015
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=debian-bullseye-arm64-${CACHE_ID} \
     --mount=type=cache,target=/var/lib/apt,sharing=locked,id=debian-bullseye-arm64-${CACHE_ID} \
-    apt-get -qq update && \
+    apt-get update && \
     apt-get install -y curl ca-certificates build-essential \
     make bash sudo wget unzip dh-make \
     libsystemd-dev zlib1g-dev flex bison \
     libssl1.1 libssl-dev \
     libsasl2-2 libsasl2-dev libyaml-dev libcurl4-openssl-dev pkg-config libgit2-dev \
     tar gzip && \
-    apt-get install -y --reinstall lsb-base lsb-Release
+    apt-get install -y --reinstall lsb-base lsb-release
 
 # hadolint ignore=DL4006
 RUN mkdir -p "${CMAKE_HOME}" && \
@@ -154,14 +154,14 @@ ARG CACHE_ID
 # hadolint ignore=DL3008,DL3015
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=debian-bookworm-${CACHE_ID} \
     --mount=type=cache,target=/var/lib/apt,sharing=locked,id=debian-bookworm-${CACHE_ID} \
-    apt-get -qq update && \
+    apt-get update && \
     apt-get install -y curl ca-certificates build-essential \
     make bash sudo wget unzip dh-make \
     libsystemd-dev zlib1g-dev flex bison \
     libssl3 libssl-dev \
     libsasl2-2 libsasl2-dev libyaml-dev libcurl4-openssl-dev pkg-config libgit2-dev \
     tar gzip && \
-    apt-get install -y --reinstall lsb-base lsb-Release
+    apt-get install -y --reinstall lsb-base lsb-release
 
 # hadolint ignore=DL4006
 RUN mkdir -p "${CMAKE_HOME}" && \
@@ -185,14 +185,14 @@ ARG CACHE_ID
 # hadolint ignore=DL3008,DL3015
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=debian-bookworm-arm64-${CACHE_ID} \
     --mount=type=cache,target=/var/lib/apt,sharing=locked,id=debian-bookworm-arm64-${CACHE_ID} \
-    apt-get -qq update && \
+    apt-get update && \
     apt-get install -y curl ca-certificates build-essential \
     make bash sudo wget unzip dh-make \
     libsystemd-dev zlib1g-dev flex bison \
     libssl3 libssl-dev \
     libsasl2-2 libsasl2-dev libyaml-dev libcurl4-openssl-dev pkg-config libgit2-dev \
     tar gzip && \
-    apt-get install -y --reinstall lsb-base lsb-Release
+    apt-get install -y --reinstall lsb-base lsb-release
 
 # hadolint ignore=DL4006
 RUN mkdir -p "${CMAKE_HOME}" && \
@@ -214,14 +214,14 @@ ARG CACHE_ID
 # hadolint ignore=DL3008,DL3015
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=debian-trixie-${CACHE_ID} \
     --mount=type=cache,target=/var/lib/apt,sharing=locked,id=debian-trixie-${CACHE_ID} \
-    apt-get -qq update && \
+    apt-get update && \
     apt-get install -y curl ca-certificates build-essential \
     make bash sudo wget unzip dh-make \
     libsystemd-dev zlib1g-dev flex bison \
     libssl3 libssl-dev \
     libsasl2-2 libsasl2-dev libyaml-dev libcurl4-openssl-dev pkg-config libgit2-dev \
     tar gzip && \
-    apt-get install -y --reinstall lsb-base lsb-Release
+    apt-get install -y --reinstall lsb-base lsb-release
 
 # hadolint ignore=DL4006
 RUN mkdir -p "${CMAKE_HOME}" && \
@@ -245,14 +245,14 @@ ARG CACHE_ID
 # hadolint ignore=DL3008,DL3015
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=debian-trixie-arm64-${CACHE_ID} \
     --mount=type=cache,target=/var/lib/apt,sharing=locked,id=debian-trixie-arm64-${CACHE_ID} \
-    apt-get -qq update && \
+    apt-get update && \
     apt-get install -y curl ca-certificates build-essential \
     make bash sudo wget unzip dh-make \
     libsystemd-dev zlib1g-dev flex bison \
     libssl3 libssl-dev \
     libsasl2-2 libsasl2-dev libyaml-dev libcurl4-openssl-dev pkg-config libgit2-dev \
     tar gzip && \
-    apt-get install -y --reinstall lsb-base lsb-Release
+    apt-get install -y --reinstall lsb-base lsb-release
 
 # hadolint ignore=DL4006
 RUN mkdir -p "${CMAKE_HOME}" && \

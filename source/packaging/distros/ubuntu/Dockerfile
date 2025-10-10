@@ -27,10 +27,9 @@ ARG CACHE_ID
 # hadolint ignore=DL3008,DL3015
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-1604-${CACHE_ID} \
     --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-1604-${CACHE_ID} \
-    apt-get -qq update && \
+    apt-get update && \
     apt-get install -y curl ca-certificates build-essential libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
-    software-properties-common \
     software-properties-common libyaml-dev apt-transport-https  \
     pkg-config libsasl2-2 libsasl2-dev openssl libssl-dev libssl1.0 \
     libcurl4-openssl-dev zlib1g-dev libgit2-dev \
@@ -39,7 +38,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-1604-${CAC
     gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null && \
     apt-add-repository 'deb https://apt.kitware.com/ubuntu/ xenial main' && \
     apt-get update && \
-    apt-get install -y --reinstall lsb-base lsb-Release
+    apt-get install -y --reinstall lsb-base lsb-release
 
 # hadolint ignore=DL4001,DL4006
 RUN mkdir -p "${CMAKE_HOME}" && \
@@ -63,7 +62,7 @@ ARG CACHE_ID
 # hadolint ignore=DL3008,DL3015
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=ubuntu-1804-${CACHE_ID} \
     --mount=type=cache,target=/var/lib/apt,sharing=locked,id=ubuntu-1804-${CACHE_ID} \
-    apt-get -qq update && \
+    apt-get update && \
     apt-get install -y curl ca-certificates gcc-8 g++-8 libsystemd-dev \
     make bash wget unzip nano vim valgrind dh-make flex bison \
     libsasl2-2 libsasl2-dev openssl libssl-dev libssl1.1 libcurl4-openssl-dev \
