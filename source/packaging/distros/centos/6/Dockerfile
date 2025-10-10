@@ -28,7 +28,6 @@ ARG CACHE_ID
 RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=centos-6-${CACHE_ID} yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ make wget tar \
     openssl openss-libs openssl-devel cyrus-sasl-devel \
-    postgresql-libs postgresql-devel postgresql-server postgresql \
     libyaml-devel \
     perl-core libtemplate-perl zlib-devel \
     libicu-devel scl-utils-build devtoolset-9 rh-python35 && \
