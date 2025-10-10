@@ -77,10 +77,9 @@ RUN ./Configure && make -j "$(getconf _NPROCESSORS_ONLN)" && make install
 
 # Build libssh2 from source as static library with -fPIC (required for libgit2)
 ARG LIBSSH2_VER=1.11.1
-WORKDIR /tmp
-RUN curl -LO https://www.libssh2.org/download/libssh2-${LIBSSH2_VER}.tar.gz && \
-    tar xf libssh2-${LIBSSH2_VER}.tar.gz
-WORKDIR /tmp/libssh2-${LIBSSH2_VER}
+ADD https://www.libssh2.org/download/libssh2-${LIBSSH2_VER}.tar.gz /libssh2/
+RUN tar -xzvf /libssh2/libssh2-${LIBSSH2_VER}.tar.gz -C /libssh2
+WORKDIR /libssh2/libssh2-${LIBSSH2_VER}
 RUN CFLAGS="-fPIC" \
     LDFLAGS="-L/openssl/openssl-3.5.2 -L/usr/local/lib64" \
     CPPFLAGS="-I/openssl/openssl-3.5.2/include" \
@@ -89,12 +88,12 @@ RUN CFLAGS="-fPIC" \
 
 # Build libgit2 from source (required for git_config plugin)
 ARG LIBGIT2_VER=1.9.1
-WORKDIR /tmp
-RUN curl -LO https://github.com/libgit2/libgit2/archive/refs/tags/v${LIBGIT2_VER}.tar.gz && \
-    tar xf v${LIBGIT2_VER}.tar.gz
-WORKDIR /tmp/libgit2-${LIBGIT2_VER}
-RUN cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON \
+ADD https://github.com/libgit2/libgit2/archive/refs/tags/v${LIBGIT2_VER}.tar.gz /libgit2/
+RUN tar -xzvf /libgit2/v${LIBGIT2_VER}.tar.gz -C /libgit2
+WORKDIR /libgit2/libgit2-${LIBGIT2_VER}
+RUN cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
           -DUSE_SSH=ON -DBUILD_TESTS=OFF -DBUILD_CLI=OFF \
+          -DLINK_WITH_STATIC_LIBRARIES=ON \
           -DOPENSSL_ROOT_DIR=/openssl/openssl-3.5.2 && \
     cmake --build build --target install -- -j "$(getconf _NPROCESSORS_ONLN)" && \
     echo "/usr/local/lib64" > /etc/ld.so.conf.d/libgit2.conf && \
@@ -133,7 +132,6 @@ RUN PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig:/usr/local/lib/pkgconfig:$PKG_CON
     -DCMAKE_INSTALL_SYSCONFDIR="$CMAKE_INSTALL_SYSCONFDIR" \
     -DCMAKE_CXX_LINK_EXECUTABLE="<CMAKE_CXX_COMPILER> <FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>" \
     -DFLB_NIGHTLY_BUILD="$FLB_NIGHTLY_BUILD" \
-    -DFLB_JEMALLOC_OPTIONS="$FLB_JEMALLOC_OPTIONS" \
     -DFLB_CPACK_SYSVINIT="${FLB_CPACK_SYSVINIT}" \
     -DFLB_UNICODE_ENCODER="${FLB_UNICODE_ENCODER}" \
     -DFLB_PROCESSOR_DEDUP="${FLB_PROCESSOR_DEDUP}" \

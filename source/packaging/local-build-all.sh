@@ -19,20 +19,36 @@ JSON_FILE_NAME=${JSON_FILE_NAME:-$SCRIPT_DIR/../../build-config.json}
 
 # Output checks are easier plus do not want to fill up git
 PACKAGING_OUTPUT_DIR=${PACKAGING_OUTPUT_DIR:-test}
+
+function run_build() {
+	local target=${1:?}
+    echo "INFO: Building $target"
+    FLB_OUT_DIR="$PACKAGING_OUTPUT_DIR" /bin/bash "$SCRIPT_DIR"/build.sh -d "$target"
+
+	# Verify that an RPM or DEB is created.
+    if [[ -z $(find "${SCRIPT_DIR}/packages/$target/$PACKAGING_OUTPUT_DIR/" -type f \( -iname "*.rpm" -o -iname "*.deb" \) | head -n1) ]]; then
+        echo "ERROR: Unable to find any binary packages in: ${SCRIPT_DIR}/packages/$target/$PACKAGING_OUTPUT_DIR"
+        exit 1
+    fi
+	echo "INFO: Successfully built $target"
+}
+# This export makes the "run_build()" function available in GNU parallel's subshells
+export -f run_build
+export SCRIPT_DIR
+export PACKAGING_OUTPUT_DIR
+export JSON_FILE_NAME
+
 echo "Cleaning any existing output"
 rm -rf "${PACKAGING_OUTPUT_DIR:?}/*"
 
 # Iterate over each target and attempt to build it.
-# Verify that an RPM or DEB is created.
 jq -cr '.linux_targets[]' "$JSON_FILE_NAME" | while read -r DISTRO
-
 do
-    echo "DISTRO: $DISTRO"
-    FLB_OUT_DIR="$PACKAGING_OUTPUT_DIR" /bin/bash "$SCRIPT_DIR"/build.sh -d "$DISTRO" "$@"
-    if [[ -z $(find "${SCRIPT_DIR}/packages/$DISTRO/$PACKAGING_OUTPUT_DIR/" -type f \( -iname "*-bit-*.rpm" -o -iname "*-bit-*.deb" \) | head -n1) ]]; then
-        echo "Unable to find any binary packages in: ${SCRIPT_DIR}/packages/$DISTRO/$PACKAGING_OUTPUT_DIR"
-        exit 1
-    fi
+	if command -v parallel &> /dev/null; then
+		parallel --line-buffer --halt-on-error now,fail=1 --load 80% --keep-order run_build ::: "$DISTRO"
+	else
+		run_build "$DISTRO"
+	fi
 done
 
 echo "Success so cleanup"
