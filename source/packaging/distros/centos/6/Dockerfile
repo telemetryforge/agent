@@ -1,5 +1,5 @@
 ARG BASE_BUILDER=centos-6-base
-ARG CMAKE_VERSION=3.31.6
+ARG CMAKE_VERSION=3.23.1
 # Used to differentiate in CI from main/PR builds
 ARG CACHE_ID=main
 
@@ -77,9 +77,10 @@ RUN ./Configure && make -j "$(getconf _NPROCESSORS_ONLN)" && make install
 
 # Build libssh2 from source as static library with -fPIC (required for libgit2)
 ARG LIBSSH2_VER=1.11.1
-ADD https://www.libssh2.org/download/libssh2-${LIBSSH2_VER}.tar.gz /libssh2/
-RUN tar -xzvf /libssh2/libssh2-${LIBSSH2_VER}.tar.gz -C /libssh2
-WORKDIR /libssh2/libssh2-${LIBSSH2_VER}
+WORKDIR /tmp
+RUN curl -LO https://www.libssh2.org/download/libssh2-${LIBSSH2_VER}.tar.gz && \
+    tar xf libssh2-${LIBSSH2_VER}.tar.gz
+WORKDIR /tmp/libssh2-${LIBSSH2_VER}
 RUN CFLAGS="-fPIC" \
     LDFLAGS="-L/openssl/openssl-3.5.2 -L/usr/local/lib64" \
     CPPFLAGS="-I/openssl/openssl-3.5.2/include" \
@@ -88,12 +89,12 @@ RUN CFLAGS="-fPIC" \
 
 # Build libgit2 from source (required for git_config plugin)
 ARG LIBGIT2_VER=1.9.1
-ADD https://github.com/libgit2/libgit2/archive/refs/tags/v${LIBGIT2_VER}.tar.gz /libgit2/
-RUN tar -xzvf /libgit2/v${LIBGIT2_VER}.tar.gz -C /libgit2
-WORKDIR /libgit2/libgit2-${LIBGIT2_VER}
-RUN cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
+WORKDIR /tmp
+RUN curl -LO https://github.com/libgit2/libgit2/archive/refs/tags/v${LIBGIT2_VER}.tar.gz && \
+    tar xf v${LIBGIT2_VER}.tar.gz
+WORKDIR /tmp/libgit2-${LIBGIT2_VER}
+RUN cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON \
           -DUSE_SSH=ON -DBUILD_TESTS=OFF -DBUILD_CLI=OFF \
-          -DLINK_WITH_STATIC_LIBRARIES=ON \
           -DOPENSSL_ROOT_DIR=/openssl/openssl-3.5.2 && \
     cmake --build build --target install -- -j "$(getconf _NPROCESSORS_ONLN)" && \
     echo "/usr/local/lib64" > /etc/ld.so.conf.d/libgit2.conf && \
@@ -120,7 +121,7 @@ ARG CMAKE_INSTALL_SYSCONFDIR=/etc/
 # Ensure we enable sysvinit set up
 ARG FLB_CPACK_SYSVINIT=On
 # Requires C++11 and uchar.h
-ARG FLB_UNICODE_ENCODER=On
+ARG FLB_UNICODE_ENCODER=Off
 ENV FLB_UNICODE_ENCODER=$FLB_UNICODE_ENCODER
 # Requires C++17
 ARG FLB_PROCESSOR_DEDUP=On
