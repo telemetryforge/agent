@@ -104,6 +104,6 @@ jobs:
               run: |
                 ./preflight-linux-amd64 check container \
                     --certification-component-id 68e14199529ca9e0c382582c \
-                    --pyxis-api-token ' ${{ steps.get-secrets.outputs.redhat-api-key }}'
+                    --pyxis-api-token '${{ steps.get-secrets.outputs.redhat-api-key }}' \
                     --submit $UBI_IMAGE_NAME:${{ inputs.version }}
               shell: bash
