@@ -40,8 +40,8 @@ static int set_git_config_input_properties(struct flb_custom_git_config *ctx,
     flb_input_set_property(input, "path", ctx->path);
 
     /* Set optional properties with defaults */
-    if (ctx->clone_path) {
-        flb_input_set_property(input, "clone_path", ctx->clone_path);
+    if (ctx->config_dir) {
+        flb_input_set_property(input, "config_dir", ctx->config_dir);
     }
 
     if (ctx->poll_interval > 0) {
@@ -152,9 +152,13 @@ static struct flb_config_map config_map[] = {
      "Configuration file path in repository"
     },
     {
-     FLB_CONFIG_MAP_STR, "clone_path", "/tmp/fluentbit-git-repo",
-     0, FLB_TRUE, offsetof(struct flb_custom_git_config, clone_path),
-     "Local path for git repository clone and state storage"
+#ifdef _WIN32
+     FLB_CONFIG_MAP_STR, "config_dir", "C:\\ProgramData\\fluentbit-git",
+#else
+     FLB_CONFIG_MAP_STR, "config_dir", "/tmp/fluentbit-git",
+#endif
+     0, FLB_TRUE, offsetof(struct flb_custom_git_config, config_dir),
+     "Base directory for git_config plugin data (git clone and config files)"
     },
     {
      FLB_CONFIG_MAP_INT, "poll_interval", "60",

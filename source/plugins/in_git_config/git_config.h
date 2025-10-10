@@ -32,14 +32,18 @@ struct flb_in_git_config {
     char *repo;
     char *ref;
     char *path;
-    char *clone_path;
+    char *config_dir;      /* Base directory for git_config plugin data */
     int poll_interval;
 
     /* Git context */
     struct flb_git_ctx *git_ctx;
 
+    /* Internal paths */
+    flb_sds_t git_repo_path;   /* Directory for git repository clone: {config_dir}/repo */
+    flb_sds_t configs_path;     /* Directory for config files: {config_dir}/configs */
+
     /* State tracking */
-    flb_sds_t last_sha;
+    flb_sds_t pending_reload_config;  /* Config to reload on first collect */
 
     /* Collector */
     int coll_fd;

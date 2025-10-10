@@ -29,7 +29,7 @@ struct flb_custom_git_config {
     char *repo;
     char *ref;
     char *path;
-    char *clone_path;
+    char *config_dir;
     int poll_interval;
 
     /* Dynamically created input plugin */
