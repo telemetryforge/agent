@@ -149,9 +149,16 @@ jobs:
     needs:
       - test-kubernetes
       - test-container-config
-      # Sometimes skipped so we do not wait for it, if it fails will be caught higher up
-      # - test-redhat-certification
+      - test-redhat-certification
     steps:
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@release/v1
+        with:
+          # Add any jobs that can be skipped here to avoid failure of this job
+          # test-redhat-certification is skipped if not UBI image
+          allowed-skips: test-redhat-certification
+          # Convert the needs object to JSON to pass it in
+          jobs: ${{ toJSON(needs) }}
       - name: All tests passed
         run: echo "All tests passed for ${{ inputs.image }}:${{ inputs.image-tag }}"
         shell: bash
