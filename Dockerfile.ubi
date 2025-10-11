@@ -99,11 +99,6 @@ RUN [ -n "$MAKE_EXTRA_ARGS" ] && make ${MAKE_EXTRA_ARGS} || make -j "$(getconf _
 # The release image now
 FROM registry.access.redhat.com/ubi9/ubi-minimal:9.5 AS production
 
-# We need to override any base image labels
-LABEL vendor='FluentDo <https://fluent.do>'
-LABEL maintainer='FluentDo <info@fluent.do>'
-LABEL name='FluentDo Agent'
-
 # hadolint ignore=DL3041
 RUN microdnf update -y && microdnf install -y openssl libyaml && microdnf clean all
 
@@ -133,14 +128,24 @@ COPY config/ /fluent-bit/etc/
 RUN /fluent-bit/bin/fluent-bit -J > /fluent-bit/etc/schema.json && \
     /fluent-bit/bin/fluent-bit -J > /opt/fluent-do-agent/etc/schema.json
 
-# Run as non-root user - pick a random one
-RUN useradd -u 9876 -m -s /bin/false fluent-do-agent
-
 ARG FLUENT_BIT_VERSION
 ARG FLUENTDO_AGENT_VERSION
 
 ENV FLUENTBIT_VERSION=$FLUENT_BIT_VERSION
 ENV FLUENTDO_AGENT_VERSION=$FLUENTDO_AGENT_VERSION
+
+# We need to override any base image labels
+LABEL vendor='FluentDo at https://fluent.do'
+LABEL maintainer='FluentDo via info@fluent.do'
+LABEL name='FluentDo Agent'
+LABEL io.k8s.display-name='FluentDo Agent'
+LABEL summary='FluentDo Agent is an Enterprise hardened version of Fluent Bit'
+LABEL url='https://fluent.do'
+LABEL io.openshift.tags='observability,logging,log-aggregation,fluentdo,fluent-bit'
+LABEL version=${FLUENTDO_AGENT_VERSION}
+
+# Run as non-root user - pick a random one
+RUN useradd -u 9876 -m -s /bin/false fluent-do-agent
 
 USER 9876
 

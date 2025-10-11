@@ -170,6 +170,18 @@ jobs:
             type=ref,event=branch
             type=ref,event=pr
             type=sha
+          labels: |
+            build-date={{date 'YYYYMMDD-HHmmss'}}
+            version={{version}}
+            io.k8s.description=FluentDo Agent is a stable, secure by default, OSS (Apache-licensed) downstream distribution of Fluent Bit with predictable releases and long-term supported versions for 24 months.
+            io.k8s.display-name=FluentDo Agent
+            io.openshift.tags=observability,logging,log-aggregation,fluentdo,fluent-bit
+            url=https://fluent.do
+            vendor=FluentDo at https://fluent.do
+            maintainer=FluentDo via info@fluent.do
+            name=FluentDo Agent
+            description=FluentDo Agent is a stable, secure by default, OSS (Apache-licensed) downstream distribution of Fluent Bit with predictable releases and long-term supported versions for 24 months.
+            summary=FluentDo Agent is an Enterprise hardened version of Fluent Bit
 
       - name: Create sanitised name for artefact
         run: |
