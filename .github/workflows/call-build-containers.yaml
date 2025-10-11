@@ -97,7 +97,7 @@ jobs:
         with:
           labels: |
             build-date={{date 'YYYYMMDD-HHmmss'}}
-            version={{version}}
+            version=${{ inputs.version }}
             io.k8s.description=FluentDo Agent is a stable, secure by default, OSS (Apache-licensed) downstream distribution of Fluent Bit with predictable releases and long-term supported versions for 24 months.
             io.k8s.display-name=FluentDo Agent
             io.openshift.tags=observability,logging,log-aggregation,fluentdo,fluent-bit

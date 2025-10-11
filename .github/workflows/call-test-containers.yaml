@@ -114,12 +114,14 @@ jobs:
         shell: bash
 
       - name: Preflight log
+        if: always()
         continue-on-error: true
         run: cat preflight.log
         shell: bash
 
       - name: Image debug
         continue-on-error: true
+        if: always()
         run: |
           docker pull ${{ inputs.image }}:${{ inputs.image-tag }}
           docker inspect ${{ inputs.image }}:${{ inputs.image-tag }}

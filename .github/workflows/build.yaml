@@ -255,7 +255,7 @@ jobs:
           artifact-name: image-ubi-sbom.spdx
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
-          output-file: output/image-ubi-sbom.spdx
+          output-file: image-ubi-sbom.spdx
 
       - uses: anchore/sbom-action@v0
         with:
@@ -263,10 +263,11 @@ jobs:
           artifact-name: image-debian-sbom.spdx
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
-          output-file: output/image-debian-sbom.spdx
+          output-file: image-debian-sbom.spdx
 
       - name: Save image as tarball
         run: |
+          mkdir -p output
           skopeo copy \
             --all \
             --remove-signatures \
@@ -323,7 +324,7 @@ jobs:
               - ${{ env.DISTROLESS_IMAGE_NAME }}:${{ env.TAG }}
           files: |
             install.sh
-            output/*.spdx
+            *.spdx
             output/*.json
             deliverables.tar.gz
             output/fluent-do-agent-container.tar.gz
