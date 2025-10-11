@@ -218,9 +218,9 @@ jobs:
     needs:
       - get-meta
       - build-image
-      # Only wait for images to build to ignore any transient or individual target failures
-      # - build-linux
-      # - build-windows
+      # We need packages to be built for a release
+      - build-linux
+      - build-windows
       # Deliberately exclude the following for a release and also to dry run PRs
       # - copy-common-images
       # - tests-complete
