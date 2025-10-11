@@ -145,6 +145,8 @@ jobs:
 
   test-complete:
     name: All container tests complete
+    # Always run this to check the results of the other jobs including skipped ones
+    if: always()
     runs-on: ubuntu-latest
     needs:
       - test-kubernetes
