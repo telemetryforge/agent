@@ -26,7 +26,21 @@ on:
         required: false
         type: string
         default: "fluentdo"
-
+      amd-runner-label:
+        description: The label to use for the runner (if not specified then the default ubuntu-latest or equivalent is used).
+        required: false
+        type: string
+        default: "namespace-profile-ubuntu-latest"
+      arm-runner-label:
+        description: The label to use for the runner (if not specified then the default ubuntu-latest or equivalent is used).
+        required: false
+        type: string
+        default: "namespace-profile-ubuntu-latest-arm"
+      large-amd-runner-label:
+        description: The label to use for the runner (if not specified then the default ubuntu-latest or equivalent is used).
+        required: false
+        type: string
+        default: 'namespace-profile-ubuntu-latest-4cpu-16gb'
     secrets:
       gpg_private_key:
         description: The optional GPG key to use for signing the packages.
@@ -40,7 +54,7 @@ on:
 jobs:
   build-packages:
     name: agent - ${{ matrix.distro }} package build and upload
-    runs-on: ${{ (contains(matrix.distro, 'arm') && 'namespace-profile-ubuntu-latest-arm') || (contains(matrix.distro, 'centos/6') && 'namespace-profile-ubuntu-latest-4cpu-16gb') || 'namespace-profile-ubuntu-latest' }}
+    runs-on: ${{ (contains(matrix.distro, 'arm') && inputs.arm-runner-label) || (contains(matrix.distro, 'centos/6') && inputs.large-amd-runner-label) || inputs.amd-runner-label }}
     permissions:
       contents: read
       packages: read
@@ -65,12 +79,14 @@ jobs:
         run: git diff
         shell: bash
 
-      # Not required on Namespace and can break builds
-      # - name: Set up QEMU
-      #   uses: docker/setup-qemu-action@v3
+      # Must be removed on Namespace runners
+      - name: Set up QEMU
+        if: ${{ !contains( runner.name, 'nsc-' ) }}
+        uses: docker/setup-qemu-action@v3
 
-      # - name: Set up Docker Buildx
-      #   uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        if: ${{ !contains( runner.name, 'nsc-' ) }}
+        uses: docker/setup-buildx-action@v3
 
       - name: Format the matrix string
         uses: frabert/replace-string-action@v2.5

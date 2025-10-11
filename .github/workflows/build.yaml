@@ -121,8 +121,43 @@ jobs:
       # Pick the Dockerfile to use for each image
       definition: ${{ (contains(matrix.image-base, 'debian') && 'Dockerfile.debian') || 'Dockerfile.ubi' }}
       dockerhub-username: ${{ vars.DOCKERHUB_USERNAME }}
+      # Request to build on self-hosted runners if this is a PR and we have the label set, otherwise use the standard runners
+      amd-runner-label: ${{ (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'build-self-hosted') && 'self-ubuntu-latest') || 'namespace-profile-ubuntu-latest' }}
+      # No self-hosted ARM runners yet so always use the standard ones
+      # arm-runner-label: "namespace-profile-ubuntu-latest-arm"
     secrets:
       dockerhub-token: ${{ secrets.DOCKERHUB_PUBLIC_READ_TOKEN }}
+
+  build-linux:
+    # Only build Linux packages if we are not a pull request or have a label set
+    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'build-packages') || contains(github.event.pull_request.labels.*.name, 'build-linux') }}
+    uses: ./.github/workflows/call-build-linux-packages.yaml
+    needs:
+      - get-meta
+    with:
+      version: ${{ needs.get-meta.outputs.version }}
+      ref: ${{ github.ref }}
+      target-matrix: ${{ needs.get-meta.outputs.linux-targets }}
+      nightly-build-info: ${{ needs.get-meta.outputs.date }}
+      dockerhub-username: ${{ vars.DOCKERHUB_USERNAME }}
+      # Request to build on self-hosted runners if this is a PR and we have the label set, otherwise use the standard runners
+      amd-runner-label: ${{ (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'build-self-hosted') && 'self-ubuntu-latest') || 'namespace-profile-ubuntu-latest' }}
+      large-amd-runner-label: ${{ (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'build-self-hosted') && 'self-ubuntu-latest') || 'namespace-profile-ubuntu-latest-4cpu-16gb' }}
+      # No self-hosted ARM runners yet so always use the standard ones
+      # arm-runner-label: "namespace-profile-ubuntu-latest-arm"
+    secrets:
+      dockerhub-token: ${{ secrets.DOCKERHUB_PUBLIC_READ_TOKEN }}
+
+  build-windows:
+    # Only build Windows packages if we are not a pull request or have a label set
+    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'build-packages') || contains(github.event.pull_request.labels.*.name, 'build-windows') }}
+    uses: ./.github/workflows/call-build-windows-packages.yaml
+    needs:
+      - get-meta
+    with:
+      version: ${{ needs.get-meta.outputs.version }}
+      ref: ${{ github.ref }}
+      nightly-build-info: ${{ needs.get-meta.outputs.date }}
 
   # We want to copy the UBI image to ghcr.io/fluentdo/agent:version and
   # the distroless image to ghcr.io/fluentdo/agent:version-slim
@@ -163,32 +198,6 @@ jobs:
         image-base:
           - "ghcr.io/fluentdo/agent/ubi"
           - "ghcr.io/fluentdo/agent/debian"
-
-  build-linux:
-    # Only build Linux packages if we are not a pull request or have a label set
-    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'build-packages') || contains(github.event.pull_request.labels.*.name, 'build-linux') }}
-    uses: ./.github/workflows/call-build-linux-packages.yaml
-    needs:
-      - get-meta
-    with:
-      version: ${{ needs.get-meta.outputs.version }}
-      ref: ${{ github.ref }}
-      target-matrix: ${{ needs.get-meta.outputs.linux-targets }}
-      nightly-build-info: ${{ needs.get-meta.outputs.date }}
-      dockerhub-username: ${{ vars.DOCKERHUB_USERNAME }}
-    secrets:
-      dockerhub-token: ${{ secrets.DOCKERHUB_PUBLIC_READ_TOKEN }}
-
-  build-windows:
-    # Only build Windows packages if we are not a pull request or have a label set
-    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'build-packages') || contains(github.event.pull_request.labels.*.name, 'build-windows') }}
-    uses: ./.github/workflows/call-build-windows-packages.yaml
-    needs:
-      - get-meta
-    with:
-      version: ${{ needs.get-meta.outputs.version }}
-      ref: ${{ github.ref }}
-      nightly-build-info: ${{ needs.get-meta.outputs.date }}
 
   # Placeholder to make it simple to create a status check on this, do not change name
   tests-complete:
