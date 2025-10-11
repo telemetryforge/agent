@@ -143,6 +143,7 @@ LABEL summary='FluentDo Agent is an Enterprise hardened version of Fluent Bit'
 LABEL url='https://fluent.do'
 LABEL io.openshift.tags='observability,logging,log-aggregation,fluentdo,fluent-bit'
 LABEL version=${FLUENTDO_AGENT_VERSION}
+LABEL io.k8s.description='FluentDo Agent is a stable, secure by default, OSS (Apache-licensed) downstream distribution of Fluent Bit with predictable releases and long-term supported versions for 24 months.'
 
 # Run as non-root user - pick a random one
 RUN useradd -u 9876 -m -s /bin/false fluent-do-agent

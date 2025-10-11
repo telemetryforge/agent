@@ -236,6 +236,8 @@ jobs:
             *package*
 
       - name: Package into a single tarball so we can have individual distributions
+        # No packages unless we use specific labels for a PR
+        if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'build-packages') || contains(github.event.pull_request.labels.*.name, 'build-linux') || contains(github.event.pull_request.labels.*.name, 'build-windows') }}
         run: |
           tar -czvf $GITHUB_WORKSPACE/deliverables.tar.gz -C output .
         shell: bash
@@ -287,6 +289,14 @@ jobs:
           jq '. += { "oss_version": "${{ needs.get-meta.outputs.oss-version }}"}' build-config.json | tee output/release.json
         shell: bash
 
+      - name: Make nice Linux targets list
+        id: linux-targets
+        run: |
+          LINUX_TARGETS=$(echo '${{ needs.get-meta.outputs.linux-targets }}' | jq -r '. | join(", ")')
+          echo "linux-targets=$LINUX_TARGETS"
+          echo "linux-targets=$LINUX_TARGETS" >> $GITHUB_OUTPUT
+        shell: bash
+
       - name: Debug
         if: always()
         run: ls -lR
@@ -306,7 +316,7 @@ jobs:
 
             Targets:
               - Windows: 2022/2025
-              - Linux: ${{ needs.get-meta.outputs.linux-targets }}
+              - Linux: ${{ steps.linux-targets.outputs.linux-targets }}
 
             Images:
               - ${{ env.UBI_IMAGE_NAME }}:${{ env.TAG }}
@@ -322,6 +332,7 @@ jobs:
           tag_name: ${{ github.ref_name }}
 
       - name: Authenticate with GCP
+        if: ${{ github.event_name != 'pull_request' }}
         uses: google-github-actions/auth@v3
         with:
           workload_identity_provider: "projects/841522437311/locations/global/workloadIdentityPools/github-actions/providers/github-actions"
@@ -406,6 +417,7 @@ jobs:
           export_environment_variables: true
 
       - id: get-secrets
+        if: ${{ github.event_name != 'pull_request' }}
         name: Get secrets from GCP Secret Manager
         # This step retrieves secrets from GCP Secret Manager and sets them as outputs
         # The secrets can then be accessed in subsequent steps using ${{ steps.get-secrets.outputs.<secret_name> }}
