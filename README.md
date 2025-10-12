@@ -158,6 +158,10 @@ Refer to the CI for full examples of different target builds:
 
 ## Security
 
+The Cosign key for our images is [provided](./cosign.pub) in this repo.
+
+Follow the documentation to verify against it: <https://docs.sigstore.dev/cosign/verifying/verify/>.
+
 ### Reporting Security Issues
 
 If you discover a potential security issue, **DO NOT** create a public GitHub issue. Instead, report it directly:
