@@ -73,6 +73,9 @@ WORKDIR /source/build/
 ARG CMAKE_EXTRA_ARGS
 ENV CMAKE_EXTRA_ARGS=${CMAKE_EXTRA_ARGS}
 
+# -DFLB_IN_EXEC=Off is to ensure in-exec is disabled for distroless containers without a shell
+# https://github.com/fluent/fluent-bit/issues/1758
+
 # We do not want word splitting for CMAKE_EXTRA_ARGS in case multiple are defined
 # hadolint ignore=SC2086
 RUN cmake -DCMAKE_BUILD_TYPE=Release \
@@ -83,6 +86,7 @@ RUN cmake -DCMAKE_BUILD_TYPE=Release \
     -DFLUENTDO_AGENT_VERSION="$FLUENTDO_AGENT_VERSION" \
     -DFLB_LOG_NO_CONTROL_CHARS=On \
     -DFLB_CORO_STACK_SIZE=131072 \
+    -DFLB_IN_EXEC=Off \
     ${CMAKE_EXTRA_ARGS} \
     ..
 
