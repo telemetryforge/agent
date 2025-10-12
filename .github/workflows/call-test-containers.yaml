@@ -74,6 +74,38 @@ jobs:
         run: ./testing/verify-config.sh
         shell: bash
 
+  test-verify-signatures:
+    name: Verify image signatures for ${{ inputs.image }}:${{ inputs.image-tag }}
+    runs-on: ubuntu-latest
+    permissions:
+      packages: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          repository: FluentDo/agent
+          ref: ${{ inputs.ref || github.ref }}
+          token: ${{ secrets.github-token }}
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.github-token }}
+
+      - name: Set up cosign
+        run: |
+          curl -O -L "https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64"
+          sudo mv cosign-linux-amd64 /usr/local/bin/cosign
+          sudo chmod +x /usr/local/bin/cosign
+          cosign version
+        shell: bash
+
+      - name: Verify image signature
+        run: cosign verify --key ./cosign.pub ${{ inputs.image }}:${{ inputs.image-tag }}
+        shell: bash
+
   test-redhat-certification:
     name: Test UBI container will pass certification
     if: contains( inputs.image, 'ubi' )
@@ -152,6 +184,7 @@ jobs:
       - test-kubernetes
       - test-container-config
       - test-redhat-certification
+      - test-verify-signatures
     steps:
       - name: Decide whether the needed jobs succeeded or failed
         uses: re-actors/alls-green@release/v1
