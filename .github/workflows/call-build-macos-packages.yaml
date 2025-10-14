@@ -45,11 +45,15 @@ jobs:
               run: |
                   brew update
                   # We ignore errors here as some packages may already be installed
-                  brew install bison flex gnu-sed libyaml openssl pkgconfig || true
+                  brew install bison flex gnu-sed libyaml openssl pkgconfig libgit2 || true
                   # Remove dynamic linkage for libyaml
                   rm -fv $(brew --prefix libyaml)/lib/*.dylib
                   # Remove dynamic linkage for zstd added by curl install
                   rm -fv $(brew --prefix zstd)/lib/*.dylib
+                  # Remove dynamic linkage for openssl
+                  rm -fv $(brew --prefix openssl)/lib/*.dylib
+                  # Remove dynamic linkage for libgit2
+                  rm -fv $(brew --prefix libgit2)/lib/*.dylib
 
             - name: Install cmake
               uses: jwlawson/actions-setup-cmake@v2

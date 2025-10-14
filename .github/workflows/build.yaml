@@ -368,6 +368,8 @@ jobs:
             output/*.json
             deliverables.tar.gz
             output/fluent-do-agent-container.tar.gz
+            output/package-macos-*
+            output/package-windows-*
           fail_on_unmatched_files: false
           generate_release_notes: true
           tag_name: ${{ github.ref_name }}
