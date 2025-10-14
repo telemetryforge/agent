@@ -44,7 +44,6 @@ jobs:
             - name: Install dependencies
               run: |
                   brew update
-                  brew upgrade
                   # We ignore errors here as some packages may already be installed
                   brew install bison flex gnu-sed libyaml openssl pkgconfig || true
                   # Remove dynamic linkage for libyaml
@@ -88,6 +87,12 @@ jobs:
               run: |
                   DYLD_PRINT_LIBRARIES=1 DYLD_PRINT_LIBRARIES_POST_LAUNCH=1 DYLD_PRINT_RPATHS=1 bin/fluentdo-agent --dry-run
               working-directory: source/build
+
+            - name: Check config
+              run: testing/verify-config.sh
+              env:
+                FLUENT_BIT_BINARY: ${{ github.workspace }}/source/build/bin/fluentdo-agent
+              shell: bash
 
             - name: Upload build packages
               uses: actions/upload-artifact@v4
