@@ -1,0 +1,92 @@
+---
+name: Build macOS packages
+on:
+    workflow_call:
+        inputs:
+            version:
+                description: The version we are building for (as a numeric value 1.2.3).
+                required: true
+                type: string
+            ref:
+                description: The commit, tag or branch of Fluent Bit to checkout for building that creates the version above.
+                type: string
+                required: true
+            nightly-build-info:
+                description: Any special information to add to the nightly build information string.
+                required: false
+                type: string
+                default: ""
+jobs:
+    call-build-macos-package:
+        name: Building ${{ matrix.config.name }} package
+        runs-on: ${{ matrix.config.runner }}
+        strategy:
+            fail-fast: false
+            matrix:
+                config:
+                    - name: "macOS Intel silicon"
+                      cmake_additional_opt: ""
+                      runner: macos-14
+                      package: "intel"
+                    - name: "macOS Apple silicon"
+                      cmake_additional_opt: "-DCMAKE_OSX_ARCHITECTURES=arm64"
+                      runner: macos-14-large
+                      package: "apple"
+        permissions:
+            contents: read
+        steps:
+            - name: Checkout ${{ inputs.ref }} code
+              uses: actions/checkout@v5
+              with:
+                  ref: ${{ inputs.ref }}
+                  repository: FluentDo/agent
+
+            - name: Install dependencies
+              run: |
+                  brew update
+                  brew install bison flex gnu-sed libyaml openssl pkgconfig || true
+                  # Remove dynamic linkage for libyaml
+                  rm -fv $(brew --prefix libyaml)/lib/*.dylib
+                  # Remove dynamic linkage for zstd added by curl install
+                  rm -fv $(brew --prefix zstd)/lib/*.dylib
+
+            - name: Install cmake
+              uses: jwlawson/actions-setup-cmake@v2
+              with:
+                  cmake-version: "3.31.6"
+
+            - name: Ensure we apply specific version from tag
+              run: ./scripts/setup-code.sh
+              shell: bash
+              env:
+                  FLUENTDO_AGENT_VERSION: ${{ inputs.version }}
+
+            - name: Deltas
+              run: git diff
+              shell: bash
+
+            - name: Build hardened Fluent Bit packages
+              run: |
+                  export LIBRARY_PATH=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib:$LIBRARY_PATH
+                  cmake ${{ matrix.config.cmake_additional_opt }} \
+                    -DOPENSSL_USE_STATIC_LIBS=ON \
+                    -DCMAKE_BUILD_TYPE=Release \
+                    -DCPACK_GENERATOR=productbuild \
+                    -DFLB_NIGHTLY_BUILD=${{ inputs.nightly-build-info }} ../
+                  cmake --build .
+                  cpack -G productbuild
+              working-directory: source/build
+
+            - name: Check linkage
+              continue-on-error: true
+              run: |
+                  DYLD_PRINT_LIBRARIES=1 DYLD_PRINT_LIBRARIES_POST_LAUNCH=1 DYLD_PRINT_RPATHS=1 bin/fluentdo-agent --dry-run
+              working-directory: source/build
+
+            - name: Upload build packages
+              uses: actions/upload-artifact@v4
+              with:
+                  name: package-macos-${{ matrix.config.package }}
+                  path: |
+                      source/build/fluentdo-agent-*.pkg
+                  if-no-files-found: error
