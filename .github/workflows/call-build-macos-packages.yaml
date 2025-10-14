@@ -25,12 +25,10 @@ jobs:
             matrix:
                 config:
                     - name: "macOS Intel silicon"
-                      cmake_additional_opt: ""
-                      runner: macos-14
+                      runner: macos-15-intel
                       package: "intel"
                     - name: "macOS Apple silicon"
-                      cmake_additional_opt: "-DCMAKE_OSX_ARCHITECTURES=arm64"
-                      runner: macos-14-large
+                      runner: macos-15
                       package: "apple"
         permissions:
             contents: read
@@ -79,7 +77,7 @@ jobs:
             - name: Build hardened Fluent Bit packages
               run: |
                   export LIBRARY_PATH=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib:$LIBRARY_PATH
-                  cmake ${{ matrix.config.cmake_additional_opt }} \
+                  cmake \
                     -DOPENSSL_USE_STATIC_LIBS=ON \
                     -DCMAKE_BUILD_TYPE=Release \
                     -DCPACK_GENERATOR=productbuild \
