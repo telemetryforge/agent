@@ -76,12 +76,15 @@ jobs:
 
             - name: Build hardened Fluent Bit packages
               run: |
-                  export LIBRARY_PATH=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib:$LIBRARY_PATH
+                  export LIBRARY_PATH="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib:$LIBRARY_PATH"
+                  export PKG_CONFIG_PATH="$(brew --prefix cyrus-sasl)/lib/pkgconfig:$PKG_CONFIG_PATH"
+
                   cmake \
                     -DOPENSSL_USE_STATIC_LIBS=ON \
                     -DCMAKE_BUILD_TYPE=Release \
                     -DCPACK_GENERATOR=productbuild \
                     -DFLB_NIGHTLY_BUILD=${{ inputs.nightly-build-info }} ../
+
                   cmake --build .
                   cpack -G productbuild
               working-directory: source/build
@@ -95,7 +98,7 @@ jobs:
             - name: Check config
               run: testing/verify-config.sh
               env:
-                FLUENT_BIT_BINARY: ${{ github.workspace }}/source/build/bin/fluentdo-agent
+                  FLUENT_BIT_BINARY: ${{ github.workspace }}/source/build/bin/fluentdo-agent
               shell: bash
 
             - name: Upload build packages
