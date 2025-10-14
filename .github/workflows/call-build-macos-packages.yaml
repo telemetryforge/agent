@@ -44,6 +44,8 @@ jobs:
             - name: Install dependencies
               run: |
                   brew update
+                  brew upgrade
+                  # We ignore errors here as some packages may already be installed
                   brew install bison flex gnu-sed libyaml openssl pkgconfig || true
                   # Remove dynamic linkage for libyaml
                   rm -fv $(brew --prefix libyaml)/lib/*.dylib
@@ -60,6 +62,10 @@ jobs:
               shell: bash
               env:
                   FLUENTDO_AGENT_VERSION: ${{ inputs.version }}
+
+            - name: Ensure we have a build directory
+              run: mkdir -p source/build
+              shell: bash
 
             - name: Deltas
               run: git diff
