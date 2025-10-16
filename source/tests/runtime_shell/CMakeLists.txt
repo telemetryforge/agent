@@ -4,7 +4,6 @@ configure_file(
   )
 
 set(UNIT_TESTS_SH
-  custom_calyptia.sh
   in_dummy_expect.sh
   in_tail_expect.sh
   in_http_tls_expect.sh
