@@ -190,6 +190,7 @@ jobs:
           build-args: |
             FLUENTDO_AGENT_VERSION=${{ inputs.version }}
           provenance: false
+          push: true
           tags: ${{ steps.meta-test.outputs.tags }}
           labels: ${{ steps.meta-test.outputs.labels }}
 
