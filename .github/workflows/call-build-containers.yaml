@@ -159,6 +159,40 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+      - name: Extract metadata from Github for test image
+        # Only for AMD64 as we only run tests on that architecture
+        if: matrix.platform == 'amd64'
+        id: meta-test
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ inputs.image-base }}/test
+          flavor: |
+            latest=false
+          tags: |
+            # Ensure we strip the 'v' prefix
+            type=semver,pattern={{version}},event=tag
+            # defaults for others
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha
+
+      # Relies on aggressive caching from the production build above by Namespace runners
+      - name: Build and push the test image
+        if: matrix.platform == 'amd64'
+        id: test
+        uses: docker/build-push-action@v6
+        with:
+          file: ${{ inputs.definition }}
+          # We only build for amd64 as the test image is only used for running BATS tests
+          platforms: linux/amd64
+          target: test
+          build-args: |
+            FLUENTDO_AGENT_VERSION=${{ inputs.version }}
+          provenance: false
+          tags: ${{ steps.meta-test.outputs.tags }}
+          labels: ${{ steps.meta-test.outputs.labels }}
+
   # Take the digests and produce a multi-arch manifest from them.
   build-container-image-manifest:
     permissions:
