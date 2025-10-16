@@ -19,11 +19,11 @@ source "$SCRIPT_DIR"/common.sh
 REPO_ROOT=${REPO_ROOT:-$SCRIPT_DIR/..}
 
 # BATS installation location
-export BATS_ROOT=${BATS_ROOT:-$REPO_ROOT/testing/integration/bats/libs}
-export BATS_FILE_ROOT=$BATS_ROOT/lib/bats-file
-export BATS_SUPPORT_ROOT=$BATS_ROOT/lib/bats-support
-export BATS_ASSERT_ROOT=$BATS_ROOT/lib/bats-assert
-export BATS_DETIK_ROOT=$BATS_ROOT/lib/bats-detik
+export BATS_LIB_ROOT=${BATS_ROOT:-$REPO_ROOT/testing/integration/bats/lib}
+export BATS_FILE_ROOT=$BATS_LIB_ROOT/bats-file
+export BATS_SUPPORT_ROOT=$BATS_LIB_ROOT/bats-support
+export BATS_ASSERT_ROOT=$BATS_LIB_ROOT/bats-assert
+export BATS_DETIK_ROOT=$BATS_LIB_ROOT/bats-detik
 
 # BATS support tool versions
 export BATS_ASSERT_VERSION=${BATS_ASSERT_VERSION:-2.2.4}
@@ -31,9 +31,9 @@ export BATS_SUPPORT_VERSION=${BATS_SUPPORT_VERSION:-0.3.0}
 export BATS_FILE_VERSION=${BATS_FILE_VERSION:-0.4.0}
 export BATS_DETIK_VERSION=${BATS_DETIK_VERSION:-1.4.0}
 
-
-rm -rf "${BATS_ROOT:?}"
-mkdir -p "${BATS_ROOT}"
+# Clean up any existing BATS libs and create the lib directory from scratch
+rm -rf "${BATS_LIB_ROOT:?}"
+mkdir -p "${BATS_LIB_ROOT}"
 DOWNLOAD_TEMP_DIR=$(mktemp -d)
 
 # Install BATS helpers using specified versions
@@ -59,3 +59,12 @@ pushd "${DOWNLOAD_TEMP_DIR}"
 	rm -f "v$BATS_DETIK_VERSION.zip"
 popd
 rm -rf "${DOWNLOAD_TEMP_DIR}"
+
+# Cleanup unnecessary files from the BATS helpers
+find "$BATS_LIB_ROOT" -type f \( -name '*.md' -o -name '*.txt' -o -name '*.yml' -o -name '*.yaml' -o -name '*.json' -o -name '*.gitignore' \) -exec rm -f {} +
+
+# Remove all .github directories
+find "$BATS_LIB_ROOT" -type d -name '.github' -exec rm -rf {} +
+
+# Remove all test directories
+find "$BATS_LIB_ROOT" -type d -name 'test' -exec rm -rf {} +
