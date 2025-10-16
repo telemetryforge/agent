@@ -31,6 +31,7 @@ sed_wrapper -i "s/export FLUENTDO_AGENT_VERSION=\${FLUENTDO_AGENT_VERSION\:\-.*$
 sed_wrapper -i "s/ARG FLUENTDO_AGENT_VERSION=.*$/ARG FLUENTDO_AGENT_VERSION=$NEW_FLUENTDO_AGENT_VERSION/g" "$REPO_ROOT"/Dockerfile.ubi
 sed_wrapper -i "s/ARG FLUENTDO_AGENT_VERSION=.*$/ARG FLUENTDO_AGENT_VERSION=$NEW_FLUENTDO_AGENT_VERSION/g" "$REPO_ROOT"/Dockerfile.debian
 sed_wrapper -i "s/RELEASE_VERSION=\${FLUENTDO_AGENT_VERSION:-.*$/RELEASE_VERSION=\${FLUENTDO_AGENT_VERSION:-$NEW_FLUENTDO_AGENT_VERSION}/g" "$REPO_ROOT"/install.sh
+sed_wrapper -i "s/FLUENTDO_AGENT_VERSION=\${FLUENTDO_AGENT_VERSION:-.*$/FLUENTDO_AGENT_VERSION=\${FLUENTDO_AGENT_VERSION:-$NEW_FLUENTDO_AGENT_VERSION}/g" "$REPO_ROOT"/testing/integration/bats/run-bats.sh
 
 # Run setup-code.sh to update the agent version in the code
 "$REPO_ROOT"/scripts/setup-code.sh
