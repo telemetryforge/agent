@@ -24,7 +24,7 @@ jobs:
         name: Run unit tests for ${{ matrix.sanitizers.name }} sanitizer
         # 4 vCPU, 8GB RAM
         runs-on: namespace-profile-ubuntu-latest
-        timeout-minutes: 45
+        timeout-minutes: 30
         strategy:
             matrix:
                 sanitizers:
@@ -113,6 +113,9 @@ jobs:
               working-directory: source/build
 
             - name: Run tests
+              # Ensure we catch ctest issues with stuck tests not completing
+              # https://gitlab.kitware.com/cmake/cmake/-/issues/20116
+              timeout-minutes: 15
               run: |
                   ctest -j 16 --build-run-dir "$PWD" --output-on-failure
               working-directory: source/build
