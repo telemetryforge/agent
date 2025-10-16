@@ -150,6 +150,15 @@ RUN useradd -u 9876 -m -s /bin/false fluent-do-agent
 
 USER 9876
 
+# Support running integration tests directly in the production image
+FROM production AS test
+
+ENV FLUENT_BIT_BINARY=/fluent-bit/bin/fluent-bit
+COPY testing/integration/bats/ /tests/
+RUN chmod a+x /tests/run-bats.sh
+
+ENTRYPOINT [ "/tests/run-bats.sh" ]
+
 # Debug image for development
 FROM builder AS debug
 # hadolint ignore=DL3041

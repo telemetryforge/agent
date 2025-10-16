@@ -19,6 +19,12 @@ export FLUENTDO_AGENT_VERSION=${FLUENTDO_AGENT_VERSION:-25.10.3}
 export BATS_FORMATTER=${BATS_FORMATTER:-tap}
 export BATS_ARGS=${BATS_ARGS:---timing --verbose-run --print-output-on-failure}
 
+export BATS_LIB_ROOT=${BATS_ROOT:-$SCRIPT_DIR/lib}
+export BATS_FILE_ROOT=$BATS_LIB_ROOT/bats-file
+export BATS_SUPPORT_ROOT=$BATS_LIB_ROOT/bats-support
+export BATS_ASSERT_ROOT=$BATS_LIB_ROOT/bats-assert
+export BATS_DETIK_ROOT=$BATS_LIB_ROOT/bats-detik
+
 if ! command -v bats &> /dev/null ; then
 	echo "ERROR: Missing BATS, please install BATS: https://bats-core.readthedocs.io/"
 	exit 1
