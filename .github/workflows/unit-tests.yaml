@@ -22,8 +22,9 @@ on:
 jobs:
     linux-unit-tests:
         name: Run unit tests
+        # 4 vCPU, 8GB RAM
         runs-on: namespace-profile-ubuntu-latest
-        timeout-minutes: 60
+        # timeout-minutes: 60
         steps:
             - name: Checkout code
               uses: actions/checkout@v5
@@ -51,6 +52,19 @@ jobs:
                   mkdir -p source/build
               shell: bash
 
+            - name: Debug info
+              continue-on-error: true
+              run: |
+                  uname -a
+                  lsb_release -a || true
+                  cat /etc/os-release || true
+                  df -h
+                  free -h
+                  ulimit -a
+
+                  echo "Number of processors: $(getconf _NPROCESSORS_ONLN)"
+              shell: bash
+
             - name: Configure tests
               uses: threeal/cmake-action@v2.1.0
               with:
@@ -58,17 +72,20 @@ jobs:
                   build-dir: source/build
                   options: |
                       CMAKE_BUILD_TYPE=Debug
+                      CMAKE_EXPORT_COMPILE_COMMANDS=On
+
                       FLUENTDO_AGENT_TESTS=On
                       FLB_TESTS_INTERNAL=On
                       FLB_TESTS_RUNTIME=On
 
                       FLB_BACKTRACE=Off
                       FLB_SHARED_LIB=Off
-                      FLB_SANITIZE_ADDRESS=On
-                      FLB_SANITIZE_UNDEFINED=On
                       FLB_COVERAGE=On
-                      FLB_SANITIZE_MEMORY=On
-                      FLB_SANITIZE_THREAD=On
+
+                      SANITIZE_ADDRESS=On
+                      SANITIZE_UNDEFINED=On
+                      SANITIZE_MEMORY=On
+                      SANITIZE_THREAD=On
 
                   #   # Disable plugins that require network access or external services
                   #   # https://github.com/fluent/fluent-bit-ci/blob/main/scripts/run-unit-tests.sh
@@ -79,12 +96,12 @@ jobs:
 
             - name: Build tests
               run: |
-                  make -j $(getconf _NPROCESSORS_ONLN)
+                  make -j 4
               working-directory: source/build
 
             - name: Run tests
               run: |
-                  ctest -j $(getconf _NPROCESSORS_ONLN) --build-run-dir "$PWD" --output-on-failure
+                  ctest -j 16 --build-run-dir "$PWD" --output-on-failure
               working-directory: source/build
 
             - name: Check Test Coverage
