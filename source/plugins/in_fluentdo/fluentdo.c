@@ -517,25 +517,33 @@ static int cb_fluentdo_init(struct flb_input_instance *ins,
     ctx->labels = parse_labels(ins, ctx->label_list);
 
     /* Log startup information */
-    flb_plg_info(ins, "version=%s, commit=%s, pid=%d, distro=%s, packageType=%s",
-                 FLB_VERSION_STR,
+    {
+        const char *commit_hash;
+        const char *build_distro;
+        const char *build_package_type;
+
 #ifdef FLB_GIT_HASH
-                 FLB_GIT_HASH,
+        commit_hash = FLB_GIT_HASH;
 #else
-                 "unknown",
+        commit_hash = "unknown";
 #endif
-                 (int)getpid(),
+
 #ifdef FLUENTDO_AGENT_DISTRO
-                 TOSTRING(FLUENTDO_AGENT_DISTRO),
+        build_distro = TOSTRING(FLUENTDO_AGENT_DISTRO);
 #else
-                 "unknown",
+        build_distro = "unknown";
 #endif
+
 #ifdef FLUENTDO_AGENT_PACKAGE_TYPE
-                 TOSTRING(FLUENTDO_AGENT_PACKAGE_TYPE)
+        build_package_type = TOSTRING(FLUENTDO_AGENT_PACKAGE_TYPE);
 #else
-                 "unknown"
+        build_package_type = "unknown";
 #endif
-    );
+
+        flb_plg_info(ins, "version=%s, commit=%s, pid=%d, distro=%s, packageType=%s",
+                     FLB_VERSION_STR, commit_hash, (int)getpid(),
+                     build_distro, build_package_type);
+    }
 
     /* Create GraphQL client (needed for both registration and metrics/labels) */
     ctx->graphql_client = flb_graphql_client_create(ctx->api_url, ctx->api_token,

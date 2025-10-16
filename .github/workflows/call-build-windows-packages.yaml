@@ -25,6 +25,7 @@ jobs:
       matrix:
         config:
           - name: "Windows 64bit"
+            distro: "windows-x64"
             arch: x64
             cmake_additional_opt: ""
             vcpkg_triplet: x64-windows-static
@@ -137,7 +138,7 @@ jobs:
             -DFLB_LIBYAML_DIR='C:\vcpkg\installed\${{ matrix.config.vcpkg_triplet }}' `
             -DLIBGIT2_INCLUDE_DIR='C:\vcpkg\installed\${{ matrix.config.vcpkg_triplet }}\include' `
             -DLIBGIT2_LIBRARY='C:\vcpkg\installed\${{ matrix.config.vcpkg_triplet }}\lib\git2.lib' `
-            -DFLUENTDO_AGENT_DISTRO=windows/${{ matrix.config.name }} `
+            -DFLUENTDO_AGENT_DISTRO=${{ matrix.config.distro }} `
             -DFLUENTDO_AGENT_PACKAGE_TYPE=PACKAGE `
             -DFLB_IN_CALYPTIA_FLEET=Off `
             -DFLB_IN_DOCKER=Off `
