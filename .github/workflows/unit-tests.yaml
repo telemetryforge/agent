@@ -24,7 +24,7 @@ jobs:
         name: Run unit tests
         # 4 vCPU, 8GB RAM
         runs-on: namespace-profile-ubuntu-latest
-        # timeout-minutes: 60
+        timeout-minutes: 60
         steps:
             - name: Checkout code
               uses: actions/checkout@v5
@@ -32,9 +32,17 @@ jobs:
                   ref: ${{ github.event.inputs.ref || github.ref }}
 
             - name: Setup environment
+              # Check the source/packaging/docker/ubuntu/Dockerfile for the dependencies we need
               run: |
                   sudo apt-get update
-                  sudo apt-get install -y libsystemd-dev gcovr libyaml-dev libbpf-dev linux-tools-common
+                  sudo apt-get install -y \
+                    gcovr \
+                    libbpf-dev \
+                    linux-tools-common \
+                    libsystemd-dev \
+                    flex bison \
+                    libsasl2-2 libsasl2-dev libssl-dev libssl3 libcurl4-openssl-dev \
+                    libyaml-dev pkg-config zlib1g-dev libgit2-dev
               shell: bash
 
             - name: Install cmake
