@@ -151,21 +151,24 @@ RUN useradd -u 9876 -m -s /bin/false fluent-do-agent
 USER 9876
 
 # Support running integration tests directly in the production image
+FROM bats/bats:1.12.0 AS bats
 FROM production AS test
 
+# Switch to root to install findutils and BATS
 USER root
+
+# We need find for BATS
 # hadolint ignore=DL3041
-RUN microdnf update -y && microdnf install -y git findutils && microdnf clean all
-# hadolint ignore=DL3003
-RUN git clone --depth 1 https://github.com/bats-core/bats-core && \
-    cd bats-core && \
-    ./install.sh "/usr/local" && \
-    cd .. && rm -rf bats-core
+RUN microdnf update -y && microdnf install -y findutils && microdnf clean all
+
+COPY --from=bats /opt/bats /opt/bats
+RUN /opt/bats/install.sh /usr/local
 
 USER 9876
 
 ENV FLUENT_BIT_BINARY=/fluent-bit/bin/fluent-bit
 COPY testing/ /testing/
+WORKDIR /testing/integration/bats
 ENTRYPOINT [ "/testing/integration/bats/run-bats.sh" ]
 
 # Debug image for development

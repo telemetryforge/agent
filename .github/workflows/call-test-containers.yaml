@@ -74,6 +74,35 @@ jobs:
         run: ./testing/verify-config.sh
         shell: bash
 
+  test-bats-container:
+    name: Run BATS tests for ${{ inputs.image }}:${{ inputs.image-tag }}
+    if: contains( inputs.image, 'ubi' )
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: ${{ inputs.image }}
+      IMAGE_TAG: ${{ inputs.image-tag }}
+    permissions:
+      packages: read
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          repository: FluentDo/agent
+          ref: ${{ inputs.ref || github.ref }}
+          token: ${{ secrets.github-token }}
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.github-token }}
+
+      - name: Run BATS tests
+        run: ./testing/run-bats-tests.sh
+        shell: bash
+
   test-verify-signatures:
     name: Verify image signatures for ${{ inputs.image }}:${{ inputs.image-tag }}
     runs-on: ubuntu-latest
