@@ -120,13 +120,13 @@ RUN echo "/usr/local/lib64" > /etc/ld.so.conf.d/local-libs.conf && \
     echo "/usr/local/lib" >> /etc/ld.so.conf.d/local-libs.conf && \
     ldconfig
 
-RUN mkdir -p /opt/fluent-do-agent/etc
-COPY config/ /opt/fluent-do-agent/etc/
+RUN mkdir -p /opt/fluentdo-agent/etc
+COPY config/ /opt/fluentdo-agent/etc/
 COPY config/ /fluent-bit/etc/
 
 # Generate schema and include as part of the container image
 RUN /fluent-bit/bin/fluent-bit -J > /fluent-bit/etc/schema.json && \
-    /fluent-bit/bin/fluent-bit -J > /opt/fluent-do-agent/etc/schema.json
+    /fluent-bit/bin/fluent-bit -J > /opt/fluentdo-agent/etc/schema.json
 
 ARG FLUENT_BIT_VERSION
 ARG FLUENTDO_AGENT_VERSION
@@ -146,7 +146,7 @@ LABEL version=${FLUENTDO_AGENT_VERSION}
 LABEL io.k8s.description='FluentDo Agent is a stable, secure by default, OSS (Apache-licensed) downstream distribution of Fluent Bit with predictable releases and long-term supported versions for 24 months.'
 
 # Run as non-root user - pick a random one
-RUN useradd -u 9876 -m -s /bin/false fluent-do-agent
+RUN useradd -u 9876 -m -s /bin/false fluentdo-agent
 
 USER 9876
 
@@ -176,7 +176,7 @@ FROM builder AS debug
 # hadolint ignore=DL3041
 RUN dnf install -y gdb go-toolset procps && dnf clean all
 
-COPY --from=production /opt/fluent-do-agent /opt/fluent-do-agent
+COPY --from=production /opt/fluentdo-agent /opt/fluentdo-agent
 COPY --from=production /fluent-bit /fluent-bit
 
 ENTRYPOINT [ "bash" ]

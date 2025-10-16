@@ -66,11 +66,11 @@ RUN git init -q /source/ && \
     git commit -q -a -m "Initial commit for Fluent Do Agent"
 
 # Install and create all necessary directories
-RUN mkdir -p /fluent-bit/bin /fluent-bit/etc /fluent-bit/log /opt/fluent-do-agent/etc/
+RUN mkdir -p /fluent-bit/bin /fluent-bit/etc /fluent-bit/log /opt/fluentdo-agent/etc/
 COPY source/conf/ /fluent-bit/etc/
-COPY source/conf/ /opt/fluent-do-agent/etc/
+COPY source/conf/ /opt/fluentdo-agent/etc/
 COPY config/ /fluent-bit/etc/
-COPY config/ /opt/fluent-do-agent/etc/
+COPY config/ /opt/fluentdo-agent/etc/
 
 # Separate layers now for configure and build to allow local caching
 FROM source-builder AS builder
@@ -110,7 +110,7 @@ RUN [ -n "$MAKE_EXTRA_ARGS" ] && make ${MAKE_EXTRA_ARGS} || make -j "$(getconf _
 
 # Generate schema and include as part of the container image
 RUN /fluent-bit/bin/fluent-bit -J > /fluent-bit/etc/schema.json && \
-    cp -f /fluent-bit/etc/schema.json /opt/fluent-do-agent/etc/schema.json
+    cp -f /fluent-bit/etc/schema.json /opt/fluentdo-agent/etc/schema.json
 
 # Simple example of how to properly extract packages for reuse in distroless
 # Taken from: https://github.com/GoogleContainerTools/distroless/issues/863
@@ -207,10 +207,15 @@ COPY --from=builder /etc/ssl/certs /etc/ssl/certs
 
 # Finally the binaries as most likely to change
 COPY --from=builder /fluent-bit /fluent-bit
-COPY --from=builder /opt/fluent-do-agent /opt/fluent-do-agent
+COPY --from=builder /opt/fluentdo-agent /opt/fluentdo-agent
 
-# Debug image for development
-FROM builder AS debug
+# Set up a common base image for debug and test to avoid duplication
+FROM builder AS debug-test-base
+COPY --from=qemu-arm32 /usr/bin/qemu-arm-static /usr/bin/
+COPY --from=qemu-arm64 /usr/bin/qemu-aarch64-static /usr/bin/
+
+COPY --from=production /opt/fluentdo-agent /opt/fluentdo-agent
+COPY --from=production /fluent-bit /fluent-bit
 
 ARG FLUENT_BIT_VERSION
 ARG FLUENTDO_AGENT_VERSION
@@ -218,13 +223,25 @@ ARG FLUENTDO_AGENT_VERSION
 ENV FLUENTBIT_VERSION=$FLUENT_BIT_VERSION
 ENV FLUENTDO_AGENT_VERSION=$FLUENTDO_AGENT_VERSION
 
-ENTRYPOINT [ "bash" ]
+# Support running integration tests using BATS
+FROM bats/bats:1.12.0 AS bats
 
-COPY --from=qemu-arm32 /usr/bin/qemu-arm-static /usr/bin/
-COPY --from=qemu-arm64 /usr/bin/qemu-aarch64-static /usr/bin/
+# Unfortunately running BATS in a distroless image is not feasible
+FROM debug-test-base AS test
+# Install BATS
+COPY --from=bats /opt/bats /opt/bats
+RUN /opt/bats/install.sh /usr/local
 
+ENV FLUENT_BIT_BINARY=/fluent-bit/bin/fluent-bit
+COPY testing/ /testing/
+WORKDIR /testing/integration/bats
+ENTRYPOINT [ "/testing/integration/bats/run-bats.sh" ]
+
+# Debug image for development
+FROM debug-test-base AS debug
+
+# Add useful debugging tools
 ENV DEBIAN_FRONTEND=noninteractive
-
 # hadolint ignore=DL3008
 RUN echo "deb http://deb.debian.org/debian bookworm-backports main" >> /etc/apt/sources.list && \
     apt-get update && \
@@ -236,9 +253,8 @@ RUN echo "deb http://deb.debian.org/debian bookworm-backports main" >> /etc/apt/
     net-tools mtr netcat-openbsd bridge-utils iperf ngrep \
     openssl \
     htop atop strace iotop sysstat ncdu logrotate hdparm pciutils psmisc tree pv \
-    && apt-get satisfy -y cmake "cmake (<< 4.0)" \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=production /opt/fluent-do-agent /opt/fluent-do-agent
-COPY --from=production /fluent-bit /fluent-bit
+ENTRYPOINT [ "bash" ]
+
