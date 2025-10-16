@@ -75,23 +75,14 @@ jobs:
         shell: bash
 
   test-bats-container:
-    name: Run BATS tests for ${{ inputs.image }}:${{ inputs.image-tag }}
-    if: contains( inputs.image, 'ubi' )
+    name: Run BATS tests for ${{ inputs.image }}/test:${{ inputs.image-tag }}
     runs-on: ubuntu-latest
     env:
-      IMAGE: ${{ inputs.image }}
+      IMAGE: ${{ inputs.image }}/test
       IMAGE_TAG: ${{ inputs.image-tag }}
     permissions:
       packages: read
-      contents: read
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-        with:
-          repository: FluentDo/agent
-          ref: ${{ inputs.ref || github.ref }}
-          token: ${{ secrets.github-token }}
-
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
@@ -100,7 +91,7 @@ jobs:
           password: ${{ secrets.github-token }}
 
       - name: Run BATS tests
-        run: ./testing/run-bats-tests.sh
+        run: docker run --rm -t $IMAGE:$IMAGE_TAG
         shell: bash
 
   test-verify-signatures:
@@ -214,6 +205,7 @@ jobs:
       - test-container-config
       - test-redhat-certification
       - test-verify-signatures
+      - test-bats-container
     steps:
       - name: Decide whether the needed jobs succeeded or failed
         uses: re-actors/alls-green@release/v1
