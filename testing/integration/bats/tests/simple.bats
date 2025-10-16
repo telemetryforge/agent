@@ -1,5 +1,7 @@
 #!/usr/bin/env bats
 
+# Simple tests to verify BATS and binaries with no supporting libraries
+
 @test "verify BATS with simple test that always passes" {
     run true
     [ "$status" -eq 0 ]
@@ -15,14 +17,15 @@
     [[ "$FLUENTDO_AGENT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
 }
 
-@test "verify fluent-bit version" {
+@test "verify version" {
     run "$FLUENT_BIT_BINARY" --version
     [ "$status" -eq 0 ]
+    [[ "$output" =~ FluentDo\ Agent\ v$FLUENTDO_AGENT_VERSION ]]
 }
 
-@test "verify fluent-bit help" {
+@test "verify help" {
     run "$FLUENT_BIT_BINARY" --help
     [ "$status" -eq 0 ]
-    [[ "$output" =~ Usage: ]]
+    [[ "$output" =~ Usage:\ /fluent-bit/bin/fluent-bit\ \[OPTION\] ]]
 }
 

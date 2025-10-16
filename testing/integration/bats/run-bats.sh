@@ -25,6 +25,10 @@ export BATS_SUPPORT_ROOT=$BATS_LIB_ROOT/bats-support
 export BATS_ASSERT_ROOT=$BATS_LIB_ROOT/bats-assert
 export BATS_DETIK_ROOT=$BATS_LIB_ROOT/bats-detik
 
+# Helper files can include custom functions to simplify testing
+# This is the location of the default helpers.
+export HELPERS_ROOT=${HELPERS_ROOT:-$SCRIPT_DIR/helpers}
+
 if ! command -v bats &> /dev/null ; then
 	echo "ERROR: Missing BATS, please install BATS: https://bats-core.readthedocs.io/"
 	exit 1
