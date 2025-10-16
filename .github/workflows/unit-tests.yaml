@@ -23,7 +23,7 @@ jobs:
     linux-unit-tests:
         name: Run unit tests
         runs-on: namespace-profile-ubuntu-latest
-        timeout-minutes: 15
+        timeout-minutes: 30
         steps:
             - name: Checkout code
               uses: actions/checkout@v5
@@ -57,17 +57,24 @@ jobs:
                   source-dir: source
                   build-dir: source/build
                   options: |
-                    CMAKE_BUILD_TYPE=Debug
-                    FLUENTDO_AGENT_TESTS=On
-                    FLB_TESTS_INTERNAL=On
-                    FLB_TESTS_RUNTIME=On
-                    FLB_BACKTRACE=Off
-                    FLB_SHARED_LIB=Off
-                    FLB_SANITIZE_ADDRESS=On
-                    FLB_SANITIZE_UNDEFINED=On
-                    FLB_COVERAGE=On
-                    FLB_SANITIZE_MEMORY=On
-                    FLB_SANITIZE_THREAD=On
+                      CMAKE_BUILD_TYPE=Debug
+                      FLUENTDO_AGENT_TESTS=On
+                      FLB_TESTS_INTERNAL=On
+                      FLB_TESTS_RUNTIME=On
+
+                      FLB_BACKTRACE=Off
+                      FLB_SHARED_LIB=Off
+                      FLB_SANITIZE_ADDRESS=On
+                      FLB_SANITIZE_UNDEFINED=On
+                      FLB_COVERAGE=On
+                      FLB_SANITIZE_MEMORY=On
+                      FLB_SANITIZE_THREAD=On
+
+                  #   # Disable plugins that require network access or external services
+                  #   # https://github.com/fluent/fluent-bit-ci/blob/main/scripts/run-unit-tests.sh
+                  #   FLB_WITHOUT_flb-rt-out_td=On
+                  #   FLB_WITHOUT_flb-rt-out_forward=On
+                  #   FLB_WITHOUT_flb-rt-it-fstore=On
                   run-build: false
 
             - name: Build tests
@@ -84,6 +91,15 @@ jobs:
               if: always()
               uses: threeal/gcovr-action@v1.2.0
               with:
+                  # Exclude coverage from vendored libraries
+                  excludes: "lib/*"
+
+                  # Optionally fail on thresholds
+                  # fail-under-line: 0 - 100	Fail if the total line coverage is less than this value.
+                  # fail-under-branch: 0 - 100	Fail if the total branch coverage is less than this value.
+                  # fail-under-function: 0 - 100	Fail if the total function coverage is less than this value.
+                  # fail-under-decision: 0 - 100	Fail if the total decision coverage is less than this value.
+
                   html-out: coverage.html
                   html-details: true
                   html-title: FluentDo Agent Test Coverage Report
@@ -115,12 +131,9 @@ jobs:
               with:
                   name: coverage-reports
                   path: |
-                      source/build/coverage.html
+                      source/build/coverage*.*
                       source/build/cobertura.xml
                       source/build/coveralls.json
-                      source/build/coverage.json
-                      source/build/coverage-summary.json
-                      source/build/coverage.txt
                   if-no-files-found: error
 
     # Placeholder to make it simple to create a status check on this, do not change name.
