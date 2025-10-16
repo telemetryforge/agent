@@ -55,6 +55,7 @@ jobs:
   build-packages:
     name: agent - ${{ matrix.distro }} package build and upload
     runs-on: ${{ (contains(matrix.distro, 'arm') && inputs.arm-runner-label) || (contains(matrix.distro, 'centos/6') && inputs.large-amd-runner-label) || inputs.amd-runner-label }}
+    timeout-minutes: 60
     permissions:
       contents: read
       packages: read

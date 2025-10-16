@@ -20,6 +20,7 @@ jobs:
     call-build-macos-package:
         name: Building ${{ matrix.config.name }} package
         runs-on: ${{ matrix.config.runner }}
+        timeout-minutes: 60
         strategy:
             fail-fast: false
             matrix:
