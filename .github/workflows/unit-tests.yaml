@@ -21,10 +21,24 @@ on:
 
 jobs:
     linux-unit-tests:
-        name: Run unit tests
+        name: Run unit tests for ${{ matrix.sanitizers.name }} sanitizer
         # 4 vCPU, 8GB RAM
         runs-on: namespace-profile-ubuntu-latest
-        timeout-minutes: 60
+        timeout-minutes: 45
+        strategy:
+            matrix:
+                sanitizers:
+                    - name: address
+                      options: |
+                          SANITIZE_ADDRESS=On
+                          SANITIZE_UNDEFINED=On
+                    # Uncomment to enable additional sanitizers as needed
+                    # - name: memory
+                    #   options: |
+                    #       SANITIZE_MEMORY=On
+                    # - name: thread
+                    #   options: |
+                    #       SANITIZE_THREAD=On
         steps:
             - name: Checkout code
               uses: actions/checkout@v5
@@ -90,16 +104,7 @@ jobs:
                       FLB_SHARED_LIB=Off
                       FLB_COVERAGE=On
 
-                      SANITIZE_ADDRESS=On
-                      SANITIZE_UNDEFINED=On
-                      SANITIZE_MEMORY=On
-                      SANITIZE_THREAD=On
-
-                  #   # Disable plugins that require network access or external services
-                  #   # https://github.com/fluent/fluent-bit-ci/blob/main/scripts/run-unit-tests.sh
-                  #   FLB_WITHOUT_flb-rt-out_td=On
-                  #   FLB_WITHOUT_flb-rt-out_forward=On
-                  #   FLB_WITHOUT_flb-rt-it-fstore=On
+                      ${{ matrix.sanitizers.options }}
                   run-build: false
 
             - name: Build tests
@@ -160,6 +165,13 @@ jobs:
                       source/build/cobertura.xml
                       source/build/coveralls.json
                   if-no-files-found: error
+
+            - name: Breakpoint if tests failed
+              if: failure() && contains(runner.name, 'nsc-')
+              uses: namespacelabs/breakpoint-action@v0
+              with:
+                  duration: 5m
+                  authorized-users: patrick-stephens,niedbalski
 
     # Placeholder to make it simple to create a status check on this, do not change name.
     # Instead of modifying branch protection rules every time we add a new job, we just
