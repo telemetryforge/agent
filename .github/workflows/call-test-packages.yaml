@@ -31,35 +31,36 @@ on:
 env:
   FLUENTDO_AGENT_VERSION: ${{ inputs.version }}
 jobs:
-  call-test-packages-get-meta:
-    name: Get metadata for testing packages
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      linux-test-targets: ${{ steps.set-meta.outputs.linux-test-targets }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-        with:
-          repository: FluentDo/agent
-          ref: ${{ inputs.ref }}
+  # TODO: future work to support matrix job
+  # call-test-packages-get-meta:
+  #   name: Get metadata for testing packages
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #   outputs:
+  #     linux-test-targets: ${{ steps.set-meta.outputs.linux-test-targets }}
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v5
+  #       with:
+  #         repository: FluentDo/agent
+  #         ref: ${{ inputs.ref }}
 
-      - name: Extract the configuration from the JSON file
-        # Read from the file and remove newline characters: https://stackoverflow.com/a/64627966
-        id: set-meta
-        run: |
-          LINUX_TEST_TARGETS==$(cat "$JSON_FILE_NAME"|jq -c .linux_test_targets )
-          echo "linux-test-targets=$LINUX_TEST_TARGETS"
-          echo "linux-test-targets=$LINUX_TEST_TARGETS" >> $GITHUB_OUTPUT
-        shell: bash
-        env:
-          JSON_FILE_NAME: build-config.json
+  #     - name: Extract the configuration from the JSON file
+  #       # Read from the file and remove newline characters: https://stackoverflow.com/a/64627966
+  #       id: set-meta
+  #       run: |
+  #         LINUX_TEST_TARGETS=$(cat "$JSON_FILE_NAME"|jq -c .linux_test_targets )
+  #         echo "linux-test-targets=$LINUX_TEST_TARGETS"
+  #         echo "linux-test-targets=$LINUX_TEST_TARGETS" >> $GITHUB_OUTPUT
+  #       shell: bash
+  #       env:
+  #         JSON_FILE_NAME: build-config.json
 
   call-test-packages-functional:
     name: functional tests - ${{ matrix.test.distro }} package test
-    needs:
-      - call-test-packages-get-meta
+    # needs:
+    #   - call-test-packages-get-meta
     # We only run tests on AMD runners here
     runs-on: ${{ inputs.amd-runner-label }}
     timeout-minutes: 30
@@ -104,7 +105,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Get package name
-        uses: ./github/actions/get-package-name
+        uses: ./.github/actions/get-package-name
         id: get_package_name
         with:
           inputs: "${{ matrix.test.distro }}"
@@ -113,10 +114,10 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: ${{ steps.get_package_name.outputs.package-name }}
-          path: download/
+          path: downloads/
 
       - name: Debug
-        run: ls -lRh download/
+        run: ls -lRh downloads/
         shell: bash
 
       - name: Build test container

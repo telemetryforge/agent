@@ -11,7 +11,7 @@ load "$BATS_FILE_ROOT/load.bash"
 # bats file_tags=functional
 
 @test "verify hardening config via help" {
-	run $FLUENT_BIT_BINARY --help
+	run "$FLUENT_BIT_BINARY" --help
 	assert_success
 
 	# Disabled features

@@ -3,10 +3,11 @@
 To run tests use the [`run-bats.sh`](./run-bats.sh) script in this directory.
 It is intended to verify the basic set up as well as ensuring we pass appropriate variables.
 
-There are two helper scripts to run local integration tests:
+There are scripts to run local integration tests as well:
 
 - `run-container-integration-tests.sh`
 - `run-k8s-integration-tests.sh`
+- `run-package-integration-tests.sh`
 
 These are split into [functional tests](./tests/functional/) you can easily run directly with the binary and inside the container with no external dependencies required and [integration tests](./tests/integration/) that require more infrastructure or external dependencies to run with.
 
@@ -23,7 +24,7 @@ Tests should support parallel runs so ensure they are idempotent by cleaning up 
 
 ## Tags
 
-We provide common tags for every test case to make it simpler to select (or exclude) tests: <>
+We provide common tags for every test case to make it simpler to select (or exclude) tests: <https://bats-core.readthedocs.io/en/stable/writing-tests.html#tagging-tests>.
 
 The currently supported tags are:
 

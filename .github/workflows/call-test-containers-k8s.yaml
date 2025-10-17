@@ -31,6 +31,7 @@ jobs:
     env:
       FLUENTDO_AGENT_IMAGE: ${{ inputs.image }}
       FLUENTDO_AGENT_TAG: ${{ inputs.image-tag }}
+      KIND_VERSION: ${{ inputs.kind-version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -55,8 +56,7 @@ jobs:
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1
         with:
-          node_image: kindest/node:${{ inputs.kind-version }}
-          cluster_name: kind
+          install_only: true
           # To fix an issue with loading multi-arch images
           # https://github.com/kubernetes-sigs/kind/issues/3795
           version: v0.30.0
@@ -71,12 +71,6 @@ jobs:
 
       - name: Install Rush for parallelism
         run: curl -sSfL https://github.com/shenwei356/rush/releases/download/v0.7.0/rush_linux_amd64.tar.gz | sudo tar xzf - -C /usr/local/bin
-        shell: bash
-
-      - name: Load image
-        run: |
-          docker pull "${FLUENTDO_AGENT_IMAGE}:${FLUENTDO_AGENT_TAG}"
-          kind load docker-image "${FLUENTDO_AGENT_IMAGE}:${FLUENTDO_AGENT_TAG}"
         shell: bash
 
       - name: Run integration tests

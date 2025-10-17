@@ -15,7 +15,7 @@ runs:
       uses: frabert/replace-string-action@v2.5
       id: formatted_distro
       with:
-        pattern: '(.*)(.*)$'
+        pattern: '(.*)\/(.*)$'
         string: "${{ inputs.distro }}"
         replace-with: "$1-$2"
         flags: "g"

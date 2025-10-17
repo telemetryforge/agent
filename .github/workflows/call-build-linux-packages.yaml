@@ -90,7 +90,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Get package name
-        uses: ./github/actions/get-package-name
+        uses: ./.github/actions/get-package-name
         id: get_package_name
         with:
           inputs: "${{ matrix.distro }}"

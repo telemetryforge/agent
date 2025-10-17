@@ -19,7 +19,7 @@ source "$SCRIPT_DIR"/common.sh
 REPO_ROOT=${REPO_ROOT:-$SCRIPT_DIR/..}
 
 # BATS installation location
-export BATS_LIB_ROOT=${BATS_ROOT:-$REPO_ROOT/testing/integration/bats/lib}
+export BATS_LIB_ROOT=${BATS_ROOT:-$REPO_ROOT/testing/bats/lib}
 export BATS_FILE_ROOT=$BATS_LIB_ROOT/bats-file
 export BATS_SUPPORT_ROOT=$BATS_LIB_ROOT/bats-support
 export BATS_ASSERT_ROOT=$BATS_LIB_ROOT/bats-assert
