@@ -252,7 +252,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@v3.10.0
+        uses: sigstore/cosign-installer@v4.0.0
 
       - name: Sign image with a key if defined
         if: ${{ env.COSIGN_PRIVATE_KEY }}
