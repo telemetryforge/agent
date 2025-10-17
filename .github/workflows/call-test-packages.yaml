@@ -1,0 +1,182 @@
+name: Reusable workflow to test packages
+on:
+  workflow_call:
+    inputs:
+      target-matrix:
+        description: The JSON matrix of test targets.
+        required: true
+        type: string
+      version:
+        description: The version we are building for (as a numeric value 1.2.3).
+        required: true
+        type: string
+      ref:
+        description: The commit, SHA or branch to use in this repository.
+        required: false
+        type: string
+        default: main
+      dockerhub-username:
+        description: The Dockerhub username to use for authenticated pulls.
+        required: false
+        type: string
+        default: "fluentdo"
+      amd-runner-label:
+        description: The label to use for the runner.
+        required: false
+        type: string
+        default: "namespace-profile-ubuntu-latest"
+    secrets:
+      github-token:
+        description: Token to use to pull packages from GitHub Packages.
+        required: true
+      dockerhub-token:
+        description: The Dockerhub token to use for authenticated pulls (not pushes).
+        required: true
+env:
+  FLUENTDO_AGENT_VERSION: ${{ inputs.version }}
+jobs:
+  call-test-packages-get-meta:
+    name: Get metadata for testing packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      linux-test-targets: ${{ steps.set-meta.outputs.linux-test-targets }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          repository: FluentDo/agent
+          ref: ${{ inputs.ref }}
+
+      - name: Extract the configuration from the JSON file
+        # Read from the file and remove newline characters: https://stackoverflow.com/a/64627966
+        id: set-meta
+        run: |
+          LINUX_TEST_TARGETS==$(cat "$JSON_FILE_NAME"|jq -c .linux_test_targets )
+          echo "linux-test-targets=$LINUX_TEST_TARGETS"
+          echo "linux-test-targets=$LINUX_TEST_TARGETS" >> $GITHUB_OUTPUT
+        shell: bash
+        env:
+          JSON_FILE_NAME: build-config.json
+
+  call-test-packages-functional:
+    name: functional tests - ${{ matrix.distro }} Linux package test
+    needs:
+      - call-test-packages-get-meta
+    # We only run tests on AMD runners here
+    runs-on: ${{ inputs.amd-runner-label }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
+    env:
+      FLUENT_BIT_BINARY: /fluent-bit/bin/fluent-bit
+    strategy:
+      matrix:
+        test:
+          - image: dokken/almalinux-8
+            distro: almalinux/8
+          - image: dokken/ubuntu-24.04
+            distro: ubuntu/24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          repository: FluentDo/agent
+          ref: ${{ inputs.ref }}
+
+      - name: Log in to Dockerhub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ inputs.dockerhub-username }}
+          password: ${{ secrets.dockerhub-token }}
+
+      # Must be removed on Namespace runners
+      - name: Set up QEMU
+        if: ${{ !contains( runner.name, 'nsc-' ) }}
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        if: ${{ !contains( runner.name, 'nsc-' ) }}
+        uses: docker/setup-buildx-action@v3
+
+      - name: Get package name
+        uses: ./github/actions/get-package-name
+        id: get_package_name
+        with:
+          inputs: "${{ matrix.test.distro }}"
+
+      - name: Download package
+        uses: actions/download-artifact@v5
+        with:
+          name: ${{ steps.get_package_name.outputs.package-name }}
+          path: download/
+
+      - name: Debug
+        run: ls -lRh download/
+        shell: bash
+
+      - name: Build test container
+        uses: docker/build-push-action@v6
+        with:
+          file: testing/Dockerfile.bats
+          # We only build for amd64 as the test image is only used for running BATS tests
+          platforms: linux/amd64
+          target: test
+          build-args: |
+            BASE_BUILDER=${{ matrix.test.image }}
+          provenance: false
+          load: true
+          tags: bats/test
+
+      - name: Run functional tests against local container
+        run: |
+          docker run --rm -t \
+            -v $PWD/downloads:/downloads:ro \
+            -e FLUENT_BIT_BINARY="$FLUENT_BIT_BINARY" \
+            -e FLUENTDO_AGENT_VERSION="$FLUENTDO_AGENT_VERSION" \
+            bats/test \
+              --recursive functional
+
+  call-test-packages-integration:
+    name: integration tests - ${{ matrix.distro }} Linux package test
+    needs:
+      - call-test-packages-get-meta
+    # We only run tests on AMD runners here
+    runs-on: ${{ inputs.amd-runner-label }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      matrix:
+        test:
+          - vm: almalinux:8
+            distro: almalinux/8
+          - vm: ubuntu:24.04
+            distro: ubuntu/24.04
+    env:
+      FLUENT_BIT_BINARY: /opt/fluentdo-agent/bin/fluentdo-agent
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          repository: FluentDo/agent
+          ref: ${{ inputs.ref }}
+
+      - name: Get package name
+        uses: ./github/actions/get-package-name
+        id: get_package_name
+        with:
+          inputs: "${{ matrix.test.distro }}"
+
+      - name: Download package
+        uses: actions/download-artifact@v5
+        with:
+          name: ${{ steps.get_package_name.outputs.package-name }}
+          path: download/
+
+      - name: Debug
+        run: ls -lRh download/
+        shell: bash

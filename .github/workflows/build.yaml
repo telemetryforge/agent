@@ -84,6 +84,10 @@ jobs:
           MAIN_LINUX_TARGETS=$(cat "$JSON_FILE_NAME"|jq -c .release.linux_targets )
           echo "main-linux-targets=$MAIN_LINUX_TARGETS"
           echo "main-linux-targets=$MAIN_LINUX_TARGETS" >> $GITHUB_OUTPUT
+
+          LINUX_TEST_TARGETS==$(cat "$JSON_FILE_NAME"|jq -c .linux_test_targets )
+          echo "linux-test-targets=$LINUX_TEST_TARGETS"
+          echo "linux-test-targets=$LINUX_TEST_TARGETS" >> $GITHUB_OUTPUT
         shell: bash
         env:
           JSON_FILE_NAME: build-config.json
@@ -213,6 +217,23 @@ jobs:
           - "ghcr.io/fluentdo/agent/ubi"
           - "ghcr.io/fluentdo/agent/debian"
 
+  test-packages:
+    name: Test packages
+    needs:
+      - get-meta
+      - build-linux
+    uses: ./.github/workflows/call-test-packages.yaml
+    with:
+      target-matrix: ${{ needs.get-meta.outputs.linux-test-targets }}
+      version: ${{ needs.get-meta.outputs.version }}
+      ref: ${{ github.ref }}
+      dockerhub-username: ${{ vars.DOCKERHUB_USERNAME }}
+      # Request to run on self-hosted runners if this is a PR and we have the label set, otherwise use the standard runners
+      amd-runner-label: ${{ (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'build-self-hosted') && 'self-ubuntu-latest') || 'namespace-profile-ubuntu-latest' }}
+    secrets:
+      dockerhub-token: ${{ secrets.DOCKERHUB_PUBLIC_READ_TOKEN }}
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+
   # Placeholder to make it simple to create a status check on this, do not change name.
   # Instead of modifying branch protection rules every time we add a new job, we just
   # add it as a dependency of this job.
@@ -226,8 +247,10 @@ jobs:
     needs:
       - build-linux
       - build-windows
+      - build-macos
       - build-image
       - test-containers
+      - test-packages
       # Add additional jobs here as required that must complete
     runs-on: ubuntu-latest
     steps:
@@ -235,7 +258,7 @@ jobs:
         uses: re-actors/alls-green@release/v1
         with:
           # Add any jobs that can be skipped here to avoid failure of this job
-          allowed-skips: build-linux,build-windows
+          allowed-skips: build-linux,build-windows,build-macos,test-packages
           # Convert the needs object to JSON to pass it in
           jobs: ${{ toJSON(needs) }}
       - name: All tests complete

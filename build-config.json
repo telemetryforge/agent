@@ -41,6 +41,24 @@
     "suse/15",
     "suse/15.arm64v8"
   ],
+  "linux_test_targets": [
+    {
+      "image": "dokken/almalinux-8",
+      "vm": "almalinux:8",
+      "packages": [
+        "almalinux/8",
+        "rockylinux/8",
+        "centos/8"
+      ]
+    },
+    {
+      "image": "dokken/ubuntu-24.04",
+      "vm": "ubuntu:24.04",
+      "packages": [
+        "ubuntu-24.04"
+      ]
+    }
+  ],
   "release": {
     "linux_targets": [
       "almalinux/8",

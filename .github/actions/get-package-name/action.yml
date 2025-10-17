@@ -1,0 +1,21 @@
+name: Retrieve package name
+description: Common action to get package name as an output
+inputs:
+  distro:
+    description: The distro name to convert
+    required: true
+outputs:
+  package-name:
+    description: The formatted package name
+    value: package-${{ steps.formatted_distro.outputs.replaced }}
+runs:
+  using: composite
+  steps:
+    - name: Format the matrix string
+      uses: frabert/replace-string-action@v2.5
+      id: formatted_distro
+      with:
+        pattern: '(.*)(.*)$'
+        string: "${{ inputs.distro }}"
+        replace-with: "$1-$2"
+        flags: "g"
