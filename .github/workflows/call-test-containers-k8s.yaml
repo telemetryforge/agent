@@ -55,7 +55,7 @@ jobs:
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1
         with:
-          node_image: ${{ inputs.kind-version }}
+          node_image: kindest/node:${{ inputs.kind-version }}
 
       - name: Install BATS
         uses: bats-core/bats-action@3.0.1

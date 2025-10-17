@@ -46,6 +46,9 @@ if [ -n "${BATS_DEBUG:-}" ] && [ "${BATS_DEBUG}" != "0" ]; then
 	set -x
 fi
 
+# Simplify requirements around paths by changing to the directory
+pushd "$SCRIPT_DIR"
+
 # If no arguments then run all tests in this directory and subdirectories
 # Otherwise pass all arguments to bats
 if [ "$#" -gt 0 ]; then
@@ -59,3 +62,5 @@ else
 	# shellcheck disable=SC2086
 	bats  --formatter "${BATS_FORMATTER}" $BATS_ARGS --recursive "${SCRIPT_DIR}/tests"
 fi
+
+popd

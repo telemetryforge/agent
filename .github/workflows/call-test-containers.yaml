@@ -55,6 +55,13 @@ jobs:
     permissions:
       packages: read
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          repository: FluentDo/agent
+          ref: ${{ inputs.ref || github.ref }}
+          token: ${{ secrets.github-token }}
+
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
