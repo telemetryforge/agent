@@ -2,10 +2,6 @@ name: Reusable workflow to test packages
 on:
   workflow_call:
     inputs:
-      target-matrix:
-        description: The JSON matrix of test targets.
-        required: true
-        type: string
       version:
         description: The version we are building for (as a numeric value 1.2.3).
         required: true
@@ -61,7 +57,7 @@ jobs:
           JSON_FILE_NAME: build-config.json
 
   call-test-packages-functional:
-    name: functional tests - ${{ matrix.distro }} Linux package test
+    name: functional tests - ${{ matrix.test.distro }} package test
     needs:
       - call-test-packages-get-meta
     # We only run tests on AMD runners here
@@ -139,7 +135,7 @@ jobs:
             bats/test
 
   call-test-packages-integration:
-    name: integration tests - ${{ matrix.distro }} Linux package test
+    name: integration tests - ${{ matrix.test.distro }} Linux package test
     needs:
       - call-test-packages-get-meta
     # We only run tests on AMD runners here

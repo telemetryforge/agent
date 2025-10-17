@@ -84,10 +84,6 @@ jobs:
           MAIN_LINUX_TARGETS=$(cat "$JSON_FILE_NAME"|jq -c .release.linux_targets )
           echo "main-linux-targets=$MAIN_LINUX_TARGETS"
           echo "main-linux-targets=$MAIN_LINUX_TARGETS" >> $GITHUB_OUTPUT
-
-          LINUX_TEST_TARGETS==$(cat "$JSON_FILE_NAME"|jq -c .linux_test_targets )
-          echo "linux-test-targets=$LINUX_TEST_TARGETS"
-          echo "linux-test-targets=$LINUX_TEST_TARGETS" >> $GITHUB_OUTPUT
         shell: bash
         env:
           JSON_FILE_NAME: build-config.json
@@ -224,7 +220,6 @@ jobs:
       - build-linux
     uses: ./.github/workflows/call-test-packages.yaml
     with:
-      target-matrix: ${{ needs.get-meta.outputs.linux-test-targets }}
       version: ${{ needs.get-meta.outputs.version }}
       ref: ${{ github.ref }}
       dockerhub-username: ${{ vars.DOCKERHUB_USERNAME }}
