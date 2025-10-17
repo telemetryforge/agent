@@ -75,6 +75,11 @@ jobs:
             distro: almalinux/8
           - image: dokken/ubuntu-24.04
             distro: ubuntu/24.04
+        include:
+          - image: dokken/almalinux-8
+            distro: centos/8
+          - image: dokken/almalinux-8
+            distro: rockylinux/8
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -124,7 +129,7 @@ jobs:
             BASE_BUILDER=${{ matrix.test.image }}
           provenance: false
           load: true
-          tags: bats/test
+          tags: bats/test/${{ matrix.test.distro }}
 
       - name: Run functional tests against local container
         run: |
@@ -132,46 +137,7 @@ jobs:
             -v $PWD/downloads:/downloads:ro \
             -e FLUENT_BIT_BINARY="$FLUENT_BIT_BINARY" \
             -e FLUENTDO_AGENT_VERSION="$FLUENTDO_AGENT_VERSION" \
-            bats/test
-
-  call-test-packages-integration:
-    name: integration tests - ${{ matrix.test.distro }} Linux package test
-    needs:
-      - call-test-packages-get-meta
-    # We only run tests on AMD runners here
-    runs-on: ${{ inputs.amd-runner-label }}
-    timeout-minutes: 30
-    permissions:
-      contents: read
-      packages: read
-    strategy:
-      matrix:
-        test:
-          - vm: almalinux:8
-            distro: almalinux/8
-          - vm: ubuntu:24.04
-            distro: ubuntu/24.04
-    env:
-      FLUENT_BIT_BINARY: /opt/fluentdo-agent/bin/fluentdo-agent
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-        with:
-          repository: FluentDo/agent
-          ref: ${{ inputs.ref }}
-
-      - name: Get package name
-        uses: ./github/actions/get-package-name
-        id: get_package_name
-        with:
-          inputs: "${{ matrix.test.distro }}"
-
-      - name: Download package
-        uses: actions/download-artifact@v5
-        with:
-          name: ${{ steps.get_package_name.outputs.package-name }}
-          path: download/
-
-      - name: Debug
-        run: ls -lRh download/
+            bats/test/${{ matrix.test.distro }}
         shell: bash
+
+# TODO: provide testing on target VMs or similar

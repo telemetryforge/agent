@@ -56,6 +56,7 @@ jobs:
         uses: helm/kind-action@v1
         with:
           node_image: kindest/node:${{ inputs.kind-version }}
+          cluster_name: kind
 
       - name: Install BATS
         uses: bats-core/bats-action@3.0.1
