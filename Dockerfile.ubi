@@ -175,8 +175,9 @@ USER 9876
 
 ENV FLUENT_BIT_BINARY=/fluent-bit/bin/fluent-bit
 COPY testing/ /testing/
-WORKDIR /testing/integration/bats
-ENTRYPOINT [ "/testing/integration/bats/run-bats.sh" ]
+WORKDIR /testing/bats
+ENTRYPOINT [ "/testing/bats/run-bats.sh" ]
+CMD [ "--recursive", "/testing/bats/tests/functional" ]
 
 # Debug image for development
 FROM builder AS debug

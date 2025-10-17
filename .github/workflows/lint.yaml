@@ -32,7 +32,7 @@ jobs:
           exclude: |
             */.git/*
             ./source/*
-            ./testing/integration/bats/lib/*
+            ./testing/bats/lib/*
 
   actionlint-pr:
     runs-on: ubuntu-latest
