@@ -66,7 +66,10 @@ jobs:
           support-install: false
 
       - name: Load image
-        run: kind load docker-image "${FLUENTDO_AGENT_IMAGE}:${FLUENTDO_AGENT_TAG}"
+        run: |
+          docker pull "${FLUENTDO_AGENT_IMAGE}:${FLUENTDO_AGENT_TAG}"
+          kind load docker-image "${FLUENTDO_AGENT_IMAGE}:${FLUENTDO_AGENT_TAG}"
+        shell: bash
 
       - name: Run integration tests
         run: ./testing/bats/run-bats.sh --filter-tags integration,k8s --recursive "$PWD/testing/bats/tests"
