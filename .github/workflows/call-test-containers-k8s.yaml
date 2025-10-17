@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FLUENTDO_AGENT_IMAGE: ${{ inputs.image }}
-      FLUENTDO_AGENT_IMAGE_TAG: ${{ inputs.image-tag }}
+      FLUENTDO_AGENT_TAG: ${{ inputs.image-tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
