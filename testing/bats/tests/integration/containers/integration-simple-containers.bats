@@ -38,6 +38,7 @@ CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
     fi
     run "$CONTAINER_RUNTIME" pull "${FLUENTDO_AGENT_IMAGE}:${FLUENTDO_AGENT_TAG}"
     assert_success
+
     run "$CONTAINER_RUNTIME" run --rm -t "${FLUENTDO_AGENT_IMAGE}:${FLUENTDO_AGENT_TAG}" --version
     assert_success
     assert_output --partial "Fluent Bit"*
