@@ -108,7 +108,7 @@ jobs:
         uses: ./.github/actions/get-package-name
         id: get_package_name
         with:
-          inputs: "${{ matrix.test.distro }}"
+          distro: "${{ matrix.test.distro }}"
 
       - name: Download package
         uses: actions/download-artifact@v5
