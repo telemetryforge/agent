@@ -5,7 +5,7 @@ set -e
 # Currently supports Debian/Ubuntu and RHEL/CentOS/AlmaLinux/RockyLinux
 
 # Optionally specify the version to install, this is updated on every release so we can just pull the install script for the tag.
-RELEASE_VERSION=${FLUENTDO_AGENT_VERSION:-25.10.3}
+RELEASE_VERSION=${FLUENTDO_AGENT_VERSION:-25.10.4}
 
 # Provided primarily to simplify testing for staging, etc.
 RELEASE_URL=${FLUENTDO_AGENT_PACKAGES_URL:-https://packages.fluent.do}
