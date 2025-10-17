@@ -7,7 +7,7 @@ load "$BATS_SUPPORT_ROOT/load.bash"
 load "$BATS_ASSERT_ROOT/load.bash"
 load "$BATS_FILE_ROOT/load.bash"
 
-NAMESPACE=${BATS_TEST_NAME}
+NAMESPACE=${BATS_TEST_NAME//_/}
 HELM_RELEASE_NAME=fluentdo-agent
 
 # bats file_tags=integration,k8s
