@@ -29,11 +29,8 @@ jobs:
     name: Test K8S version ${{ inputs.kind-version }} with ${{ inputs.image }}:${{ inputs.image-tag }}
     runs-on: ubuntu-latest
     env:
-      NAMESPACE: fluent-agent-test
-      IMAGE: ${{ inputs.image }}
-      IMAGE_TAG: ${{ inputs.image-tag }}
-      KIND_CLUSTER_NAME: test-cluster-${{ inputs.kind-version }}-${{ github.run_id }}
-      KIND_VERSION: ${{ inputs.kind-version }}
+      FLUENTDO_AGENT_IMAGE: ${{ inputs.image }}
+      FLUENTDO_AGENT_IMAGE_TAG: ${{ inputs.image-tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -49,10 +46,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.github-token }}
 
-      - name: Run config tests
-        run: ./testing/verify-config.sh
-        shell: bash
-
       - name: Set up Helm
         uses: azure/setup-helm@v4
 
@@ -62,11 +55,21 @@ jobs:
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1
         with:
-          install_only: true
-          version: v0.30.0
+          node_image: ${{ inputs.kind-version }}
 
-      - name: Run test
-        run: ./testing/run-k8s-tests.sh
+      - name: Install BATS
+        uses: bats-core/bats-action@3.0.1
+        with:
+          assert-install: false
+          detik-install: false
+          file-install: false
+          support-install: false
+
+      - name: Load image
+        run: kind load docker-image "${FLUENTDO_AGENT_IMAGE}:${FLUENTDO_AGENT_TAG}"
+
+      - name: Run integration tests
+        run: ./testing/bats/run-bats.sh --filter-tags integration,k8s --recursive "$PWD/testing/bats/tests"
         shell: bash
 
       # Debugging steps to run if something goes wrong
@@ -77,15 +80,5 @@ jobs:
 
       - name: Debug - Describe pods
         if: always()
-        run: kubectl describe pods -n "$NAMESPACE"
-        shell: bash
-
-      - name: Debug - Get logs from pods
-        if: always()
-        run: |
-          for pod in $(kubectl get pods -n "$NAMESPACE" -o jsonpath='{.items[*].metadata.name}'); do
-            echo "Logs from pod: $pod"
-            kubectl logs $pod -n "$NAMESPACE" || echo "No logs available for pod: $pod"
-            echo "-----------------------------------"
-          done
+        run: kubectl describe pods -A
         shell: bash

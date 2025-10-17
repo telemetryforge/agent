@@ -16,6 +16,13 @@ SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 export FLUENT_BIT_BINARY=${FLUENT_BIT_BINARY:-/fluent-bit/bin/fluent-bit}
 export FLUENTDO_AGENT_VERSION=${FLUENTDO_AGENT_VERSION:-25.10.3}
 
+# Optional variables for container/k8s tests
+# FLUENTDO_AGENT_IMAGE=...
+# FLUENTDO_AGENT_TAG=...
+
+# Test configuration and control
+export CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
+
 export BATS_FORMATTER=${BATS_FORMATTER:-tap}
 export BATS_ARGS=${BATS_ARGS:---timing --verbose-run --print-output-on-failure}
 

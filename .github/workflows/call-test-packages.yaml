@@ -136,8 +136,7 @@ jobs:
             -v $PWD/downloads:/downloads:ro \
             -e FLUENT_BIT_BINARY="$FLUENT_BIT_BINARY" \
             -e FLUENTDO_AGENT_VERSION="$FLUENTDO_AGENT_VERSION" \
-            bats/test \
-              --recursive functional
+            bats/test
 
   call-test-packages-integration:
     name: integration tests - ${{ matrix.distro }} Linux package test

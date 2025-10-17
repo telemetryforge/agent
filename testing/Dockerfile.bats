@@ -16,4 +16,4 @@ ENV DOWNLOADS_DIR=/downloads
 
 WORKDIR /testing
 ENTRYPOINT [ "/testing/bats-entrypoint.sh" ]
-CMD [ "--recursive", "functional" ]
+CMD [ "--filter-tags", "functional", "--recursive", "/testing/bats/tests" ]

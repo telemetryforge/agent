@@ -1,7 +1,8 @@
 #!/usr/bin/env bats
 
-# Simple tests to verify BATS and binaries with no supporting libraries
+# bats file_tags=functional
 
+# Simple tests to verify BATS and binaries with no supporting libraries
 @test "verify BATS with simple test that always passes" {
     run true
     [ "$status" -eq 0 ]

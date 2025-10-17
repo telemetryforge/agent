@@ -46,40 +46,12 @@ jobs:
         env:
           JSON_FILE_NAME: build-config.json
 
-  test-container-config:
-    name: Test config of ${{ inputs.image }}:${{ inputs.image-tag }}
-    runs-on: ubuntu-latest
-    env:
-      IMAGE: ${{ inputs.image }}
-      IMAGE_TAG: ${{ inputs.image-tag }}
-    permissions:
-      packages: read
-      contents: read
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-        with:
-          repository: FluentDo/agent
-          ref: ${{ inputs.ref || github.ref }}
-          token: ${{ secrets.github-token }}
-
-      - name: Log in to the Container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.github-token }}
-
-      - name: Run config tests
-        run: ./testing/verify-config.sh
-        shell: bash
-
   test-bats-container:
     name: Run BATS tests for ${{ inputs.image }}/test:${{ inputs.image-tag }}
     runs-on: ubuntu-latest
     env:
-      IMAGE: ${{ inputs.image }}/test
-      IMAGE_TAG: ${{ inputs.image-tag }}
+      FLUENTDO_AGENT_IMAGE: ${{ inputs.image }}/test
+      FLUENTDO_AGENT_TAG: ${{ inputs.image-tag }}
     permissions:
       packages: read
     steps:
@@ -90,8 +62,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.github-token }}
 
-      - name: Run BATS tests
-        run: docker run --rm -t $IMAGE:$IMAGE_TAG
+      - name: Run all functional BATS tests
+        run: docker run --rm -t "${FLUENTDO_AGENT_IMAGE}:${FLUENTDO_AGENT_TAG}"
+        shell: bash
+
+      - name: Install BATS
+        uses: bats-core/bats-action@3.0.1
+        with:
+          assert-install: false
+          detik-install: false
+          file-install: false
+          support-install: false
+
+      - name: Run container integration tests
+        run: ./testing/bats/run-bats.sh --filter-tags integration,containers --recursive "$PWD/testing/bats/tests"
         shell: bash
 
   test-verify-signatures:
@@ -202,7 +186,6 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - test-kubernetes
-      - test-container-config
       - test-redhat-certification
       - test-verify-signatures
       - test-bats-container
