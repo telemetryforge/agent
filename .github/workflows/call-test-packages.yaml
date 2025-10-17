@@ -75,6 +75,7 @@ jobs:
             distro: almalinux/8
           - image: dokken/ubuntu-24.04
             distro: ubuntu/24.04
+        # Add tests for other distros
         include:
           - image: dokken/almalinux-8
             distro: centos/8
