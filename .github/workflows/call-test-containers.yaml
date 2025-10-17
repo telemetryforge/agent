@@ -87,7 +87,7 @@ jobs:
         shell: bash
 
       - name: Run container integration tests
-        run: ./testing/bats/run-bats.sh --filter-tags integration,containers --recursive "$PWD/testing/bats/tests"
+        run: ./testing/bats/run-container-integration-tests.sh
         shell: bash
         env:
           # We use the actual image here for testing against

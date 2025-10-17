@@ -80,7 +80,7 @@ jobs:
         shell: bash
 
       - name: Run integration tests
-        run: ./testing/bats/run-bats.sh --filter-tags integration,k8s --recursive "$PWD/testing/bats/tests"
+        run: ./testing/bats/run-k8s-integration-tests.sh
         shell: bash
         env:
           # allow for some parallelity without GNU parallel, since it is not installed by default

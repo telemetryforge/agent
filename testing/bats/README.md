@@ -3,6 +3,11 @@
 To run tests use the [`run-bats.sh`](./run-bats.sh) script in this directory.
 It is intended to verify the basic set up as well as ensuring we pass appropriate variables.
 
+There are two helper scripts to run local integration tests:
+
+- `run-container-integration-tests.sh`
+- `run-k8s-integration-tests.sh`
+
 These are split into [functional tests](./tests/functional/) you can easily run directly with the binary and inside the container with no external dependencies required and [integration tests](./tests/integration/) that require more infrastructure or external dependencies to run with.
 
 Functional tests are intended to be standalone and simple, e.g. no additional external dependencies to send to an output or read an input.
@@ -13,6 +18,8 @@ Integration tests are intended for when we want to verify more complex behaviour
 In each case the intent is to make as many common tests that can be reused across all targets as possible but there are also some target-specific tests (e.g. Windows-only inputs) that can be run just on the specific targets.
 
 Samples have been provided to demonstrate usage.
+
+Tests should support parallel runs so ensure they are idempotent by cleaning up all expected resources both before and after a test.
 
 ## Tags
 
@@ -54,3 +61,16 @@ load "$BATS_FILE_ROOT/load.bash"
 ```
 
 To update the helper libraries there is an [`update-bats-versions.sh`](./../../scripts/update-bats-versions.sh) script provided.
+
+Ensure to honour the `SKIP_TEARDOWN` parameter being set as well so local runs can be easily debugged by skipping teardown.
+
+```bash
+function teardown() {
+    if [[ -n "${SKIP_TEARDOWN:-}" ]]; then
+        echo "Skipping teardown"
+    else
+        helm uninstall --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" || true
+        kubectl delete namespace "$NAMESPACE" || true
+    fi
+}
+```

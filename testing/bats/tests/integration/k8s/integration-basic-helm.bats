@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
 load "$HELPERS_ROOT/test-helpers.bash"
 
-ensure_variables_set BATS_SUPPORT_ROOT BATS_ASSERT_ROOT BATS_FILE_ROOT
+ensure_variables_set BATS_SUPPORT_ROOT BATS_ASSERT_ROOT BATS_FILE_ROOT BATS_DETIK_ROOT
 
 load "$BATS_SUPPORT_ROOT/load.bash"
 load "$BATS_ASSERT_ROOT/load.bash"
 load "$BATS_FILE_ROOT/load.bash"
+load "$BATS_DETIK_ROOT/utils"
+load "$BATS_DETIK_ROOT/detik"
 
 NAMESPACE=${BATS_TEST_NAME//_/}
 HELM_RELEASE_NAME=fluentdo-agent
+# shellcheck disable=SC2034
+DETIK_CLIENT_NAMESPACE=$NAMESPACE
 
 # bats file_tags=integration,k8s
 
@@ -17,14 +21,18 @@ function setup() {
     helm repo update --fail-on-repo-update-fail
 
     # Always clean up
-    helm uninstall --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" || true
-    kubectl delete namespace "$NAMESPACE" || true
-
+    helm uninstall --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" 2>/dev/null || true
+    kubectl delete namespace "$NAMESPACE" 2>/dev/null || true
+    kubectl create namespace "$NAMESPACE"
 }
 
 function teardown() {
-    helm uninstall --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" || true
-    kubectl delete namespace "$NAMESPACE" || true
+    if [[ -n "${SKIP_TEARDOWN:-}" ]]; then
+        echo "Skipping teardown"
+    else
+        helm uninstall --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" || true
+        kubectl delete namespace "$NAMESPACE" || true
+    fi
 }
 
 # Simple test to deploy default config with OSS helm chart and check metrics are output
@@ -32,12 +40,17 @@ function teardown() {
 
     # Create a configmap from the config file and deploy a pod to test it
     kubectl create configmap fluent-bit-config \
+        --namespace "$NAMESPACE" \
         --from-file="$BATS_TEST_DIRNAME/resources/fluent-bit.yaml" \
         -o yaml --dry-run=client | kubectl apply -f -
 
+    run kubectl get configmap fluent-bit-config \
+        --namespace "$NAMESPACE"
+    assert_success
+
     # Run with YAML configuration overrides
     # We need to run as root to create a DB file in /var/log
-    helm upgrade --install "$HELM_RELEASE_NAME" fluent/fluent-bit \
+    run helm upgrade --install "$HELM_RELEASE_NAME" fluent/fluent-bit \
         --set image.repository="$FLUENTDO_AGENT_IMAGE" \
         --set image.tag="$FLUENTDO_AGENT_TAG" \
         --set existingConfigMap=fluent-bit-config \

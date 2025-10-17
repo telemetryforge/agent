@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 load "$HELPERS_ROOT/test-helpers.bash"
 
-ensure_variables_set BATS_SUPPORT_ROOT BATS_ASSERT_ROOT BATS_FILE_ROOT
+ensure_variables_set BATS_SUPPORT_ROOT BATS_ASSERT_ROOT BATS_FILE_ROOT FLUENTDO_AGENT_VERSION
 
 load "$BATS_SUPPORT_ROOT/load.bash"
 load "$BATS_ASSERT_ROOT/load.bash"
@@ -41,13 +41,14 @@ CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
 
     run "$CONTAINER_RUNTIME" run --rm -t "${FLUENTDO_AGENT_IMAGE}:${FLUENTDO_AGENT_TAG}" --version
     assert_success
-    assert_output --partial "Fluent Bit"*
+    assert_output --partial "FluentDo Agent v$FLUENTDO_AGENT_VERSION"
 }
 
 @test "integration: verify default configuration is valid" {
-    run "$CONTAINER_RUNTIME" run --rm -t "${FLUENTDO_AGENT_IMAGE}:${FLUENTDO_AGENT_TAG}" \
-        -v "$BATS_TEST_DIRNAME/resources/fluent-bit.yaml:/fluent-bit/etc/fluent-bit.yaml:ro"
-        /fluent-bit/bin/fluent-bit -c /fluent-bit/etc/fluent-bit.yaml --dry-run
+    run "$CONTAINER_RUNTIME" run --rm -t \
+        -v "$BATS_TEST_DIRNAME/resources/fluent-bit.yaml:/fluent-bit/etc/fluent-bit.yaml:ro" \
+        "${FLUENTDO_AGENT_IMAGE}:${FLUENTDO_AGENT_TAG}" \
+        -c /fluent-bit/etc/fluent-bit.yaml --dry-run
     assert_success
-    assert_output --partial "Configuration test is successful"
+    assert_output --partial "configuration test is successful"
 }

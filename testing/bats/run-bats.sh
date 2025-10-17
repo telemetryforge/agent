@@ -25,6 +25,8 @@ export CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
 
 export BATS_FORMATTER=${BATS_FORMATTER:-tap}
 export BATS_ARGS=${BATS_ARGS:---timing --verbose-run --print-output-on-failure}
+# In seconds so pick 5 minutes although can modify it per test in setup()
+export BATS_TEST_TIMEOUT=${BATS_TEST_TIMEOUT:-300}
 
 export BATS_LIB_ROOT=${BATS_ROOT:-$SCRIPT_DIR/lib}
 export BATS_FILE_ROOT=$BATS_LIB_ROOT/bats-file

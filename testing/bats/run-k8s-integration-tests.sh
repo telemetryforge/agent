@@ -28,6 +28,7 @@ echo "INFO: Using container image: $CONTAINER_IMAGE"
 echo "INFO: Using KIND cluster name: $KIND_CLUSTER_NAME"
 echo "INFO: Using KIND node image: $KIND_NODE_IMAGE"
 
+# Always pull the latest image
 if ! "$CONTAINER_RUNTIME" pull "$CONTAINER_IMAGE"; then
 	echo "ERROR: Image does not exist"
 	exit 1
@@ -35,6 +36,10 @@ else
 	echo "INFO: Image exists"
 fi
 
+if ! command -v bats &> /dev/null ; then
+	echo "ERROR: Missing bats, please install"
+	exit 1
+fi
 if ! command -v kubectl &> /dev/null ; then
 	echo "ERROR: Missing kubectl, please install kubectl v1.20+"
 	exit 1
@@ -44,7 +49,7 @@ if ! command -v helm &> /dev/null ; then
 	exit 1
 fi
 if ! command -v kind &> /dev/null ; then
-	echo "ERROR: Missing kind, please install kind v0.20+"
+	echo "ERROR: Missing kind, please install kind v0.30+"
 	exit 1
 fi
 
