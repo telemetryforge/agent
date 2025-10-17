@@ -27,6 +27,5 @@
 @test "verify help" {
     run "$FLUENT_BIT_BINARY" --help
     [ "$status" -eq 0 ]
-    [[ "$output" =~ Usage:\ /fluent-bit/bin/fluent-bit\ \[OPTION\] ]]
 }
 

@@ -67,7 +67,7 @@ jobs:
       contents: read
       packages: read
     env:
-      FLUENT_BIT_BINARY: /fluent-bit/bin/fluent-bit
+      FLUENT_BIT_BINARY: /opt/fluentdo-agent/bin/fluent-bit
     strategy:
       matrix:
         test:
