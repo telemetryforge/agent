@@ -164,9 +164,9 @@ FROM production AS test
 # Switch to root to install findutils and BATS
 USER root
 
-# We need find for BATS
+# We need find and ps/pkill for BATS
 # hadolint ignore=DL3041
-RUN microdnf update -y && microdnf install -y findutils && microdnf clean all
+RUN microdnf update -y && microdnf install -y findutils procps && microdnf clean all
 
 COPY --from=bats /opt/bats /opt/bats
 RUN /opt/bats/install.sh /usr/local
