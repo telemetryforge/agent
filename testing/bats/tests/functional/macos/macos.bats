@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# bats file_tags=functional:macos
+# bats file_tags=functional,macos
 
 # Sample to show running on macOS and skipping on other OS types
 @test "verify running on macOS and skipping on other OS types" {

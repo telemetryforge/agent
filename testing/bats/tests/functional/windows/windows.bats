@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# bats file_tags=functional:windows
+# bats file_tags=functional,windows
 
 # Sample to show running on Windows and skipping on other OS types
 @test "verify running on Windows and skipping on other OS types" {

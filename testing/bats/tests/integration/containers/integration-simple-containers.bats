@@ -9,7 +9,7 @@ load "$BATS_FILE_ROOT/load.bash"
 
 CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
 
-# bats file_tags=integration:containers
+# bats file_tags=integration,containers
 
 # All container tests assume Docker is available and can run containers
 @test "integration: verify running containers and skipping if Docker not available" {

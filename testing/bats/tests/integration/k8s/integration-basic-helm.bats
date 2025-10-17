@@ -10,7 +10,7 @@ load "$BATS_FILE_ROOT/load.bash"
 NAMESPACE=${BATS_TEST_NAME}
 HELM_RELEASE_NAME=fluentdo-agent
 
-# bats file_tags=integration:k8s
+# bats file_tags=integration,k8s
 
 function setup() {
     helm repo add fluent https://fluent.github.io/helm-charts --force-update

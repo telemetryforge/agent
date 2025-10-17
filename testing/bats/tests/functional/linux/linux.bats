@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# bats file_tags=functional:linux
+# bats file_tags=functional,linux
 
 # Sample to show only running on Linux and skipping on other OS types
 @test "verify running on Linux and skipping on other OS types" {
