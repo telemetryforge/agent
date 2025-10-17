@@ -21,7 +21,7 @@
 @test "verify version" {
     run "$FLUENT_BIT_BINARY" --version
     [ "$status" -eq 0 ]
-    [[ "$output" =~ FluentDo\s+Agent\s+v$FLUENTDO_AGENT_VERSION ]]
+    [[ "$output" =~ FluentDo\ Agent\ v$FLUENTDO_AGENT_VERSION ]]
 }
 
 @test "verify help" {
