@@ -57,6 +57,9 @@ jobs:
         with:
           node_image: kindest/node:${{ inputs.kind-version }}
           cluster_name: kind
+          # To fix an issue with loading multi-arch images
+          # https://github.com/kubernetes-sigs/kind/issues/3795
+          version: v0.30.0
 
       - name: Install BATS
         uses: bats-core/bats-action@3.0.1
@@ -65,6 +68,10 @@ jobs:
           detik-install: false
           file-install: false
           support-install: false
+
+      - name: Install Rush for parallelism
+        run: curl -sSfL https://github.com/shenwei356/rush/releases/download/v0.7.0/rush_linux_amd64.tar.gz | sudo tar xzf - -C /usr/local/bin
+        shell: bash
 
       - name: Load image
         run: |
@@ -75,6 +82,11 @@ jobs:
       - name: Run integration tests
         run: ./testing/bats/run-bats.sh --filter-tags integration,k8s --recursive "$PWD/testing/bats/tests"
         shell: bash
+        env:
+          # allow for some parallelity without GNU parallel, since it is not installed by default
+          BATS_NO_PARALLELIZE_ACROSS_FILES: 1
+          BATS_NUMBER_OF_PARALLEL_JOBS: 4
+          BATS_PARALLEL_BINARY_NAME: rush
 
       # Debugging steps to run if something goes wrong
       - name: Debug - List all pods

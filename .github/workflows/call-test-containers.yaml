@@ -21,7 +21,6 @@ on:
         description: Token to use to pull images from GitHub Container Registry.
         required: true
 jobs:
-
   get-meta:
     name: Get meta information required
     runs-on: ubuntu-latest
@@ -81,9 +80,18 @@ jobs:
           file-install: false
           support-install: false
 
+      - name: Install Rush for parallelism
+        run: curl -sSfL https://github.com/shenwei356/rush/releases/download/v0.7.0/rush_linux_amd64.tar.gz | sudo tar xzf - -C /usr/local/bin
+        shell: bash
+
       - name: Run container integration tests
         run: ./testing/bats/run-bats.sh --filter-tags integration,containers --recursive "$PWD/testing/bats/tests"
         shell: bash
+        env:
+          # allow for some parallelity without GNU parallel, since it is not installed by default
+          BATS_NO_PARALLELIZE_ACROSS_FILES: 1
+          BATS_NUMBER_OF_PARALLEL_JOBS: 4
+          BATS_PARALLEL_BINARY_NAME: rush
 
   test-verify-signatures:
     name: Verify image signatures for ${{ inputs.image }}:${{ inputs.image-tag }}
