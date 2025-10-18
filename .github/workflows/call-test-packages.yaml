@@ -47,6 +47,7 @@ jobs:
       linux-test-targets: ${{ steps.get_matrix.outputs.linux_test_targets }}
     steps:
       - name: Log in to Dockerhub
+        if: ${{ !env.ACT }}
         uses: docker/login-action@v3
         with:
           username: ${{ inputs.dockerhub-username }}
@@ -55,7 +56,7 @@ jobs:
       - name: Create matrix from input matrix and verify pullable images
         id: get_matrix
         run: |
-          set -exuo pipefail
+          set -euo pipefail
           json='${{ inputs.build-matrix }}'
           echo "Input JSON: $json"
 
@@ -85,7 +86,7 @@ jobs:
             final='[]'
           else
             printf '%s\n' "${valid_json_items[@]}" | jq -s '.' > /tmp/final.json
-            final=$(cat /tmp/final.json)
+            final="$(jq -c . /tmp/final.json)"
           fi
 
           echo "Final matrix: $final"
@@ -96,7 +97,7 @@ jobs:
         shell: bash
 
   call-test-packages-functional:
-    name: functional tests - ${{ matrix.distro }} package test
+    name: functional tests - ${{ matrix.config.distro }} package test
     needs:
       - call-test-packages-get-meta
     # We only run tests on AMD runners here
@@ -108,7 +109,8 @@ jobs:
     env:
       FLUENT_BIT_BINARY: /opt/fluentdo-agent/bin/fluent-bit
     strategy:
-      matrix: ${{ fromJson(needs.call-test-packages-get-meta.outputs.linux-test-targets) }}
+      matrix:
+        config: ${{ fromJson(needs.call-test-packages-get-meta.outputs.linux-test-targets) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -117,6 +119,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Log in to Dockerhub
+        if: ${{ !env.ACT }}
         uses: docker/login-action@v3
         with:
           username: ${{ inputs.dockerhub-username }}
@@ -135,9 +138,10 @@ jobs:
         uses: ./.github/actions/get-package-name
         id: get_package_name
         with:
-          distro: "${{ matrix.test.distro }}"
+          distro: "${{ matrix.config.distro }}"
 
       - name: Download package
+        if: ${{ !env.ACT }}
         uses: actions/download-artifact@v5
         with:
           name: ${{ steps.get_package_name.outputs.package-name }}
@@ -155,10 +159,10 @@ jobs:
           platforms: linux/amd64
           target: test
           build-args: |
-            BASE_BUILDER=${{ matrix.test.image }}
+            BASE_BUILDER=${{ matrix.config.image }}
           provenance: false
           load: true
-          tags: bats/test/${{ matrix.test.distro }}
+          tags: bats/test/${{ matrix.config.distro }}
 
       - name: Run functional tests against local container
         run: |
@@ -166,7 +170,7 @@ jobs:
             -v $PWD/downloads:/downloads:ro \
             -e FLUENT_BIT_BINARY="$FLUENT_BIT_BINARY" \
             -e FLUENTDO_AGENT_VERSION="$FLUENTDO_AGENT_VERSION" \
-            bats/test/${{ matrix.test.distro }}
+            bats/test/${{ matrix.config.distro }}
         shell: bash
 
   # Test packages installed on the actual target OS
