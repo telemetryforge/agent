@@ -220,6 +220,7 @@ jobs:
       - build-linux
     uses: ./.github/workflows/call-test-packages.yaml
     with:
+      build-matrix: ${{ needs.get-meta.outputs.linux-targets }}
       version: ${{ needs.get-meta.outputs.version }}
       ref: ${{ github.ref }}
       dockerhub-username: ${{ vars.DOCKERHUB_USERNAME }}
