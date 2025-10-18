@@ -55,7 +55,7 @@ jobs:
       - name: Create matrix from input matrix and verify pullable images
         id: get_matrix
         run: |
-          set -euo pipefail
+          set -exuo pipefail
           json='${{ inputs.build-matrix }}'
           echo "Input JSON: $json"
 
@@ -88,7 +88,8 @@ jobs:
             final=$(cat /tmp/final.json)
           fi
 
-          echo "Final matrix:"
+          echo "Final matrix: $final"
+          echo '-------'
           echo "$final" | jq .
           # Emit the JSON array as a step output
           echo "linux_test_targets=$final" >> "$GITHUB_OUTPUT"
@@ -220,7 +221,7 @@ jobs:
       - name: Install package
         run: |
           sudo apt-get update
-          sudo apt-get install -y downloads/*.deb
+          find "downloads/" -name 'fluentdo-agent_*_amd64.deb' -exec sudo apt-get install -y {}+
         shell: bash
 
       - name: Run all tests
