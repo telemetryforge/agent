@@ -70,6 +70,12 @@ jobs:
             packages: read
             # Required for GCP secrets access
             id-token: write
+        env:
+          # We must match up the official image we have used for publishing upstream
+          RHEL_SOURCE_IMAGE: ghcr.io/fluentdo/agent
+        needs:
+          # We must use the top-level image here - see above
+          - promote-ghcr-images
         steps:
             - name: Log in to the Container registry
               uses: docker/login-action@v3
@@ -105,5 +111,5 @@ jobs:
                 ./preflight-linux-amd64 check container \
                     --certification-component-id 68e14199529ca9e0c382582c \
                     --pyxis-api-token '${{ steps.get-secrets.outputs.redhat-api-key }}' \
-                    --submit $UBI_IMAGE_NAME:${{ inputs.version }}
+                    --submit $RHEL_SOURCE_IMAGE:${{ inputs.version }}
               shell: bash
