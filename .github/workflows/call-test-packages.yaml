@@ -190,10 +190,12 @@ jobs:
         include:
           - runner: ubuntu-latest
             package-type: deb
+            package: package-ubuntu-24.04
             name: ubuntu
             binary: /opt/fluentdo-agent/bin/fluent-bit
           # - runner: windows-latest
           #   package-type: msi
+          #   package: package-windows
           #   name: windows MSI
           #   binary: C:\fluentdo-agent\bin\fluent-bit
     steps:
@@ -220,16 +222,10 @@ jobs:
           file-install: false
           support-install: false
 
-      - name: Get package name
-        uses: ./.github/actions/get-package-name
-        id: get_package_name
-        with:
-          distro: "${{ matrix.runner }}"
-
       - name: Download package
         uses: actions/download-artifact@v5
         with:
-          name: ${{ steps.get_package_name.outputs.package-name }}
+          name: ${{ matrix.package }}
           path: downloads/
 
       - name: Debug
@@ -246,7 +242,7 @@ jobs:
       - name: Install package
         if: runner.os == 'Windows'
         run: |
-          $msi = Get-ChildItem -Path ".\artifact" -Filter "*.msi" | Select-Object -First 1
+          $msi = Get-ChildItem -Path ".\downloads" -Filter "*.msi" | Select-Object -First 1
           msiexec.exe /i "$($msi.FullName)" /quiet /qn
         shell: pwsh
 
