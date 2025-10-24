@@ -192,12 +192,12 @@ jobs:
             package-type: deb
             package: package-ubuntu-24.04
             name: ubuntu
-            binary: /opt/fluentdo-agent/bin/fluent-bit
+            binary: /opt/fluent-bit/bin/fluent-bit
           # - runner: windows-latest
           #   package-type: msi
           #   package: package-windows
           #   name: windows MSI
-          #   binary: C:\fluentdo-agent\bin\fluent-bit
+          #   binary: C:\fluent-bit\bin\fluent-bit
     steps:
       - name: Checkout code
         uses: actions/checkout@v5

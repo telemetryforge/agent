@@ -45,6 +45,9 @@ CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
 }
 
 @test "integration: verify default configuration is valid" {
+    if [ -z "${FLUENTDO_AGENT_IMAGE}" ]; then
+        skip "Skipping test: FLUENTDO_AGENT_IMAGE not set"
+    fi
     assert_file_exist "$BATS_TEST_DIRNAME/resources/fluent-bit.yaml"
     run "$CONTAINER_RUNTIME" run --rm -t \
         -v "$BATS_TEST_DIRNAME/resources/fluent-bit.yaml:/fluent-bit/etc/fluent-bit.yaml:ro" \
