@@ -109,6 +109,7 @@ jobs:
     env:
       FLUENT_BIT_BINARY: /opt/fluentdo-agent/bin/fluent-bit
     strategy:
+      fail-fast: false
       matrix:
         config: ${{ fromJson(needs.call-test-packages-get-meta.outputs.linux-test-targets) }}
     steps:
@@ -177,19 +178,24 @@ jobs:
   # For now we just use the ephemeral runners
   # TODO: provide testing on target VMs or similar
   call-test-packages-integration:
-    name: integration tests - ubuntu package test
+    name: integration tests - ${{ matrix.name }} package test
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     permissions:
       contents: read
       packages: read
-    env:
-      FLUENT_BIT_BINARY: /opt/fluentdo-agent/bin/fluent-bit
     strategy:
+      fail-fast: false
       matrix:
-        runner:
-          - ubuntu-22.04
-          - ubuntu-24.04
+        include:
+          - runner: ubuntu-latest
+            package-type: deb
+            name: ubuntu
+            binary: /opt/fluentdo-agent/bin/fluent-bit
+          # - runner: windows-latest
+          #   package-type: msi
+          #   name: windows MSI
+          #   binary: C:\fluentdo-agent\bin\fluent-bit
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -205,6 +211,14 @@ jobs:
       - name: Set up Docker Buildx
         if: ${{ !contains( runner.name, 'nsc-' ) }}
         uses: docker/setup-buildx-action@v3
+
+      - name: Install BATS
+        uses: bats-core/bats-action@3.0.1
+        with:
+          assert-install: false
+          detik-install: false
+          file-install: false
+          support-install: false
 
       - name: Get package name
         uses: ./.github/actions/get-package-name
@@ -223,11 +237,21 @@ jobs:
         shell: bash
 
       - name: Install package
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          find "downloads/" -name 'fluentdo-agent_*_amd64.deb' -exec sudo apt-get install -y {}+
+          find "downloads/" -name 'fluentdo-agent_*_amd64.deb' -exec sudo apt-get install -y {} \;
         shell: bash
 
+      - name: Install package
+        if: runner.os == 'Windows'
+        run: |
+          $msi = Get-ChildItem -Path ".\artifact" -Filter "*.msi" | Select-Object -First 1
+          msiexec.exe /i "$($msi.FullName)" /quiet /qn
+        shell: pwsh
+
       - name: Run all tests
-        run: ./testing/bats/run-bats.sh
+        run: ./testing/bats/run-package-integration-tests.sh
         shell: bash
+        env:
+          FLUENT_BIT_BINARY: ${{ matrix.binary }}
