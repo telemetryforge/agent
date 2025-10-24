@@ -8,12 +8,6 @@ FROM ${BASE_BUILDER} AS test
 COPY --from=bats /opt/bats /opt/bats
 RUN /opt/bats/install.sh /usr/local
 
-# hadolint ignore=DL4006
-RUN curl -sSfL https://github.com/shenwei356/rush/releases/download/v0.7.0/rush_linux_amd64.tar.gz | tar xzf - -C /usr/local/bin
-ENV BATS_PARALLEL_BINARY_NAME=rush
-ENV BATS_NO_PARALLELIZE_ACROSS_FILES=1
-ENV BATS_NUMBER_OF_PARALLEL_JOBS=4
-
 COPY testing/ /testing/
 
 # Put packages to install here
