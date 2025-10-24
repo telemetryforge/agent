@@ -17,5 +17,5 @@ export FLUENTDO_AGENT_IMAGE=${FLUENTDO_AGENT_IMAGE:?}
 export FLUENTDO_AGENT_TAG=${FLUENTDO_AGENT_TAG:?}
 export CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
 
-"$SCRIPT_DIR"/run-bats.sh --filter-tags integration,containers --recursive "$SCRIPT_DIR/tests"
+"$SCRIPT_DIR"/run-bats.sh --filter-tags 'integration,containers' --recursive "$SCRIPT_DIR/tests"
 echo "INFO: All tests complete"

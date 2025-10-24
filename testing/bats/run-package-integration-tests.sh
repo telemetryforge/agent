@@ -15,5 +15,5 @@ SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 
 export FLUENT_BIT_BINARY=${FLUENT_BIT_BINARY:-/opt/fluentdo-agent/bin/fluent-bit}
 
-"$SCRIPT_DIR"/run-bats.sh --filter-tags integration,!container --recursive "$SCRIPT_DIR/tests"
+"$SCRIPT_DIR"/run-bats.sh --filter-tags 'integration,!container,!k8s' --recursive "$SCRIPT_DIR/tests"
 echo "INFO: All tests complete"

@@ -61,6 +61,6 @@ kind create cluster --name "$KIND_CLUSTER_NAME" --image "$KIND_NODE_IMAGE" --wai
 echo "INFO: Loading image into KIND"
 kind load docker-image "$CONTAINER_IMAGE" --name "$KIND_CLUSTER_NAME"
 
-"$SCRIPT_DIR"/run-bats.sh --filter-tags integration,k8s --recursive "$SCRIPT_DIR/tests"
+"$SCRIPT_DIR"/run-bats.sh --filter-tags 'integration,k8s' --recursive "$SCRIPT_DIR/tests"
 
 echo "INFO: All tests complete"
