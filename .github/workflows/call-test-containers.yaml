@@ -144,14 +144,13 @@ jobs:
           password: ${{ secrets.github-token }}
 
       - name: Set up preflight binary
-        run: |
-          curl -sSfLO https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/latest/download/preflight-linux-amd64
-          chmod a+x ./preflight-linux-amd64
-          ./preflight-linux-amd64 -v
-        shell: bash
+        uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          preflight: latest
+          source: github
 
       - name: Run tests
-        run: ./preflight-linux-amd64 check container ${{ inputs.image }}:${{ inputs.image-tag }}
+        run: preflight check container ${{ inputs.image }}:${{ inputs.image-tag }}
         shell: bash
 
       # https://github.com/redhat-openshift-ecosystem/openshift-preflight/issues/1235

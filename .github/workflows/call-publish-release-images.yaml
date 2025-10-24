@@ -85,11 +85,10 @@ jobs:
                   password: ${{ secrets.github-token }}
 
             - name: Set up preflight binary
-              run: |
-                  curl -sSfLO https://github.com/redhat-openshift-ecosystem/openshift-preflight/releases/latest/download/preflight-linux-amd64
-                  chmod a+x ./preflight-linux-amd64
-                  ./preflight-linux-amd64 -v
-              shell: bash
+              uses: redhat-actions/openshift-tools-installer@v1
+              with:
+                preflight: latest
+                source: github
 
             - name: Authenticate with GCP
               uses: google-github-actions/auth@v3
@@ -108,7 +107,7 @@ jobs:
 
             - name: Submit container to Red Hat for certification
               run: |
-                ./preflight-linux-amd64 check container \
+                preflight check container \
                     --certification-component-id 68e14199529ca9e0c382582c \
                     --pyxis-api-token '${{ steps.get-secrets.outputs.redhat-api-key }}' \
                     --submit $RHEL_SOURCE_IMAGE:${{ inputs.version }}
