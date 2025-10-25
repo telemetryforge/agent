@@ -60,8 +60,8 @@ jobs:
           json='${{ inputs.build-matrix }}'
           echo "Input JSON: $json"
 
-          # Build initial candidates: drop arm64 entries and map distro -> image
-          echo "$json" | jq -c '[.[] | select(endswith(".arm64v8") | not) | {distro: ., image: ("dokken/" + (gsub("/"; "-")))}]' > /tmp/candidates.json
+          # Build initial candidates: drop arm64 entries, unsupported CentOS versions and map distro -> image
+          echo "$json" | jq -c '[.[] | select(endswith(".arm64v8") | not) | select(. != "centos/7" and . != "centos/8") | {distro: ., image: ("dokken/" + (gsub("/"; "-")))}]' > /tmp/candidates.json
           echo "Candidates:"
           jq -r '.[] | "\(.distro) -> \(.image)"' /tmp/candidates.json || true
 
@@ -107,7 +107,7 @@ jobs:
       contents: read
       packages: read
     env:
-      FLUENT_BIT_BINARY: /opt/fluentdo-agent/bin/fluent-bit
+      FLUENT_BIT_BINARY: /opt/fluent-bit/bin/fluent-bit
     strategy:
       fail-fast: false
       matrix:
@@ -198,6 +198,8 @@ jobs:
           #   package: package-windows
           #   name: windows MSI
           #   binary: C:\fluent-bit\bin\fluent-bit
+    env:
+      FLUENT_BIT_BINARY: ${{ matrix.binary }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -237,6 +239,7 @@ jobs:
         run: |
           sudo apt-get update
           find "downloads/" -name 'fluentdo-agent_*_amd64.deb' -exec sudo apt-get install -y {} \;
+          ls -lRh /opt/
         shell: bash
 
       - name: Install package
@@ -246,8 +249,7 @@ jobs:
           msiexec.exe /i "$($msi.FullName)" /quiet /qn
         shell: pwsh
 
+      # We run both all tests for packages, not containers or K8S
       - name: Run all tests
-        run: ./testing/bats/run-package-integration-tests.sh
+        run: ./testing/bats/run-bats.sh --filter-tags '!container,!k8s' --recursive "$PWD/testing/bats/tests"
         shell: bash
-        env:
-          FLUENT_BIT_BINARY: ${{ matrix.binary }}
