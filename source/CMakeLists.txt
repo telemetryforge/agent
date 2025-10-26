@@ -1500,6 +1500,8 @@ set(CPACK_RPM_SPEC_MORE_DEFINE "%define ignore \#")
 set(CPACK_RPM_RUNTIME_USER_FILELIST
   "%config(noreplace) /etc/${FLB_OUT_NAME}/${FLB_OUT_NAME}.conf"
   "%config(noreplace) /etc/${FLB_OUT_NAME}/${FLB_OUT_NAME}.yaml"
+  "%config(noreplace) /etc/${FLB_OUT_NAME}/fluent-bit.conf"
+  "%config(noreplace) /etc/${FLB_OUT_NAME}/fluent-bit.yaml"
   "%config(noreplace) /etc/${FLB_OUT_NAME}/parsers.conf"
   "%config(noreplace) /etc/${FLB_OUT_NAME}/plugins.conf"
   "%ignore /lib"
