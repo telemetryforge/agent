@@ -1,4 +1,3 @@
-/etc/fluent-bit/parsers.conf
-/etc/fluent-bit/plugins.conf
-/etc/fluent-bit/fluent-bit.conf
-/etc/fluent-bit/fluent-bit.yaml
+/etc/fluentdo-agent/parsers.conf
+/etc/fluentdo-agent/plugins.conf
+/etc/fluentdo-agent/fluent-bit.conf

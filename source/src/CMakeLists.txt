@@ -681,10 +681,6 @@ if(FLB_BINARY)
       "${PROJECT_SOURCE_DIR}/conf/fluent-bit.conf"
       DESTINATION ${FLB_INSTALL_CONFDIR}
       COMPONENT binary)
-    install(FILES
-      "${PROJECT_SOURCE_DIR}/conf/fluent-bit.yaml"
-      DESTINATION ${FLB_INSTALL_CONFDIR}
-      COMPONENT binary)
   endif()
 
   install(FILES
