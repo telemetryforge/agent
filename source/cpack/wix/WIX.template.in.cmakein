@@ -42,7 +42,7 @@
 
         <DirectoryRef Id="INSTALL_ROOT">
             <!-- Create component for setting the install directory permission explicitly -->
-            <Component Id="FluentBitAcl" Guid="{6779b04e-70a5-4973-888d-06865155e9f5}">
+            <Component Id="FluentDoAgentAcl" Guid="{6779b04e-70a5-4973-888d-06865155e9f5}">
                 <CreateFolder>
                     <!--
                         Read/Execute: Builtin Users
@@ -69,7 +69,7 @@
         <?endif?>
 
         <FeatureRef Id="ProductFeature">
-            <ComponentRef Id="FluentBitAcl"/>
+            <ComponentRef Id="FluentDoAgentAcl"/>
         </FeatureRef>
 
         <UIRef Id="$(var.CPACK_WIX_UI_REF)" />
@@ -82,32 +82,32 @@
           <![CDATA[%NOT_FLB_SVC_LAUNCH <> ""]]>
         </SetProperty>
 
-        <Property Id="CreateFluentBitWinSvc" Value=" "/>
-        <CustomAction Id="SetCreateFluentBitWinSvcCommand" Property="CreateFluentBitWinSvc" Value="&quot;sc.exe&quot; create @FLB_OUT_NAME@ binpath= &quot;\&quot;[INSTALL_ROOT]bin\@FLB_OUT_NAME@.exe\&quot; -c \&quot;[INSTALL_ROOT]conf\@FLB_OUT_NAME@.conf\&quot;&quot; start= delayed-auto" Execute="immediate" />
-        <CustomAction Id="CreateFluentBitWinSvc" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="deferred" Return="ignore" Impersonate="no" />
+        <Property Id="CreateFluentDoAgentWinSvc" Value=" "/>
+        <CustomAction Id="SetCreateFluentDoAgentWinSvcCommand" Property="CreateFluentDoAgentWinSvc" Value="&quot;sc.exe&quot; create @FLB_OUT_NAME@ binpath= &quot;\&quot;[INSTALL_ROOT]bin\@FLB_OUT_NAME@.exe\&quot; -c \&quot;[INSTALL_ROOT]conf\@FLB_OUT_NAME@.conf\&quot;&quot; start= delayed-auto" Execute="immediate" />
+        <CustomAction Id="CreateFluentDoAgentWinSvc" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="deferred" Return="ignore" Impersonate="no" />
 
-        <Property Id="LaunchFluentBitWinSvc" Value=" "/>
-        <CustomAction Id="SetLaunchFluentBitWinSvcCommand" Property="LaunchFluentBitWinSvc" Value="&quot;sc.exe&quot; start @FLB_OUT_NAME@" Execute="immediate" />
-        <CustomAction Id="LaunchFluentBitWinSvc" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="deferred" Return="ignore" Impersonate="no" />
+        <Property Id="LaunchFluentDoAgentWinSvc" Value=" "/>
+        <CustomAction Id="SetLaunchFluentDoAgentWinSvcCommand" Property="LaunchFluentDoAgentWinSvc" Value="&quot;sc.exe&quot; start @FLB_OUT_NAME@" Execute="immediate" />
+        <CustomAction Id="LaunchFluentDoAgentWinSvc" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="deferred" Return="ignore" Impersonate="no" />
 
-        <Property Id="StopFluentBitWinSvc" Value=" "/>
-        <CustomAction Id="SetStopFluentBitWinSvcCommand" Property="StopFluentBitWinSvc" Value="&quot;sc.exe&quot; stop @FLB_OUT_NAME@" Execute="immediate" />
-        <CustomAction Id="StopFluentBitWinSvc" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="deferred" Return="ignore" Impersonate="no" />
+        <Property Id="StopFluentDoAgentWinSvc" Value=" "/>
+        <CustomAction Id="SetStopFluentDoAgentWinSvcCommand" Property="StopFluentDoAgentWinSvc" Value="&quot;sc.exe&quot; stop @FLB_OUT_NAME@" Execute="immediate" />
+        <CustomAction Id="StopFluentDoAgentWinSvc" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="deferred" Return="ignore" Impersonate="no" />
 
-        <Property Id="DeleteFluentBitWinSvc" Value=" "/>
-        <CustomAction Id="SetDeleteFluentBitWinSvcCommand" Property="DeleteFluentBitWinSvc" Value="&quot;sc.exe&quot; delete @FLB_OUT_NAME@" Execute="immediate" />
-        <CustomAction Id="DeleteFluentBitWinSvc" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="deferred" Return="ignore" Impersonate="no" />
+        <Property Id="DeleteFluentDoAgentWinSvc" Value=" "/>
+        <CustomAction Id="SetDeleteFluentDoAgentWinSvcCommand" Property="DeleteFluentDoAgentWinSvc" Value="&quot;sc.exe&quot; delete @FLB_OUT_NAME@" Execute="immediate" />
+        <CustomAction Id="DeleteFluentDoAgentWinSvc" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="deferred" Return="ignore" Impersonate="no" />
 
         <InstallExecuteSequence>
-            <Custom Action="SetCreateFluentBitWinSvcCommand" After="InstallFiles">NOT Installed</Custom>
-            <Custom Action="CreateFluentBitWinSvc" After="SetCreateFluentBitWinSvcCommand">NOT Installed</Custom>
-            <Custom Action="SetLaunchFluentBitWinSvcCommand" After="CreateFluentBitWinSvc">LAUNCHSERVICE="1" AND NOT Installed</Custom>
-            <Custom Action="LaunchFluentBitWinSvc" After="SetLaunchFluentBitWinSvcCommand">LAUNCHSERVICE="1" AND NOT Installed</Custom>
+            <Custom Action="SetCreateFluentDoAgentWinSvcCommand" After="InstallFiles">NOT Installed</Custom>
+            <Custom Action="CreateFluentDoAgentWinSvc" After="SetCreateFluentDoAgentWinSvcCommand">NOT Installed</Custom>
+            <Custom Action="SetLaunchFluentDoAgentWinSvcCommand" After="CreateFluentDoAgentWinSvc">LAUNCHSERVICE="1" AND NOT Installed</Custom>
+            <Custom Action="LaunchFluentDoAgentWinSvc" After="SetLaunchFluentDoAgentWinSvcCommand">LAUNCHSERVICE="1" AND NOT Installed</Custom>
 
-            <Custom Action="SetStopFluentBitWinSvcCommand" After="InstallInitialize">REMOVE="ALL" AND NOT UPGRADINGPRODUCTCODE</Custom>
-            <Custom Action="StopFluentBitWinSvc" After="SetStopFluentBitWinSvcCommand">REMOVE="ALL" AND NOT UPGRADINGPRODUCTCODE</Custom>
-            <Custom Action="SetDeleteFluentBitWinSvcCommand" After="StopFluentBitWinSvc">REMOVE="ALL" AND NOT UPGRADINGPRODUCTCODE</Custom>
-            <Custom Action="DeleteFluentBitWinSvc" After="SetDeleteFluentBitWinSvcCommand">REMOVE="ALL" AND NOT UPGRADINGPRODUCTCODE</Custom>
+            <Custom Action="SetStopFluentDoAgentWinSvcCommand" After="InstallInitialize">REMOVE="ALL" AND NOT UPGRADINGPRODUCTCODE</Custom>
+            <Custom Action="StopFluentDoAgentWinSvc" After="SetStopFluentDoAgentWinSvcCommand">REMOVE="ALL" AND NOT UPGRADINGPRODUCTCODE</Custom>
+            <Custom Action="SetDeleteFluentDoAgentWinSvcCommand" After="StopFluentDoAgentWinSvc">REMOVE="ALL" AND NOT UPGRADINGPRODUCTCODE</Custom>
+            <Custom Action="DeleteFluentDoAgentWinSvc" After="SetDeleteFluentDoAgentWinSvcCommand">REMOVE="ALL" AND NOT UPGRADINGPRODUCTCODE</Custom>
         </InstallExecuteSequence>
     </Product>
 </Wix>

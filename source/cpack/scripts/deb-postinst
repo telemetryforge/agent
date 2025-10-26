@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+# Set permissions
+chown -R fluentdo-agent:fluentdo-agent /opt/fluentdo-agent
+chmod 755 /opt/fluentdo-agent
+
+# Create symlinks
+ln -sf /opt/fluentdo-agent /opt/fluent-bit
+ln -sf /opt/fluentdo-agent/bin/fluentdo-agent /opt/fluentdo-agent/bin/fluent-bit
+
+# Enable and start service
+systemctl daemon-reload
+systemctl enable fluentdo-agent || true
+systemctl restart fluentdo-agent || true
+
+echo "FluentDo Agent installed successfully"

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# Clean up symlinks
+rm -f /opt/fluent-bit
+rm -f /opt/fluentdo-agent/bin/fluent-bit
+systemctl daemon-reload || true

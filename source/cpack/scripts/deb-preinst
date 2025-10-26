@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+
+# Create fluentdo-agent user if it doesn't exist
+if ! id fluentdo-agent &>/dev/null; then
+    adduser --system --no-create-home --shell /usr/sbin/nologin fluentdo-agent || true
+fi
+
+# Remove old symlinks
+rm -f /opt/fluent-bit
+rm -f /opt/fluentdo-agent/bin/fluent-bit

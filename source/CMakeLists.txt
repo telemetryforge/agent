@@ -1405,31 +1405,85 @@ if(FLB_TESTS_INTERNAL)
   add_subdirectory(tests/internal/)
 endif()
 
-# Installer Generation (Cpack)
-# ============================
+set(INSTALL_PREFIX "/opt/fluentdo-agent")
+set(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX} CACHE PATH "Installation prefix" FORCE)
 
-set(CPACK_PACKAGE_VERSION ${FLB_VERSION_STR})
+# Install main binary
+install(TARGETS fluentdo-agent
+    RUNTIME DESTINATION bin
+)
+
+# Create symlink for backwards compatibility (fluent-bit binary name)
+install(CODE "
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E create_symlink 
+        ${INSTALL_PREFIX}/bin/fluentdo-agent 
+        \$ENV{DESTDIR}${INSTALL_PREFIX}/bin/fluent-bit
+    )
+")
+
+# Create symlink for /opt/fluent-bit directory (backwards compatibility)
+install(CODE "
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E create_symlink 
+        ${INSTALL_PREFIX} 
+        \$ENV{DESTDIR}/opt/fluent-bit
+    )
+")
+
+# Install configuration files
+install(DIRECTORY conf/
+    DESTINATION etc
+    FILES_MATCHING PATTERN "*.conf"
+    FILES_MATCHING PATTERN "*.yaml"
+)
+
+# Install systemd service file (fluentdo-agent)
+install(FILES etc/systemd/system/fluentdo-agent.service
+    DESTINATION lib/systemd/system
+)
+
+# Create backwards compatibility symlink for systemd service
+install(CODE "
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E create_symlink 
+        fluentdo-agent.service 
+        \$ENV{DESTDIR}/lib/systemd/system/fluent-bit.service
+    )
+")
+
+# Install other files (scripts, plugins, etc.)
+install(DIRECTORY lib/
+    DESTINATION lib
+)
+
+install(DIRECTORY libexec/
+    DESTINATION libexec
+)
+
+# ============================================================================
+# CPack Configuration for Package Generation
+# ============================================================================
+
 set(CPACK_PACKAGE_NAME "fluentdo-agent")
-
+set(CPACK_PACKAGE_VERSION ${FLB_VERSION_STR})
 set(CPACK_PACKAGE_RELEASE 1)
-set(CPACK_PACKAGE_CONTACT "Fluent Do <info@fluent.do>")
-set(CPACK_PACKAGE_VENDOR "Fluent Do <https://fluent.do>")
-set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
+
+set(CPACK_PACKAGE_VENDOR "FluentDo")
+set(CPACK_PACKAGE_DESCRIPTION "FluentDo Agent - enterprise-hardened distribution of Fluent Bit")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://fluent.do")
+set(CPACK_PACKAGE_CONTACT "info@fluent.do")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${PROJECT_SOURCE_DIR}/cpack/description")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "FluentDo Agent is an enterprise-hardened distribution of Fluent Bit.")
+
+# Specify LICENSE file that has .txt extension
+configure_file(LICENSE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
+
 set(CPACK_PACKAGING_INSTALL_PREFIX "/")
 
+# Default will be overridden if required
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}")
-
-if(FLB_SYSTEM_WINDOWS)
-  set(CPACK_GENERATOR "NSIS" "ZIP" "WIX")
-
-  if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|AARCH64)")
-    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-winarm64")
-  elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-win64")
-  else()
-    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-win32")
-  endif()
-endif()
 
 # Enable components
 set(CPACK_DEB_COMPONENT_INSTALL ON)
@@ -1441,53 +1495,37 @@ set(CPACK_COMPONENTS_GROUPING "ONE_PER_GROUP")
 set(CPACK_COMPONENT_BINARY_GROUP "RUNTIME")
 set(CPACK_COMPONENT_LIBRARY_GROUP "RUNTIME")
 
-# Ensure we strip binaries
-set(CPACK_STRIP_FILES ON)
+# ============================================================================
+# RPM Package Configuration
+# ============================================================================
 
-# Debian package setup and name sanitizer
-set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+set(CPACK_RPM_PACKAGE_NAME "${CPACK_PACKAGE_NAME}")
+set(CPACK_RPM_PACKAGE_PROVIDES "fluentdo-agent, fluent-bit")
+set(CPACK_RPM_PACKAGE_OBSOLETES "fluent-bit")
+set(CPACK_RPM_PACKAGE_CONFLICTS "fluent-bit")
+set(CPACK_RPM_FILE_NAME "RPM-DEFAULT")
+set(CPACK_RPM_PACKAGE_LICENSE "${CPACK_RESOURCE_FILE_LICENSE}")
+set(CPACK_RPM_PACKAGE_GROUP "System/Daemons")
+set(CPACK_RPM_PACKAGE_RELEASE ${CPACK_PACKAGE_RELEASE})
 
-find_program(DPKG_PROGRAM dpkg DOC "dpkg program of Debian-based systems")
-if(DPKG_PROGRAM)
-  execute_process(
-    COMMAND ${DPKG_PROGRAM} --print-architecture
-    OUTPUT_VARIABLE CPACK_DEBIAN_PACKAGE_ARCHITECTURE
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
+# Pre/Post install scripts for RPM
+set(CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpack/scripts/rpm-pre-install.sh")
+set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpack/scripts/rpm-post-install.sh")
+set(CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpack/scripts/rpm-pre-uninstall.sh")
+set(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpack/scripts/rpm-post-uninstall.sh")
 
-  set(CPACK_DEBIAN_HEADERS_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}-headers.deb")
-  set(CPACK_DEBIAN_HEADERS_EXTRA_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}-headers-extra.deb")
-  set(CPACK_DEBIAN_RUNTIME_PACKAGE_NAME "${CPACK_PACKAGE_NAME}")
-  set(CPACK_DEBIAN_RUNTIME_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}.deb")
-  set(CPACK_DEBIAN_RUNTIME_PACKAGE_CONTROL_EXTRA
-    ${PROJECT_SOURCE_DIR}/cpack/debian/conffiles
-    )
-
-  if(FLB_RUN_LDCONFIG)
-    set(LDCONFIG_DIR ${FLB_INSTALL_LIBDIR})
-    file(WRITE ${PROJECT_BINARY_DIR}/scripts/postinst "
-mkdir -p /etc/ld.so.conf.d
-echo \"${LDCONFIG_DIR}\" > /etc/ld.so.conf.d/libfluent-bit.conf
-ldconfig
-    ")
-    file(WRITE ${PROJECT_BINARY_DIR}/scripts/prerm "
-rm -f -- /etc/ld.so.conf.d/libfluent-bit.conf
-ldconfig
-    ")
-    set(CPACK_DEBIAN_RUNTIME_PACKAGE_CONTROL_EXTRA "${PROJECT_BINARY_DIR}/scripts/postinst;${PROJECT_BINARY_DIR}/scripts/prerm")
-  endif(FLB_RUN_LDCONFIG)
-
-endif()
+# Exclude documentation from RPM
+set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION 
+    /opt
+    /lib/systemd
+    /lib/systemd/system
+)
 
 # RPM Generation information
-set(CPACK_RPM_PACKAGE_GROUP "System Environment/Daemons")
-set(CPACK_RPM_PACKAGE_LICENSE "Apache v2.0")
-set(CPACK_RPM_PACKAGE_RELEASE ${CPACK_PACKAGE_RELEASE})
-set(CPACK_PACKAGE_DESCRIPTION_FILE "${PROJECT_SOURCE_DIR}/cpack/description")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Fast data collector for Linux")
 set(CPACK_RPM_SPEC_MORE_DEFINE "%define ignore \#")
 set(CPACK_RPM_RUNTIME_USER_FILELIST
   "%config(noreplace) /etc/${FLB_OUT_NAME}/${FLB_OUT_NAME}.conf"
+  "%config(noreplace) /etc/${FLB_OUT_NAME}/${FLB_OUT_NAME}.yaml"
   "%config(noreplace) /etc/${FLB_OUT_NAME}/parsers.conf"
   "%config(noreplace) /etc/${FLB_OUT_NAME}/plugins.conf"
   "%ignore /lib"
@@ -1506,26 +1544,44 @@ set(CPACK_RPM_HEADERS_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-
 set(CPACK_RPM_HEADERS_EXTRA_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}-headers-extra.rpm")
 set(CPACK_RPM_RUNTIME_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}.rpm")
 
-# CPack: DEB
+# ============================================================================
+# DEB Package Configuration
+# ============================================================================
+
+set(CPACK_DEB_PACKAGE_NAME "${CPACK_PACKAGE_NAME}")
+set(CPACK_DEBIAN_PACKAGE_PROVIDES "fluentdo-agent, fluent-bit")
+set(CPACK_DEBIAN_PACKAGE_REPLACES "fluent-bit")
+set(CPACK_DEBIAN_PACKAGE_CONFLICTS "fluent-bit")
+# set(CPACK_DEBIAN_PACKAGE_RELEASE ${CPACK_PACKAGE_RELEASE})
+
+set(CPACK_DEBIAN_PACKAGE_LICENSE "${CPACK_RESOURCE_FILE_LICENSE}")
+set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "${CPACK_PACKAGE_HOMEPAGE_URL}")
+set(CPACK_DEBIAN_PACKAGE_SECTION "utils")
+set(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
+set(CPACK_DEBIAN_PACKAGE_CONTROL_STRICT_PERMISSION TRUE)
+
+set(CPACK_DEBIAN_HEADERS_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}-headers.deb")
+set(CPACK_DEBIAN_HEADERS_EXTRA_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}-headers-extra.deb")
+set(CPACK_DEBIAN_RUNTIME_PACKAGE_NAME "${CPACK_PACKAGE_NAME}")
+set(CPACK_DEBIAN_RUNTIME_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}.deb")
+# Pre/Post install scripts for DEB
+set(CPACK_DEBIAN_RUNTIME_PACKAGE_CONTROL_EXTRA 
+    "${PROJECT_SOURCE_DIR}/cpack/debian/conffiles;${CMAKE_CURRENT_SOURCE_DIR}/cpack/scripts/deb-preinst;${CMAKE_CURRENT_SOURCE_DIR}/cpack/scripts/deb-postinst;${CMAKE_CURRENT_SOURCE_DIR}/cpack/scripts/deb-prerm;${CMAKE_CURRENT_SOURCE_DIR}/cpack/scripts/deb-postrm"
+)
+
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
-# CPack: Windows System
-if(CPACK_GENERATOR MATCHES "NSIS")
-  set(CPACK_MONOLITHIC_INSTALL 1)
-  set(CPACK_PACKAGE_INSTALL_DIRECTORY "fluentdo-agent")
-endif()
+# ============================================================================
+# macOS Package Configuration (DMG/PKG)
+# ============================================================================
 
-# CPack: Windows System w/ WiX
-if(CPACK_GENERATOR MATCHES "WIX")
-  set(CPACK_WIX_UPGRADE_GUID cb6825fd-37e6-4596-a55d-6d490d4fe178)
-  configure_file(LICENSE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
-  configure_file(${CMAKE_SOURCE_DIR}/cpack/wix/WIX.template.in.cmakein
-    ${CMAKE_CURRENT_BINARY_DIR}/WIX.template.in)
-  # Specify LICENSE file that has .txt extension
-  set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt")
-  set(CPACK_WIX_TEMPLATE ${CMAKE_CURRENT_BINARY_DIR}/WIX.template.in)
-  set(CPACK_WIX_LIGHT_EXTENSIONS "WixUtilExtension")
-endif()
+set(CPACK_MACOS_PACKAGE_LOCATION "/opt/fluentdo-agent")
+
+# Create macOS package with launchd support
+set(CPACK_PRODUCTBUILD_RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cpack/scripts/macos")
+
+# macOS post-install configuration
+set(CPACK_POSTFLIGHT_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpack/scripts/macos-postinstall.sh")
 
 if(FLB_SYSTEM_MACOS)
   # Determine the platform suffix
@@ -1536,33 +1592,11 @@ if(FLB_SYSTEM_MACOS)
     OUTPUT_STRIP_TRAILING_WHITESPACE
     )
   if (UNAME_M_RESULT EQUAL 0 AND UNAME_ARCH STREQUAL "arm64")
-    set(FLUENT_BIT_PKG ${CMAKE_CURRENT_BINARY_DIR}/fluentdo-agent-${FLB_VERSION_STR}-apple)
+    set(FLUENT_BIT_PKG ${CMAKE_CURRENT_BINARY_DIR}/${CPACK_PACKAGE_NAME}-${FLB_VERSION_STR}-apple)
   elseif(UNAME_M_RESULT EQUAL 0 AND UNAME_ARCH STREQUAL "x86_64")
-    set(FLUENT_BIT_PKG ${CMAKE_CURRENT_BINARY_DIR}/fluentdo-agent-${FLB_VERSION_STR}-intel)
+    set(FLUENT_BIT_PKG ${CMAKE_CURRENT_BINARY_DIR}/${CPACK_PACKAGE_NAME}-${FLB_VERSION_STR}-intel)
   else()
-    set(FLUENT_BIT_PKG ${CMAKE_CURRENT_BINARY_DIR}/fluentdo-agent-${FLB_VERSION_STR}-${UNAME_ARCH})
-  endif()
-
-  if (CPACK_GENERATOR MATCHES "productbuild")
-    set(CPACK_SET_DESTDIR "ON")
-    configure_file(cpack/macos/welcome.txt.cmakein ${CMAKE_CURRENT_BINARY_DIR}/welcome.txt)
-    configure_file(cpack/macos/fluent-bit.plist.cmakein ${CMAKE_CURRENT_BINARY_DIR}/${FLB_OUT_NAME}.plist)
-    configure_file(LICENSE ${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt)
-    find_program(CONVERTER textutil)
-    if (NOT CONVERTER)
-      message(FATAL_ERROR "textutil not found.")
-    endif()
-    if (CONVERTER)
-      execute_process(COMMAND ${CONVERTER} -convert html "${CMAKE_SOURCE_DIR}/README.md" -output "${CMAKE_BINARY_DIR}/README.html")
-    endif()
-    set(CPACK_PACKAGE_FILE_NAME "${FLUENT_BIT_PKG}")
-    set(CPACK_RESOURCE_FILE_WELCOME ${CMAKE_CURRENT_BINARY_DIR}/welcome.txt)
-    set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt)
-    set(CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_BINARY_DIR}/README.html)
-    set(CPACK_PRODUCTBUILD_IDENTIFIER "io.fluentbit.${FLB_OUT_NAME}")
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${FLB_OUT_NAME}.plist
-      COMPONENT binary
-      DESTINATION /Library/LaunchDaemons)
+    set(FLUENT_BIT_PKG ${CMAKE_CURRENT_BINARY_DIR}/${CPACK_PACKAGE_NAME}-${FLB_VERSION_STR}-${UNAME_ARCH})
   endif()
 endif()
 
@@ -1571,5 +1605,61 @@ if(FLB_CPACK_SYSVINIT)
   set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE ${CMAKE_SOURCE_DIR}/cpack/scripts/sysv-init-install.sh)
   set(CPACK_RPM_PACKAGE_REQUIRES_POST "initscripts")
 endif(FLB_CPACK_SYSVINIT)
+
+if (CPACK_GENERATOR MATCHES "productbuild")
+  set(CPACK_SET_DESTDIR "ON")
+  configure_file(cpack/macos/welcome.txt.cmakein ${CMAKE_CURRENT_BINARY_DIR}/welcome.txt)
+  configure_file(cpack/macos/fluentdo.agent.plist.cmakein ${CMAKE_CURRENT_BINARY_DIR}/${FLB_OUT_NAME}.plist)
+  configure_file(LICENSE ${CMAKE_CURRENT_BINARY_DIR}/LICENSE.txt)
+  find_program(CONVERTER textutil)
+  if (NOT CONVERTER)
+    message(FATAL_ERROR "textutil not found.")
+  endif()
+  if (CONVERTER)
+    execute_process(COMMAND ${CONVERTER} -convert html "${CMAKE_SOURCE_DIR}/README.md" -output "${CMAKE_BINARY_DIR}/README.html")
+  endif()
+  set(CPACK_PACKAGE_FILE_NAME "${FLUENT_BIT_PKG}")
+  set(CPACK_RESOURCE_FILE_WELCOME ${CMAKE_CURRENT_BINARY_DIR}/welcome.txt)
+  set(CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_BINARY_DIR}/README.html)
+  set(CPACK_PRODUCTBUILD_IDENTIFIER "fluent.do.agent")
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${FLB_OUT_NAME}.plist
+    COMPONENT binary
+    DESTINATION /Library/LaunchDaemons)
+endif()
+
+# ============================================================================
+# Windows Package Configuration
+# ============================================================================
+if(FLB_SYSTEM_WINDOWS)
+  set(CPACK_GENERATOR "NSIS" "ZIP" "WIX")
+  if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|AARCH64)")
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-winarm64")
+  elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-win64")
+  else()
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-win32")
+  endif()
+endif()
+
+if(CPACK_GENERATOR MATCHES "NSIS")
+  set(CPACK_MONOLITHIC_INSTALL 1)
+  set(CPACK_PACKAGE_INSTALL_DIRECTORY "fluentdo-agent")
+endif()
+
+configure_file(${CMAKE_SOURCE_DIR}/cpack/wix/WIX.template.in.cmakein
+  ${CMAKE_CURRENT_BINARY_DIR}/WIX.template.in)
+set(CPACK_WIX_TEMPLATE ${CMAKE_CURRENT_BINARY_DIR}/WIX.template.in)
+
+set(CPACK_WIX_LIGHT_EXTENSIONS "WixUtilExtension")
+set(CPACK_WIX_PROGRAM_MENU_FOLDER "FluentDo Agent")
+set(CPACK_WIX_UPGRADE_GUID cb6825fd-37e6-4596-a55d-6d490d4fe178)
+
+# ============================================================================
+# Common CPack Settings
+# ============================================================================
+
+set(CPACK_PACKAGE_RELOCATABLE FALSE)
+set(CPACK_STRIP_FILES TRUE)
+set(CPACK_THREADS 4)
 
 include(CPack)

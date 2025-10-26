@@ -1,0 +1,4 @@
+#!/bin/bash
+
+systemctl stop fluentdo-agent || true
+systemctl disable fluentdo-agent || true
