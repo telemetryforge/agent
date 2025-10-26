@@ -103,10 +103,13 @@ RUN cmake -DCMAKE_BUILD_TYPE=Release \
 ARG MAKE_EXTRA_ARGS
 ENV MAKE_EXTRA_ARGS=${MAKE_EXTRA_ARGS}
 
-RUN [ -n "$MAKE_EXTRA_ARGS" ] && make ${MAKE_EXTRA_ARGS} || make -j "$(getconf _NPROCESSORS_ONLN)" && \
-    strip bin/fluent-bit && \
-    install bin/fluent-bit /fluent-bit/bin/ && \
-    install bin/fluent-bit /fluent-bit/bin/fluent-bit
+# Build with additional arguments if specified
+RUN ([ -n "$MAKE_EXTRA_ARGS" ] && make ${MAKE_EXTRA_ARGS}) || make -j "$(getconf _NPROCESSORS_ONLN)"
+
+# Install to all locations including OSS defaults to simplify adoption
+RUN strip bin/fluentdo-agent && \
+    install bin/fluentdo-agent /fluent-bit/bin/ && \
+    install bin/fluentdo-agent /fluent-bit/bin/fluent-bit
 
 # Generate schema and include as part of the container image
 RUN /fluent-bit/bin/fluent-bit -J > /fluent-bit/etc/schema.json && \
