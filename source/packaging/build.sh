@@ -68,9 +68,6 @@ if [[ ! -f "$IMAGE_CONTEXT_DIR/Dockerfile" ]]; then
     exit 1
 fi
 
-# CMake configuration variables, override via environment rather than parameters
-CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX:-/opt/fluent-bit/}
-
 # Use full distro target (e.g., "amazonlinux/2", "ubuntu/22.04", "debian/bookworm")
 # Remove architecture suffix if present (e.g., "ubuntu/20.04.arm64v8" -> "ubuntu/20.04")
 FLUENTDO_AGENT_DISTRO_TEMP=${FLB_DISTRO%.arm64v8}
@@ -79,7 +76,6 @@ FLUENTDO_AGENT_DISTRO=${FLUENTDO_AGENT_DISTRO:-${FLUENTDO_AGENT_DISTRO_TEMP}}
 FLUENTDO_AGENT_PACKAGE_TYPE=${FLUENTDO_AGENT_PACKAGE_TYPE:-PACKAGE}
 
 echo "IMAGE_CONTEXT_DIR            => $IMAGE_CONTEXT_DIR"
-echo "CMAKE_INSTALL_PREFIX         => $CMAKE_INSTALL_PREFIX"
 echo "FLB_NIGHTLY_BUILD            => $FLB_NIGHTLY_BUILD"
 echo "FLUENTDO_AGENT_DISTRO        => $FLUENTDO_AGENT_DISTRO"
 echo "FLUENTDO_AGENT_PACKAGE_TYPE  => $FLUENTDO_AGENT_PACKAGE_TYPE"
@@ -93,7 +89,6 @@ fi
 # Build the main image - we do want word splitting
 # shellcheck disable=SC2086
 if ! ${DOCKER} build \
-    --build-arg CMAKE_INSTALL_PREFIX="$CMAKE_INSTALL_PREFIX" \
     --build-arg FLB_NIGHTLY_BUILD="$FLB_NIGHTLY_BUILD" \
     --build-arg CACHE_ID="$CACHE_ID" \
     --build-arg FLUENTDO_AGENT_DISTRO="$FLUENTDO_AGENT_DISTRO" \
