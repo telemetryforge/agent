@@ -1408,11 +1408,6 @@ endif()
 set(INSTALL_PREFIX "/opt/fluentdo-agent")
 set(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX} CACHE PATH "Installation prefix" FORCE)
 
-# Install main binary
-install(TARGETS fluentdo-agent
-    RUNTIME DESTINATION bin
-)
-
 # Create symlink for backwards compatibility (fluent-bit binary name)
 install(CODE "
     execute_process(
@@ -1431,18 +1426,6 @@ install(CODE "
     )
 ")
 
-# Install configuration files
-install(DIRECTORY conf/
-    DESTINATION etc
-    FILES_MATCHING PATTERN "*.conf"
-    FILES_MATCHING PATTERN "*.yaml"
-)
-
-# Install systemd service file (fluentdo-agent)
-install(FILES etc/systemd/system/fluentdo-agent.service
-    DESTINATION lib/systemd/system
-)
-
 # Create backwards compatibility symlink for systemd service
 install(CODE "
     execute_process(
@@ -1451,15 +1434,6 @@ install(CODE "
         \$ENV{DESTDIR}/lib/systemd/system/fluent-bit.service
     )
 ")
-
-# Install other files (scripts, plugins, etc.)
-install(DIRECTORY lib/
-    DESTINATION lib
-)
-
-install(DIRECTORY libexec/
-    DESTINATION libexec
-)
 
 # ============================================================================
 # CPack Configuration for Package Generation
