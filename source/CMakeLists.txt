@@ -1483,10 +1483,16 @@ set(CPACK_RPM_PACKAGE_GROUP "System/Daemons")
 set(CPACK_RPM_PACKAGE_RELEASE ${CPACK_PACKAGE_RELEASE})
 
 # Pre/Post install scripts for RPM
-set(CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpack/scripts/rpm-pre-install.sh")
-set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpack/scripts/rpm-post-install.sh")
-set(CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpack/scripts/rpm-pre-uninstall.sh")
-set(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpack/scripts/rpm-post-uninstall.sh")
+if(FLB_CPACK_SYSVINIT)
+  # Primarily for legacy (CentOS 6/AL 1) support and workarounds
+  set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE ${CMAKE_SOURCE_DIR}/cpack/sysv-init-install.sh)
+  set(CPACK_RPM_PACKAGE_REQUIRES_POST "initscripts")
+else()
+  set(CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpack/scripts/rpm-pre-install.sh")
+  set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpack/scripts/rpm-post-install.sh")
+  set(CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpack/scripts/rpm-pre-uninstall.sh")
+  set(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cpack/scripts/rpm-post-uninstall.sh")
+endif(FLB_CPACK_SYSVINIT)
 
 # Exclude documentation from RPM
 set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION 

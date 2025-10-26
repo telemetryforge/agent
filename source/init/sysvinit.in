@@ -1,6 +1,6 @@
 #!/bin/sh
 ### BEGIN INIT INFO
-# Provides:          @FLB_OUT_NAME@
+# Provides:          fluentdo-agent
 # Required-Start:    $local_fs $network $named $time $syslog
 # Required-Stop:     $local_fs $network $named $time $syslog
 # Default-Start:     2 3 4 5
@@ -11,8 +11,8 @@
 # Adapted from https://github.com/wyhasany/sysvinit-service-generator
 # MIT licence: https://github.com/wyhasany/sysvinit-service-generator/blob/master/LICENSE
 
-NAME=@FLB_OUT_NAME@
-SCRIPT="@CMAKE_INSTALL_FULL_BINDIR@/@FLB_OUT_NAME@ -c /@CMAKE_INSTALL_SYSCONFDIR@/@FLB_OUT_NAME@/@FLB_OUT_NAME@.conf"
+NAME=fluentdo-agent
+SCRIPT="/opt/fluentdo-agent/bin/fluentdo-agent -c /etc/fluentdo-agent/fluent-bit.conf"
 RUNAS=root
 
 PIDFILE=/var/run/$NAME.pid

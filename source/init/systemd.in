@@ -10,7 +10,7 @@ EnvironmentFile=-/etc/sysconfig/@FLB_OUT_NAME@
 EnvironmentFile=-/etc/default/@FLB_OUT_NAME@
 EnvironmentFile=-/etc/sysconfig/fluent-bit
 EnvironmentFile=-/etc/default/fluent-bit
-ExecStart=/opt/fluentdo-agent/bin/fluentdo-agent -c /etc/fluentdo-agent/fluentdo-agent.conf
+ExecStart=/opt/fluentdo-agent/bin/fluentdo-agent -c /etc/fluentdo-agent/fluent-bit.conf
 ExecReload=/bin/kill -HUP $MAINPID
 # Allow for infinite restarts
 Restart=on-failure
