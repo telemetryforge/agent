@@ -660,7 +660,7 @@ if(FLB_BINARY)
       "${PROJECT_SOURCE_DIR}/init/sysvinit.in"
       ${FLB_INIT_SCRIPT}
       )
-    install(FILES ${FLB_INIT_SCRIPT} COMPONENT binary DESTINATION /etc/init/)
+    install(FILES ${FLB_INIT_SCRIPT} COMPONENT binary DESTINATION /etc/init.d/)
     install(DIRECTORY DESTINATION ${FLB_INSTALL_CONFDIR} COMPONENT binary)
   endif()
 

@@ -18,8 +18,15 @@ REPO_ROOT=${REPO_ROOT:-$SCRIPT_DIR/..}
 WORKDIR=${WORKDIR:-/tmp/rpmcontents}
 rm -rf "${WORKDIR:?}/*"
 mkdir -p "$WORKDIR"
-find "$REPO_ROOT/source/packaging/packages/centos/6/" -type f -name '*.rpm' \
-	-exec sh -c 'i="$1";echo "$i";docker run --rm -t -v "$WORKDIR:/rpmcontents" -v "$PWD/$i":/test.rpm:ro registry.access.redhat.com/ubi9:9.5 cd /rpmcontents && yum install -y cpio && rpm2cpio /test.rpm | cpio -idmv' shell {} \;
+find "$REPO_ROOT/source/packaging/packages/centos/6/" -type f -name '*x86_64.rpm' -print0 |
+while IFS= read -r -d '' line; do
+	echo "Extracting $line"
+	docker run --rm -t \
+		-v "${WORKDIR}:/rpmcontents" \
+		-v "$line:/test.rpm:ro" \
+		registry.access.redhat.com/ubi9:9.5 \
+			/bin/sh -c 'cd /rpmcontents && yum install -y cpio && rpm2cpio /test.rpm | cpio -idmv'
+done
 
 if [[ -f "${WORKDIR}/etc/init.d/fluent-bit" ]]; then
 	echo "INFO: Found fluent-bit init.d script"
