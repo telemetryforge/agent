@@ -233,7 +233,7 @@ jobs:
         shell: bash
 
       - name: Download digests for all architectures of ${{ steps.output-name.outputs.sanitised_image_base }}
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           pattern: production-digests-${{ steps.output-name.outputs.sanitised_image_base }}-*
           path: digests/

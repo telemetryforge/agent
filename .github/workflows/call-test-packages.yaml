@@ -143,7 +143,7 @@ jobs:
 
       - name: Download package
         if: ${{ !env.ACT }}
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: ${{ steps.get_package_name.outputs.package-name }}
           path: downloads/
@@ -225,7 +225,7 @@ jobs:
           support-install: false
 
       - name: Download package
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: ${{ matrix.package }}
           path: downloads/
