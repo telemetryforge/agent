@@ -27,6 +27,9 @@ jobs:
       - build-packages-for-ubuntu
     name: PR - Lintian (Package changes)
     steps:
+      - name: Checkout for config file
+        uses: actions/checkout@v5
+
       - name: Download package
         uses: actions/download-artifact@v5
         with:
@@ -37,9 +40,13 @@ jobs:
         run: ls -lRh downloads/
         shell: bash
 
-      - name: Run Lintian
+      - name: Install Lintian
         run: |
           sudo apt-get update
           sudo apt-get install -y lintian
-          find "downloads/" -name 'fluentdo-agent_*_amd64.deb' -exec lintian --fail-on error --info --pedantic --config $PWD/.lintian -c {} \;
+        shell: bash
+
+      - name: Run Lintian
+        run: |
+          find "downloads/" -name 'fluentdo-agent_*_amd64.deb' -exec lintian  --fail-on=error --cfg $PWD/.lintian -c {} \;
         shell: bash

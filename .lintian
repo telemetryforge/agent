@@ -1,0 +1,12 @@
+# Configuration file for Lintian
+
+verbose=yes
+color=auto
+
+# Trigger an error exit code on failure
+# fail-on=error
+
+# Display additional information for any failures
+info=yes
+
+suppress-tags=dir-or-file-in-opt,no-changelog
