@@ -150,5 +150,10 @@ jobs:
 
       - name: List RPM package dependencies
         continue-on-error: false
-        run: find source/packaging/packages/ -type f -name '*.rpm' -exec sh -c 'i="$1";echo "$i";docker run --rm -t -v "$PWD/$i":/test.rpm:ro registry.access.redhat.com/ubi9:9.4 yum -q deplist /test.rpm' shell {} \;
+        run: find source/packaging/packages/ -type f -name '*.rpm' -exec sh -c 'i="$1";echo "$i";docker run --rm -t -v "$PWD/$i":/test.rpm:ro registry.access.redhat.com/ubi9:9.5 yum -q deplist /test.rpm' shell {} \;
+        shell: bash
+
+      - name: CentOS 6 checks
+        if: matrix.distro == 'centos/6'
+        run: /bin/bash ./scripts/centos6-init-check.sh
         shell: bash

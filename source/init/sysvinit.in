@@ -1,6 +1,6 @@
 #!/bin/sh
 ### BEGIN INIT INFO
-# Provides:          fluentdo-agent
+# Provides:          @FLB_OUT_NAME@
 # Required-Start:    $local_fs $network $named $time $syslog
 # Required-Stop:     $local_fs $network $named $time $syslog
 # Default-Start:     2 3 4 5
@@ -11,7 +11,7 @@
 # Adapted from https://github.com/wyhasany/sysvinit-service-generator
 # MIT licence: https://github.com/wyhasany/sysvinit-service-generator/blob/master/LICENSE
 
-NAME=fluentdo-agent
+NAME=@FLB_OUT_NAME@
 SCRIPT="@CMAKE_INSTALL_FULL_BINDIR@/@FLB_OUT_NAME@ -c /@CMAKE_INSTALL_SYSCONFDIR@/@FLB_OUT_NAME@/@FLB_OUT_NAME@.conf"
 RUNAS=root
 
@@ -61,7 +61,7 @@ stop() {
 }
 
 status() {
-    printf "Checking $NAME..."
+    printf "Checking %s..." "$NAME"
     if [ ! -f "$PIDFILE" ]; then
         printf "%s\n" "Service not running"
     else
