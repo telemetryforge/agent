@@ -103,7 +103,7 @@ jobs:
               shell: bash
 
             - name: Upload build packages
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v5
               with:
                   name: package-macos-${{ matrix.config.package }}
                   path: |

@@ -131,7 +131,7 @@ jobs:
       # We also want this package to be the root directory so remove any extra nesting:
       # e.g. for centos/7 + standard we include everything from 'source/packaging/packages/centos/7/'
       - name: Upload the ${{ matrix.distro }} artefacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ steps.get_package_name.outputs.package-name }}
           path: |
