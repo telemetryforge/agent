@@ -40,6 +40,18 @@ jobs:
         run: ls -lRh downloads/
         shell: bash
 
+      - name: List contents
+        continue-on-error: true
+        run: find "downloads/" -name 'fluentdo-agent_*_amd64.deb' -exec dpkg -c {} \;
+        shell: bash
+
+      - name: List control files
+        continue-on-error: true
+        run: |
+          find "downloads/" -name 'fluentdo-agent_*_amd64.deb' -exec dpkg -e {} \;
+          ls -lRh DEBIAN/
+        shell: bash
+
       - name: Install Lintian
         run: |
           sudo apt-get update
@@ -47,6 +59,5 @@ jobs:
         shell: bash
 
       - name: Run Lintian
-        run: |
-          find "downloads/" -name 'fluentdo-agent_*_amd64.deb' -exec lintian  --fail-on=error --cfg $PWD/.lintian -c {} \;
+        run: find "downloads/" -name 'fluentdo-agent_*_amd64.deb' -exec lintian --fail-on=error --cfg $PWD/.lintian -c {} \;
         shell: bash

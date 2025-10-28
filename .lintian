@@ -9,4 +9,4 @@ color=auto
 # Display additional information for any failures
 info=yes
 
-suppress-tags=dir-or-file-in-opt,no-changelog
+suppress-tags=dir-or-file-in-opt,no-changelog,no-copyright-file
