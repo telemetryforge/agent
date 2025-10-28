@@ -1565,7 +1565,7 @@ endif()
 
 # Primarily for legacy (CentOS 6/AL 1) support and workarounds
 if(FLB_CPACK_SYSVINIT)
-  set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE ${CMAKE_SOURCE_DIR}/cpack/sysvinit/install.sh)
+  set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE ${CMAKE_SOURCE_DIR}/cpack/scripts/sysv-init-install.sh)
   set(CPACK_RPM_PACKAGE_REQUIRES_POST "initscripts")
 endif(FLB_CPACK_SYSVINIT)
 
