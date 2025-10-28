@@ -1,0 +1,45 @@
+name: Lint package change PRs
+on:
+  pull_request:
+    paths:
+      - .github/workflows/lint-packages.yaml
+      # Run for any CMake or packaging changes
+      - 'source/cmake/**'
+      - 'source/cpack/**'
+      - 'source/init/**'
+      - 'source/**/CMakeLists.txt'
+      - 'source/packaging/distros/ubuntu/**'
+  workflow_dispatch:
+
+jobs:
+  build-packages-for-ubuntu:
+    name: Building test package for Ubuntu
+    uses: ./.github/workflows/call-build-linux-packages.yaml
+    with:
+      version: '99.9.9'
+      ref: ${{ github.ref }}
+      target-matrix: '["ubuntu/24.04"]'
+      amd-runner-label: ubuntu-latest
+
+  lintian-pr:
+    runs-on: ubuntu-latest
+    needs:
+      - build-packages-for-ubuntu
+    name: PR - Lintian (Package changes)
+    steps:
+      - name: Download package
+        uses: actions/download-artifact@v5
+        with:
+          name: package-ubuntu-24.04
+          path: downloads/
+
+      - name: Debug
+        run: ls -lRh downloads/
+        shell: bash
+
+      - name: Run Lintian
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lintian
+          find "downloads/" -name 'fluentdo-agent_*_amd64.deb' -exec lintian --fail-on error --info --pedantic --config $PWD/.lintian -c {} \;
+        shell: bash
