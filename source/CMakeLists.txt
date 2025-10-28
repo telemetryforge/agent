@@ -250,6 +250,9 @@ option(FLB_PREFER_SYSTEM_LIB_NGHTTP2      "Prefer the libnghttp2 system library"
 option(FLB_PREFER_SYSTEM_LIB_SQLITE       "Prefer the libsqlite3 system library"      ${FLB_PREFER_SYSTEM_LIBS})
 option(FLB_PREFER_SYSTEM_LIB_ZSTD         "Prefer the libzstd system library"         ${FLB_PREFER_SYSTEM_LIBS})
 
+# Enable support for CentOS 6 init scripts
+option(FLB_CPACK_SYSVINIT "Enable creation of SysV init scripts after installation" No)
+
 # Enable all features
 if(FLB_ALL)
   # Global
@@ -1559,5 +1562,11 @@ if(FLB_SYSTEM_MACOS)
       DESTINATION /Library/LaunchDaemons)
   endif()
 endif()
+
+# Primarily for legacy (CentOS 6/AL 1) support and workarounds
+if(FLB_CPACK_SYSVINIT)
+  set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE ${CMAKE_SOURCE_DIR}/cpack/sysvinit/install.sh)
+  set(CPACK_RPM_PACKAGE_REQUIRES_POST "initscripts")
+endif(FLB_CPACK_SYSVINIT)
 
 include(CPack)

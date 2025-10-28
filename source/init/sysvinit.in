@@ -1,0 +1,93 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          fluentdo-agent
+# Required-Start:    $local_fs $network $named $time $syslog
+# Required-Stop:     $local_fs $network $named $time $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Description:       Init script for FluentDo Agent.
+### END INIT INFO
+
+# Adapted from https://github.com/wyhasany/sysvinit-service-generator
+# MIT licence: https://github.com/wyhasany/sysvinit-service-generator/blob/master/LICENSE
+
+NAME=fluentdo-agent
+SCRIPT="@CMAKE_INSTALL_FULL_BINDIR@/@FLB_OUT_NAME@ -c /@CMAKE_INSTALL_SYSCONFDIR@/@FLB_OUT_NAME@/@FLB_OUT_NAME@.conf"
+RUNAS=root
+
+PIDFILE=/var/run/$NAME.pid
+LOGFILE=/var/log/$NAME.log
+
+start() {
+  if [ -f $PIDFILE ] && [ -s $PIDFILE ] && kill -0 "$(cat "$PIDFILE")"; then
+    echo 'Service already running' >&2
+    return 1
+  fi
+  echo 'Starting service...' >&2
+  CMD="$SCRIPT &> \"$LOGFILE\" & echo \$!"
+  su -c "$CMD" $RUNAS > "$PIDFILE"
+ # Try with this command line instead of above if not workable
+ # su -s /bin/sh $RUNAS -c "$CMD" > "$PIDFILE"
+
+  sleep 2
+  PID=$(cat $PIDFILE)
+    if pgrep -u $RUNAS -f $NAME > /dev/null
+    then
+      echo "$NAME is now running, the PID is $PID"
+    else
+      echo ''
+      echo "Error! Could not start $NAME!"
+    fi
+}
+
+stop() {
+    if [ ! -f "$PIDFILE" ] ; then
+        echo 'Service not running' >&2
+        return 1
+    else
+        PID="$(cat "$PIDFILE")"
+        # Here, we're checking if the process command line matches our service's command
+        if ! ps -p "$PID" -o args= | grep -q "^$SCRIPT$"; then
+            echo 'Service not running (or PID mismatch)' >&2
+            echo 'Removing PID file...' >&2
+            rm -f "$PIDFILE"
+            return 1
+        else
+            echo "Stopping service, the PID is $PID..." >&2
+            kill -15 "$(cat "$PIDFILE")" && rm -f "$PIDFILE"
+            echo 'Service stopped' >&2
+        fi
+    fi
+}
+
+status() {
+    printf "Checking $NAME..."
+    if [ ! -f "$PIDFILE" ]; then
+        printf "%s\n" "Service not running"
+    else
+        PID=$(cat $PIDFILE)
+        if ps -p "$PID" -o args= | grep -q "^$SCRIPT$"; then
+            echo "Running, the PID is $PID"
+        else
+            printf "%s\n" "The process appears to be dead but pidfile still exists"
+        fi
+    fi
+}
+
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  status)
+    status
+    ;;
+  restart)
+    stop
+    start
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|status|restart}"
+esac

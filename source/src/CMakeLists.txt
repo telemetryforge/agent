@@ -654,8 +654,13 @@ if(FLB_BINARY)
       )
     install(FILES ${FLB_UPSTART_SCRIPT} COMPONENT binary DESTINATION /etc/init)
     install(DIRECTORY DESTINATION COMPONENT binary ${FLB_INSTALL_CONFDIR})
-  else()
-    # FIXME: should we support Sysv init script ?
+  elseif( FLB_CPACK_SYSVINIT )
+    set(FLB_INIT_SCRIPT "${PROJECT_SOURCE_DIR}/init/${FLB_OUT_NAME}" )
+    configure_file(
+      "${PROJECT_SOURCE_DIR}/init/sysvinit.in"
+      ${PROJECT_SOURCE_DIR}
+      )
+    install(FILES ${FLB_INIT_SCRIPT} COMPONENT binary DESTINATION /etc/init/)
   endif()
 
   if(FLB_SYSTEM_WINDOWS)

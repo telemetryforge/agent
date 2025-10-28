@@ -1,5 +1,5 @@
 [Unit]
-Description=@FLB_PROG_NAME@
+Description=FluentDo Agent is an enterprise-hardened distribution of Fluent Bit
 Documentation=https://fluent.do/
 Requires=network.target
 After=network.target
@@ -8,7 +8,8 @@ After=network.target
 Type=simple
 EnvironmentFile=-/etc/sysconfig/@FLB_OUT_NAME@
 EnvironmentFile=-/etc/default/@FLB_OUT_NAME@
-ExecStart=@CMAKE_INSTALL_FULL_BINDIR@/@FLB_OUT_NAME@ -c @CMAKE_INSTALL_SYSCONFDIR@/@FLB_OUT_NAME@/@FLB_OUT_NAME@.conf
+ExecStart=@CMAKE_INSTALL_FULL_BINDIR@/@FLB_OUT_NAME@ -c /@CMAKE_INSTALL_SYSCONFDIR@/@FLB_OUT_NAME@/@FLB_OUT_NAME@.conf
+ExecReload=/bin/kill -HUP $MAINPID
 # Allow for infinite restarts
 Restart=on-failure
 # Wait 5 second between restarts rather than 100ms

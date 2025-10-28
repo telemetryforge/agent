@@ -32,12 +32,12 @@ BEGIN
             VALUE "FileDescription", "Compiled with @CMAKE_C_COMPILER_ID@ @CMAKE_C_COMPILER_VERSION@\0"
             VALUE "ProductVersion", FLB_VER_PRODUCTVERSION_STR
             VALUE "FileVersion", FLB_VER_FILEVERSION_STR
-            VALUE "InternalName", "fluent-bit\0"
-            VALUE "ProductName", "Fluent Bit - Fast and Lightweight Logs and Metrics processor for Linux, BSD, OSX and Windows\0"
-            VALUE "CompanyName", "Calyptia Inc.\0"
-            VALUE "LegalCopyright", "Copyright (C) 2015-2018 Treasure Data Inc.\nCopyright (C) 2019-2021 The Fluent Bit Authors.\nAll rights reserved.\0"
+            VALUE "InternalName", "fluentdo-agent\0"
+            VALUE "ProductName", "FluentDo Agent is an enterprise-hardened distribution of Fluent Bit\0"
+            VALUE "CompanyName", "FluentDo.\0"
+            VALUE "LegalCopyright", "Copyright (C) 2015-2018 Treasure Data Inc.\nCopyright (C) 2019-2025 The Fluent Bit Authors.\nAll rights reserved.\0"
             VALUE "Licence", "Apache-2.0\0"
-            VALUE "Info", "https://docs.fluentbit.io/manual/0"
+            VALUE "Info", "https://docs.fluent.do/0"
         END
     END
 END
