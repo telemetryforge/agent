@@ -1,216 +1,603 @@
-#!/usr/bin/env bash
+#!/bin/bash
+
+# FluentDo Agent Installer
+#
+# Downloads and installs the FluentDo Agent from packages.fluent.do
+# You can also download direct from https://packages.fluent.do/index.html
+#
+# All packages follow the following URL format:
+# https://packages.fluent.do/<VERSION>/output/<OS + ARCH>/<PACKAGE NAME>
+# e.g.
+# https://packages.fluent.do/25.10.1/output/package-debian-bookworm.arm64v8/fluentdo-agent_25.10.1_arm64.deb
+# https://packages.fluent.do/25.10.1/output/package-almalinux-8/fluentdo-agent-25.10.1-1.x86_64.rpm
+
 set -e
 
-# Simple script to pull package from a URL and install it for supported OSes
-# Currently supports Debian/Ubuntu and RHEL/CentOS/AlmaLinux/RockyLinux
+# The URL to get packages from
+PACKAGES_URL="${PACKAGES_URL:-https://packages.fluent.do}"
+# Any logs from this script
+LOG_FILE="${LOG_FILE:-/var/log/fluentdo-agent-install.log}"
+# The output binary to test
+FLUENTDO_AGENT_BINARY=${FLUENTDO_AGENT_BINARY:-/opt/fluent-bit/bin/fluent-bit}
+# The sudo executable, allows us to disable or customise
+SUDO=${SUDO:-sudo}
 
-# Optionally specify the version to install, this is updated on every release so we can just pull the install script for the tag.
-RELEASE_VERSION=${FLUENTDO_AGENT_VERSION:-25.10.4}
+# Colour codes for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No colour
 
-# Provided primarily to simplify testing for staging, etc.
-RELEASE_URL=${FLUENTDO_AGENT_PACKAGES_URL:-https://packages.fluent.do}
-# TODO: GPG support
-# RELEASE_KEY=${FLUENTDO_AGENT_PACKAGES_KEY:-$RELEASE_URL/fluentdo-agent.key}
-
-# Determine if we need to run with sudo
-SUDO=sudo
-if [ "$(id -u)" -eq 0 ]; then
-	SUDO=''
-else
-	# Clear any previous sudo permission
-	sudo -k
+# Optionally disable all colour output
+if [ -n "${DISABLE_CONTROL_CHARS:-}" ]; then
+	RED=''
+	GREEN=''
+	YELLOW=''
+	BLUE=''
+	NC=''
 fi
 
-echo "===================================="
-echo " FluentDo Agent Installation Script "
-echo "===================================="
-echo "This script requires superuser access to install packages."
-echo "You will be prompted for your password by sudo."
+# Logging functions
+log() {
+    echo -e "${BLUE}[INFO]${NC} $1" | tee -a "$LOG_FILE"
+}
 
-# Determine package type to install: https://unix.stackexchange.com/a/6348
-# OS used by all - for Debs it must be Ubuntu or Debian
-# CODENAME only used for Debs
-if [ -f /etc/os-release ]; then
-	# Debian uses Dash which does not support source
-	# shellcheck source=/dev/null
-	. /etc/os-release
-	OS=$( echo "${ID}" | tr '[:upper:]' '[:lower:]')
-	CODENAME=$( echo "${VERSION_CODENAME}" | tr '[:upper:]' '[:lower:]')
-elif [ -f /etc/centos-release ]; then
-    OS=centos
-    # shellcheck disable=SC2002
-    VERSION_ID=$(cat /etc/centos-release | tr -dc '0-9.' | cut -d \. -f1)
-elif lsb_release &>/dev/null; then
-	OS=$(lsb_release -is | tr '[:upper:]' '[:lower:]')
-	CODENAME=$(lsb_release -cs)
-else
-	OS=$(uname -s)
-fi
+log_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1" | tee -a "$LOG_FILE"
+}
 
-# Set up version pinning
-APT_VERSION=''
-YUM_VERSION=''
-if [ -n "${RELEASE_VERSION}" ]; then
-	APT_VERSION="=$RELEASE_VERSION"
-	YUM_VERSION="-$RELEASE_VERSION"
-fi
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1" | tee -a "$LOG_FILE"
+}
 
-exitCode=0
+log_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1" | tee -a "$LOG_FILE"
+}
 
-# Determine architecture
-ARCH=$(uname -m)
-RPM_SUFFIX=""
-APT_SUFFIX=""
-case $ARCH in
-	x86_64|amd64)
-		ARCH="x86_64"
-		RPM_SUFFIX="x86_64"
-		APT_SUFFIX="amd64"
-		;;
-	aarch64|arm64)
-		ARCH="aarch64"
-		RPM_SUFFIX="aarch64"
-		APT_SUFFIX="arm64"
-		;;
-	*)
-		echo "ERROR: Unsupported architecture: $ARCH" >&2
-		exit 1
-		;;
-esac
-echo "Detected OS: $OS $VERSION_ID ($CODENAME) Architecture: $ARCH"
+# Detect OS and architecture
+detect_platform() {
+    log "Detecting platform..."
 
-# Now install dependent on OS, version, etc.
-# Will require sudo
-case ${OS} in
-	# TODO: Add Fedora support
-	amzn|amazonlinux|centos|centoslinux|rhel|redhatenterpriselinuxserver|fedora|almalinux|rocky|rockylinux)
-		# We need variable expansion and non-expansion on the URL line to pick up the base URL.
-		VERSION_SUBSTR=${VERSION_ID//\..*/}
-		# Pick the specific package for what we need
-		DISTRO=$(echo "$OS" | sed 's/amazonlinux/amzn/;s/centos/centoslinux/;s/rhel/redhatenterpriselinuxserver/;s/rockylinux/rocky/')
-		if [ "$DISTRO" = "amzn" ] && [ "$VERSION_SUBSTR" != "2023" ]; then
-			echo "ERROR: Unsupported Fedora version: $VERSION_ID" >&2
-			exit 1
-		fi
-		if [ "$DISTRO" = "fedora" ] && [ "$VERSION_SUBSTR" -lt 30 ]; then
-			echo "ERROR: Unsupported Fedora version: $VERSION_ID" >&2
-			exit 1
-		fi
-		if [ "$DISTRO" = "redhatenterpriselinuxserver" ] && [ "$VERSION_SUBSTR" -lt 7 ]; then
-			echo "ERROR: Unsupported RHEL version: $VERSION_ID" >&2
-			exit 1
-		fi
-		if [ "$DISTRO" = "centoslinux" ] && [ "$VERSION_SUBSTR" -lt 6 ]; then
-			echo "ERROR: Unsupported CentOS version: $VERSION_ID" >&2
-			exit 1
-		fi
-		if [ "$DISTRO" = "almalinux" ] && [ "$VERSION_SUBSTR" -lt 8 ]; then
-			echo "ERROR: Unsupported AlmaLinux version: $VERSION_ID" >&2
-			exit 1
-		fi
-		if [ "$DISTRO" = "rocky" ] && [ "$VERSION_SUBSTR" -lt 8 ]; then
-			echo "ERROR: Unsupported RockyLinux version: $VERSION_ID" >&2
-			exit 1
-		fi
-		# TODO: provide GPG key
-		# if ! $SUDO rpm --import "$RELEASE_KEY" ; then
-		# 	echo "ERROR: Failed to download or install GPG key for FluentDo agent package." >&2
-		# 	exit 1
-		# fi
+    OS=$(uname -s)
+    ARCH=$(uname -m)
 
-		PACKAGE_URL="$RELEASE_URL/${YUM_VERSION}/output/package-${DISTRO}-${YUM_VERSION}"
-		if [ "$ARCH" = "aarch64" ]; then
-			PACKAGE_URL+=".arm64v8"
-		fi
-		PACKAGE_URL+="/fluentdo-agent-${YUM_VERSION}-1.${RPM_SUFFIX}.rpm"
-		echo "Using package URL: $PACKAGE_URL"
+    case "$OS" in
+        Linux)
+            OS_TYPE="linux"
+            ;;
+        Darwin)
+            OS_TYPE="darwin"
+            ;;
+        *)
+            log_error "Unsupported OS: $OS"
+            exit 1
+            ;;
+    esac
 
-		if ! $SUDO rpm -Uvh "$PACKAGE_URL"; then
-			echo "ERROR: Failed to install FluentDo agent package for RHEL-compatible target ($OS)" >&2
-			exitCode=1
-		fi
-		;;
-	opensuse-leap|opensuse)
-        SUSE_VERSION=${VERSION_ID%%.*}
-        if [ "$SUSE_VERSION" == "42" ]; then
-            SUSE_VERSION="12"
+    case "$ARCH" in
+        x86_64)
+            ARCH_TYPE="amd64"
+            ;;
+        aarch64)
+            ARCH_TYPE="arm64"
+            ;;
+        arm64)
+            ARCH_TYPE="arm64"
+            ;;
+        *)
+            log_error "Unsupported architecture: $ARCH"
+            exit 1
+            ;;
+    esac
+
+    log_success "Detected platform: $OS_TYPE/$ARCH_TYPE"
+}
+
+# Detect Linux distribution and package manager
+detect_distro() {
+    if [[ "$OS_TYPE" != "linux" ]]; then
+        return
+    fi
+
+    log "Detecting Linux distribution..."
+
+    if [ -f /etc/os-release ]; then
+        # shellcheck disable=SC1091
+        . /etc/os-release
+        DISTRO_ID="$ID"
+        DISTRO_VERSION="$VERSION_ID"
+    elif [ -f /etc/lsb-release ]; then
+        # shellcheck disable=SC1091
+        . /etc/lsb-release
+        DISTRO_ID=$(echo "$DISTRIB_ID" | tr '[:upper:]' '[:lower:]')
+        DISTRO_VERSION="$DISTRIB_RELEASE"
+    else
+        log_warning "Could not detect distribution"
+        return
+    fi
+
+    case "$DISTRO_ID" in
+        ubuntu|debian)
+            PKG_MANAGER="apt-get"
+            PKG_FORMAT="deb"
+            ;;
+        fedora|rhel|centos|rocky|almalinux)
+            PKG_MANAGER="yum"
+            PKG_FORMAT="rpm"
+            ;;
+        alpine)
+            PKG_MANAGER="apk"
+            PKG_FORMAT="apk"
+            ;;
+        *)
+            log_warning "Unsupported distribution: $DISTRO_ID"
+            PKG_FORMAT="generic"
+            ;;
+    esac
+
+    log_success "Detected distribution: $DISTRO_ID $DISTRO_VERSION (format: $PKG_FORMAT)"
+}
+
+# Fetch available versions from packages.fluent.do
+fetch_available_versions() {
+    log "Fetching available versions from $PACKAGES_URL..."
+
+    # Fetch the index.html and extract version directories
+    local html_response
+    html_response=$(curl -s "$PACKAGES_URL/" 2>/dev/null || echo "")
+
+    if [ -z "$html_response" ]; then
+        log_error "Failed to fetch versions from $PACKAGES_URL"
+        return 1
+    fi
+
+    # Extract version numbers from the HTML (looking for data-version attributes or version directories)
+    # The HTML structure contains version sections with data-version attributes
+    AVAILABLE_VERSIONS=$(echo "$html_response" | grep -o 'data-version="[^"]*"' | sed 's/data-version="\([^"]*\)"/\1/' | sort -V -r)
+
+    if [ -z "$AVAILABLE_VERSIONS" ]; then
+        log_error "No versions found at $PACKAGES_URL"
+        return 1
+    fi
+
+    log_success "Found versions: $(echo "$AVAILABLE_VERSIONS" | tr '\n' ' ')"
+}
+
+# Get the latest version
+get_latest_version() {
+    local latest
+    latest=$(echo "$AVAILABLE_VERSIONS" | head -n1)
+    if [ -z "$latest" ]; then
+        log_error "No versions available"
+        return 1
+    fi
+    echo "$latest"
+}
+
+# List available versions
+list_versions() {
+    echo ""
+    echo -e "${BLUE}Available FluentDo Agent Versions:${NC}"
+    echo ""
+    local count=0
+    while IFS= read -r version; do
+        count=$((count + 1))
+        echo -e "  ${GREEN}$count)${NC} $version"
+    done <<< "$AVAILABLE_VERSIONS"
+    echo ""
+}
+
+# Select version interactively
+select_version() {
+    list_versions
+
+    local selected=""
+    read -rp "Select version (1-$(echo "$AVAILABLE_VERSIONS" | wc -l), or enter version number): " selection
+
+    if [ -z "$selection" ]; then
+        log_error "No selection made"
+        return 1
+    fi
+
+    # Check if selection is a number
+    if [[ "$selection" =~ ^[0-9]+$ ]]; then
+        selected=$(echo "$AVAILABLE_VERSIONS" | sed -n "${selection}p")
+        if [ -z "$selected" ]; then
+            log_error "Invalid selection: $selection"
+            return 1
         fi
-		# TODO: provide GPG key
-		# if ! $SUDO rpm --import "$RELEASE_KEY" ; then
-		# 	echo "ERROR: Failed to download or install GPG key for FluentDo agent package." >&2
-		# 	exit 1
-		# fi
+    else
+        # Treat as direct version input
+        if echo "$AVAILABLE_VERSIONS" | grep -q "^${selection}$"; then
+            selected="$selection"
+        else
+            log_error "Version not found: $selection"
+            return 1
+        fi
+    fi
 
-		PACKAGE_URL="$RELEASE_URL/${YUM_VERSION}/output/package-suse-${SUSE_VERSION}"
-		if [ "$ARCH" = "aarch64" ]; then
-			PACKAGE_URL+=".arm64v8"
-		fi
-		PACKAGE_URL+="/fluentdo-agent-${YUM_VERSION}-1.${RPM_SUFFIX}.rpm"
-		echo "Using package URL: $PACKAGE_URL"
+    echo "$selected"
+}
 
-		if ! $SUDO zypper -n install "$PACKAGE_URL"; then
-			echo "ERROR: Failed to install FluentDo agent package for SUSE-compatible target ($OS)" >&2
-			exitCode=1
-		fi
-		;;
-	debian|ubuntu)
-		if [ "$OS" = "debian" ] && [ "$VERSION_ID" -lt 10 ]; then
-			echo "ERROR: Unsupported Debian version: $VERSION_ID" >&2
+# Find package for the given version and platform
+find_package() {
+    local version="$1"
+    local os_type="$2"
+    local arch_type="$3"
+    local pkg_format="$4"
+
+    log "Looking for package: version=$version, os=$os_type, arch=$arch_type, format=$pkg_format"
+
+    # Determine the target OS and architecture identifiers
+    local target_os=""
+    local target_arch=""
+
+    # Map detected OS to package directory names
+    case "$os_type" in
+        linux)
+            # Try to determine specific Linux distribution
+            if [ -n "$DISTRO_ID" ]; then
+                case "$DISTRO_ID" in
+                    ubuntu)
+                        target_os="ubuntu"
+                        ;;
+                    debian)
+                        target_os="debian"
+                        ;;
+                    fedora|rhel|centos|rocky|almalinux)
+                        target_os="almalinux"
+                        ;;
+                    alpine)
+                        target_os="alpine"
+                        ;;
+                    *)
+                        target_os="linux"
+                        ;;
+                esac
+            else
+                target_os="linux"
+            fi
+            ;;
+        darwin)
+            target_os="darwin"
+            ;;
+        *)
+            target_os="$os_type"
+            ;;
+    esac
+
+    # Map detected architecture to package directory names
+    case "$arch_type" in
+        amd64)
+            target_arch="amd64"
+            ;;
+        arm64)
+            target_arch="arm64v8"
+            ;;
+        *)
+            target_arch="$arch_type"
+            ;;
+    esac
+
+    log "Mapping: os_type=$os_type -> target_os=$target_os, arch_type=$arch_type -> target_arch=$target_arch"
+
+    # Build the expected package directory path
+    # Try common patterns for the directory name
+    local package_dirs=(
+        "package-${target_os}-${DISTRO_VERSION}.${target_arch}"   # e.g., package-debian-bookworm.arm64v8
+        "package-${target_os}-${DISTRO_VERSION}"                  # e.g., package-debian-bookworm (amd64 default)
+    )
+
+    local matching_dir=""
+
+    for dir in "${package_dirs[@]}"; do
+        local package_dir_url="${PACKAGES_URL}/${version}/output/${dir}/"
+        log "Checking for package directory: $package_dir_url"
+
+        # Check if the directory exists by attempting to fetch it
+        local dir_response
+        dir_response=$(curl -s -I "$package_dir_url" 2>/dev/null | head -1)
+
+        if [[ "$dir_response" == *"200"* ]] || [[ "$dir_response" == *"301"* ]] || [[ "$dir_response" == *"302"* ]]; then
+            log "Found package directory: $dir"
+            matching_dir="$dir"
+            break
+        fi
+    done
+
+    if [ -z "$matching_dir" ]; then
+        log_error "No matching package directory found for os=$target_os, arch=$target_arch, version=$version"
+        log "Attempted paths:"
+        for dir in "${package_dirs[@]}"; do
+            echo "  ${PACKAGES_URL}/${version}/output/${dir}/"
+        done
+        return 1
+    fi
+
+    log "Using package directory: $matching_dir"
+
+    # Fetch the package directory listing
+    local package_dir_url="${PACKAGES_URL}/${version}/output/${matching_dir}/"
+    local package_list
+    package_list=$(curl -s "$package_dir_url" 2>/dev/null || echo "")
+
+    if [ -z "$package_list" ]; then
+        log_error "Failed to list packages in $package_dir_url"
+        return 1
+    fi
+
+    # Extract the package filename based on format
+    local package_file=""
+
+    case "$pkg_format" in
+        deb)
+            package_file=$(echo "$package_list" | grep -o 'href="[^"]*\.deb"' | sed 's/href="\([^"]*\)"/\1/' | head -1)
+            ;;
+        rpm)
+            package_file=$(echo "$package_list" | grep -o 'href="[^"]*\.rpm"' | sed 's/href="\([^"]*\)"/\1/' | head -1)
+            ;;
+        apk)
+            package_file=$(echo "$package_list" | grep -o 'href="[^"]*\.apk"' | sed 's/href="\([^"]*\)"/\1/' | head -1)
+            ;;
+    esac
+
+    if [ -z "$package_file" ]; then
+        log_error "No .${pkg_format} package file found in $package_dir_url"
+        log "Available files:"
+        echo "$package_list" | grep -o 'href="[^"]*"' | sed 's/href="\([^"]*\)"/\1/' | grep -v '^\.\.' | sed 's/^/  /'
+        return 1
+    fi
+
+    # Construct the full package path
+    local full_package_path="${version}/output/${matching_dir}/${package_file}"
+
+    log_success "Found package: $full_package_path"
+    echo "$full_package_path"
+}
+
+# Download package
+download_package() {
+    local package_path="$1"
+    local output_file="$2"
+
+    log "Downloading package: $package_path"
+
+    local url="${PACKAGES_URL}/${package_path}"
+
+    if ! curl -L -f -o "$output_file" "$url"; then
+        log_error "Failed to download package from $url"
+        return 1
+    fi
+
+    if [ ! -f "$output_file" ] || [ ! -s "$output_file" ]; then
+        log_error "Downloaded file is empty or does not exist: $output_file"
+        return 1
+    fi
+
+    log_success "Package downloaded to $output_file ($(du -h "$output_file" | cut -f1))"
+}
+
+# Install package based on format
+install_package() {
+    local package_file="$1"
+    local pkg_format="$2"
+
+    log "Installing package: $package_file (format: $pkg_format)"
+
+    case "$pkg_format" in
+        deb)
+			if ! "$SUDO" "$PKG_MANAGER" update; then
+				log_warning "Unable to update repositories"
+			fi
+            if ! "$SUDO" "$PKG_MANAGER" install -y "$package_file"; then
+                log_error "Failed to install .deb package"
+                return 1
+            fi
+            ;;
+        rpm)
+            if ! "$SUDO" "$PKG_MANAGER" install -y "$package_file"; then
+                log_error "Failed to install .rpm package"
+                return 1
+            fi
+            ;;
+        apk)
+            if ! "$SUDO" "$PKG_MANAGER" add --allow-untrusted "$package_file"; then
+                log_error "Failed to install .apk package"
+                return 1
+            fi
+            ;;
+        *)
+            log_error "Unsupported package format: $pkg_format"
+            return 1
+            ;;
+    esac
+
+    log_success "Package installed successfully"
+}
+
+# Verify installation
+verify_installation() {
+    log "Verifying installation..."
+
+    if "${FLUENTDO_AGENT_BINARY}" --help &> /dev/null; then
+        local version
+        version=$("${FLUENTDO_AGENT_BINARY}" --version 2>/dev/null || echo "unknown")
+        log_success "FluentDo Agent is installed (version: $version)"
+        return 0
+    else
+        log_warning "FluentDo Agent command not found at: ${FLUENTDO_AGENT_BINARY}"
+        return 1
+    fi
+}
+
+# Main installation flow
+main() {
+    log "Starting FluentDo Agent installation..."
+    log "Packages URL: $PACKAGES_URL"
+    echo ""
+
+    # Initialize log file
+    mkdir -p "$(dirname "$LOG_FILE")"
+    echo "Installation started at $(date)" >> "$LOG_FILE"
+
+    # Detect platform
+    detect_platform
+    detect_distro
+
+    # Check if we have a supported package format
+    if [ "$PKG_FORMAT" = "generic" ] && [ -z "$FORCE" ]; then
+        log_error "Unsupported Linux distribution. Use -f/--force to attempt generic installation."
+        exit 1
+    fi
+
+    # Fetch versions
+    fetch_available_versions || {
+        log_error "Failed to fetch available versions"
+        exit 1
+    }
+
+    # Determine version to install
+    local install_version
+    if [ -n "$VERSION" ]; then
+        log "Using specified version: $VERSION"
+        install_version="$VERSION"
+    elif [ "$INTERACTIVE" = "true" ]; then
+        install_version=$(select_version) || {
+            log_error "Failed to select version"
+            exit 1
+        }
+    else
+        install_version=$(get_latest_version)
+        log "Installing latest version: $install_version"
+    fi
+
+    # Find matching package
+    local package_path
+    package_path=$(find_package "$install_version" "$OS_TYPE" "$ARCH_TYPE" "$PKG_FORMAT") || {
+        log_error "Failed to find package for version $install_version"
+        exit 1
+    }
+
+    log "Found package: $package_path"
+
+    # Download package
+    local temp_dir
+    temp_dir=$(mktemp -d)
+    # shellcheck disable=SC2064
+    trap "rm -rf $temp_dir" EXIT
+
+    local package_file="$temp_dir/fluentdo-agent.${PKG_FORMAT}"
+
+    download_package "$package_path" "$package_file" || {
+        log_error "Failed to download package"
+        exit 1
+    }
+
+	if [ "$DOWNLOAD_ONLY" != false ]; then
+		# Install package
+		install_package "$package_file" "$PKG_FORMAT" || {
+			log_error "Installation failed"
 			exit 1
-		fi
-		if [ "$OS" = "ubuntu" ] && [ "$VERSION_ID" != "18.04" ] && [ "$VERSION_ID" != "20.04" ] && [ "$VERSION_ID" != "22.04" ] && [ "$VERSION_ID" != "24.04" ]; then
-			echo "ERROR: Unsupported Ubuntu version: $VERSION_ID" >&2
-			exit 1
-		fi
+		}
 
-		# For Debian, we need to download the package locally and then install it.
-		if command -v curl &>/dev/null; then
-			CURL_CMD="curl -fsSL"
-		elif command -v wget &>/dev/null; then
-			CURL_CMD="wget -qO-"
-		else
-			echo "ERROR: Neither curl nor wget found, cannot download files." >&2
-			exit 1
-		fi
+		# Verify installation
+		verify_installation || {
+			log_warning "Verification encountered issues, but installation may still be complete"
+		}
 
-		PACKAGE_URL="$RELEASE_URL/${APT_VERSION}/output/package-${OS}-${CODENAME}"
-		if [ "$ARCH" = "aarch64" ]; then
-			PACKAGE_URL+=".arm64v8"
-		fi
-		PACKAGE_URL+="/fluentdo-agent_${APT_VERSION}_${APT_SUFFIX}.deb"
-		echo "Using package URL: $PACKAGE_URL"
+		echo ""
+		log_success "FluentDo Agent installation completed successfully!"
+		echo ""
+		log "Next steps:"
+		echo "  1. Configure the agent: /etc/fluent-bit/fluent-bit.conf"
+		echo "  2. Start the agent: systemctl start fluent-bit"
+		echo "  3. Enable at startup: systemctl enable fluent-bit"
+	fi
+    echo ""
+    log "Documentation: https://fluent.do/docs/agent"
+    echo ""
+}
 
-		# TODO: Add the GPG key for the repository when we set up repos
-		# We are skipping this for now since we are downloading the package directly
-		# and not setting up a repository.
-		# $CURL_CMD "$RELEASE_KEY" | gpg --dearmor -o /usr/share/keyrings/fluentdo-agent-archive-keyring.gpg
-		# if [ $? -ne 0 ]; then
-		# 	echo "ERROR: Failed to download or install GPG key for FluentDo agent package." >&2
-		# 	exit 1
-		# fi
+# Show usage
+usage() {
+    cat << EOF
+FluentDo Agent Installer
 
-		if ! $CURL_CMD "$PACKAGE_URL" -o /tmp/fluentdo-agent.deb; then
-			echo "ERROR: Failed to download FluentDo agent package for Debian-compatible target ($OS)" >&2
-			exit 1
-		fi
+Usage: $0 [OPTIONS]
 
-		if ! $SUDO dpkg -i /tmp/fluentdo-agent.deb || $SUDO apt-get install -f -y; then
-			echo "ERROR: Failed to install FluentDo agent package for Debian-compatible target ($OS)" >&2
-			exit 1
-		fi
-		rm -f /tmp/fluentdo-agent.deb
-		;;
+Options:
+    -v, --version VERSION       Install specific version (default: latest)
+    -i, --interactive           Interactively select version
+    -u, --url URL               Use custom packages URL (default: $PACKAGES_URL)
+    -l, --log-file FILE         Log file path (default: $LOG_FILE)
+    -f, --force                 Force installation on unsupported distributions
+	-d, --download              Download the package only
+    -h, --help                  Show this help message
 
-	*)
-		echo "ERROR: Unsupported OS: $OS" >&2
-		exitCode=1
-		;;
-esac
+Examples:
+    # Install latest version
+    $0
 
-if [ $exitCode -ne 0 ]; then
-	exit $exitCode
-fi
+    # Install specific version
+    $0 -v 25.10.3
 
-echo "===================================="
-echo "FluentDo agent installation completed, please check our documentation at docs.fluentdo.io for next steps."
-echo "===================================="
+    # Interactively select version
+    $0 -i
+
+    # Custom packages URL
+    $0 -u https://staging.fluent.do
+
+Environment Variables:
+    PACKAGES_URL                Override packages URL
+    AGENT_INSTALL_DIR           Override installation directory
+    LOG_FILE                    Override log file location
+
+EOF
+}
+
+# Parse command line arguments
+INTERACTIVE=false
+FORCE=false
+DOWNLOAD_ONLY=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -v|--version)
+            VERSION="$2"
+            shift 2
+            ;;
+        -i|--interactive)
+            INTERACTIVE=true
+            shift
+            ;;
+        -u|--url)
+            PACKAGES_URL="$2"
+            shift 2
+            ;;
+        -l|--log-file)
+            LOG_FILE="$2"
+            shift 2
+            ;;
+        -f|--force)
+            FORCE=true
+            shift
+            ;;
+        -d|--download)
+            DOWNLOAD_ONLY=true
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            log_error "Unknown option: $1"
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+# Run main installation
+main
