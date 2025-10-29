@@ -446,7 +446,7 @@ main() {
     detect_distro
 
     # Check if we have a supported package format
-    if [ "$PKG_FORMAT" = "generic" ] && [ -z "$FORCE" ]; then
+    if [ "$PKG_FORMAT" = "generic" ] && [ "${FORCE:-}" != "true" ]; then
         log_error "Unsupported Linux distribution. Use -f/--force to attempt generic installation."
         exit 1
     fi
