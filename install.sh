@@ -494,7 +494,7 @@ main() {
         exit 1
     }
 
-	if [ "$DOWNLOAD_ONLY" != false ]; then
+	if [ "$DOWNLOAD_ONLY" != true ]; then
 		# Install package
 		install_package "$package_file" "$PKG_FORMAT" || {
 			log_error "Installation failed"
