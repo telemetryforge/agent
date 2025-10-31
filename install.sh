@@ -30,6 +30,9 @@ ARCH_TYPE=${ARCH_TYPE:-}
 DISTRO_ID=${DISTRO_ID:-}
 DISTRO_VERSION=${DISTRO_VERSION:-}
 
+# Enable debug output
+DEBUG="${DEBUG:-0}"
+
 # Colour codes for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -46,10 +49,10 @@ if [ -n "${DISABLE_CONTROL_CHARS:-}" ]; then
 	NC=''
 fi
 
-# Enable debug output
-DEBUG="${DEBUG:-0}"
+# ============================================================================
+# Logging Functions
+# ============================================================================
 
-# Logging functions
 log() {
     echo -e "${BLUE}[INFO]${NC} $*" | tee -a "$LOG_FILE"
 }
@@ -68,9 +71,13 @@ log_warning() {
 
 log_debug() {
     if [ "$DEBUG" = "1" ]; then
-        echo "[DEBUG] $*" | tee -a "$LOG_FILE"
+        echo -e "${BLUE}[DEBUG]${NC} $*" | tee -a "$LOG_FILE"
     fi
 }
+
+# ============================================================================
+# Platform Detection
+# ============================================================================
 
 # Detect OS and architecture
 detect_platform() {
@@ -81,6 +88,8 @@ detect_platform() {
 
 		OS=$(uname -s)
 		ARCH=$(uname -m)
+		log_debug "Detected uname -s: $OS"
+		log_debug "Detected uname -m: $ARCH"
 
 		case "$OS" in
 			Linux)
@@ -117,6 +126,7 @@ detect_platform() {
 # Detect Linux distribution and package manager
 detect_distro() {
     if [[ "$OS_TYPE" != "linux" ]]; then
+        log "Skipping distro detection (not Linux)"
         return
     fi
 
@@ -126,42 +136,56 @@ detect_distro() {
 		log "Detecting Linux distribution..."
 
 		if [ -f /etc/os-release ]; then
+			log_debug "Found /etc/os-release"
 			# shellcheck disable=SC1091
 			. /etc/os-release
 			DISTRO_ID="$ID"
 			DISTRO_VERSION="$VERSION_ID"
+			log_debug "Loaded from /etc/os-release: DISTRO_ID=$DISTRO_ID, DISTRO_VERSION=$DISTRO_VERSION"
 		elif [ -f /etc/lsb-release ]; then
+			log_debug "Found /etc/lsb-release"
 			# shellcheck disable=SC1091
 			. /etc/lsb-release
 			DISTRO_ID=$(echo "$DISTRIB_ID" | tr '[:upper:]' '[:lower:]')
 			DISTRO_VERSION="$DISTRIB_RELEASE"
+			log_debug "Loaded from /etc/lsb-release: DISTRO_ID=$DISTRO_ID, DISTRO_VERSION=$DISTRO_VERSION"
 		else
 			log_warning "Could not detect distribution"
+			log_debug "Neither /etc/os-release nor /etc/lsb-release found"
 			return
 		fi
 	fi
 
+    log_debug "Mapping DISTRO_ID=$DISTRO_ID to package format"
     case "$DISTRO_ID" in
         ubuntu|debian)
             PKG_MANAGER="apt-get"
             PKG_FORMAT="deb"
+            log_debug "Mapped to: PKG_MANAGER=apt-get, PKG_FORMAT=deb"
             ;;
         fedora|rhel|centos|rocky|almalinux)
             PKG_MANAGER="yum"
             PKG_FORMAT="rpm"
+            log_debug "Mapped to: PKG_MANAGER=yum, PKG_FORMAT=rpm"
             ;;
         alpine)
             PKG_MANAGER="apk"
             PKG_FORMAT="apk"
+            log_debug "Mapped to: PKG_MANAGER=apk, PKG_FORMAT=apk"
             ;;
         *)
             log_warning "Unsupported distribution: $DISTRO_ID"
+            log_debug "No mapping found for DISTRO_ID=$DISTRO_ID, using generic format"
             PKG_FORMAT="generic"
             ;;
     esac
 
     log_success "Detected distribution: $DISTRO_ID $DISTRO_VERSION (format: $PKG_FORMAT)"
 }
+
+# ============================================================================
+# Version Management
+# ============================================================================
 
 # Fetch available versions from packages.fluent.do
 fetch_available_versions() {
@@ -176,6 +200,8 @@ fetch_available_versions() {
         return 1
     fi
 
+    log_debug "Received response (${#versions_response} bytes)"
+
     # Try multiple patterns to extract versions
     AVAILABLE_VERSIONS=$(
         echo "$versions_response" | \
@@ -186,6 +212,7 @@ fetch_available_versions() {
     )
 
     if [ -z "$AVAILABLE_VERSIONS" ]; then
+        log_debug "First pattern match failed, trying alternate pattern"
         # Try alternate pattern: look for any version-like strings in links
         AVAILABLE_VERSIONS=$(
             echo "$versions_response" | \
@@ -198,11 +225,12 @@ fetch_available_versions() {
 
     if [ -z "$AVAILABLE_VERSIONS" ]; then
         log_error "No versions found at $FLUENTDO_AGENT_URL"
-        log_error "Response content:"
-        echo "$versions_response" | head -20
+        log_debug "Response preview (first 500 chars):"
+        log_debug "$(echo "$versions_response" | head -c 500)"
         return 1
     fi
 
+    log_debug "Found $(echo "$AVAILABLE_VERSIONS" | wc -l) available versions"
     log_success "Found versions: $(echo "$AVAILABLE_VERSIONS" | tr '\n' ' ')"
 }
 
@@ -242,8 +270,11 @@ select_version() {
         return 1
     fi
 
+    log_debug "User selection: $selection"
+
     # Check if selection is a number
     if [[ "$selection" =~ ^[0-9]+$ ]]; then
+        log_debug "Selection is numeric, attempting to get line $selection"
         selected=$(echo "$AVAILABLE_VERSIONS" | sed -n "${selection}p")
         if [ -z "$selected" ]; then
             log_error "Invalid selection: $selection"
@@ -251,8 +282,10 @@ select_version() {
         fi
     else
         # Treat as direct version input
+        log_debug "Selection is non-numeric, treating as version string"
         if echo "$AVAILABLE_VERSIONS" | grep -q "^${selection}$"; then
             selected="$selection"
+            log_debug "Version $selection found in available versions"
         else
             log_error "Version not found: $selection"
             return 1
@@ -261,6 +294,10 @@ select_version() {
 
     echo "$selected"
 }
+
+# ============================================================================
+# Package Management
+# ============================================================================
 
 # Find package for the given version and platform
 find_package() {
@@ -278,34 +315,44 @@ find_package() {
     # Map detected OS to package directory names
     case "$os_type" in
         linux)
+            log_debug "Mapping linux OS"
             # Try to determine specific Linux distribution
             if [ -n "$DISTRO_ID" ]; then
+                log_debug "DISTRO_ID is set: $DISTRO_ID"
                 case "$DISTRO_ID" in
                     ubuntu)
                         target_os="ubuntu"
+                        log_debug "Mapped DISTRO_ID=ubuntu to target_os=ubuntu"
                         ;;
                     debian)
                         target_os="debian"
+                        log_debug "Mapped DISTRO_ID=debian to target_os=debian"
                         ;;
                     fedora|rhel|centos|rocky|almalinux)
                         target_os="almalinux"
+                        log_debug "Mapped DISTRO_ID=$DISTRO_ID to target_os=almalinux"
                         ;;
                     alpine)
                         target_os="alpine"
+                        log_debug "Mapped DISTRO_ID=alpine to target_os=alpine"
                         ;;
                     *)
                         target_os="linux"
+                        log_debug "No specific mapping for DISTRO_ID=$DISTRO_ID, using generic linux"
                         ;;
                 esac
             else
                 target_os="linux"
+                log_debug "DISTRO_ID not set, using generic linux"
             fi
             ;;
         darwin)
             target_os="darwin"
+            log_debug "Mapped OS=darwin to target_os=darwin"
             ;;
         *)
             target_os="$os_type"
+            log_debug "No mapping needed for OS=$os_type"
             ;;
     esac
 
@@ -313,16 +360,19 @@ find_package() {
     case "$arch_type" in
         amd64)
             target_arch="amd64"
+            log_debug "Mapped arch_type=amd64 to target_arch=amd64"
             ;;
         arm64)
             target_arch="arm64v8"
+            log_debug "Mapped arch_type=arm64 to target_arch=arm64v8"
             ;;
         *)
             target_arch="$arch_type"
+            log_debug "No mapping needed for arch_type=$arch_type"
             ;;
     esac
 
-    log "Mapping: os_type=$os_type -> target_os=$target_os, arch_type=$arch_type -> target_arch=$target_arch"
+    log_debug "Final mapping: target_os=$target_os, target_arch=$target_arch, DISTRO_VERSION=$DISTRO_VERSION"
 
     # Build the expected package directory path
     # Try common patterns for the directory name
@@ -330,6 +380,11 @@ find_package() {
         "package-${target_os}-${DISTRO_VERSION:?Missing version}.${target_arch}"   # e.g., package-debian-bookworm.arm64v8
         "package-${target_os}-${DISTRO_VERSION:?Missing version}"                  # e.g., package-debian-bookworm (amd64 default)
     )
+
+    log_debug "Attempting to find package in these directories:"
+    for dir in "${package_dirs[@]}"; do
+        log_debug "  - $dir"
+    done
 
     local matching_dir=""
 
@@ -340,11 +395,14 @@ find_package() {
         # Check if the directory exists by attempting to fetch it
         local dir_response
         dir_response=$(curl -s -I "$package_dir_url" 2>/dev/null | head -1)
+        log_debug "HTTP response: $dir_response"
 
         if [[ "$dir_response" == *"200"* ]] || [[ "$dir_response" == *"301"* ]] || [[ "$dir_response" == *"302"* ]]; then
             log "Found package directory: $dir"
             matching_dir="$dir"
             break
+        else
+            log_debug "Directory not found (response: $dir_response)"
         fi
     done
 
@@ -361,6 +419,7 @@ find_package() {
 
     # Fetch the package directory listing
     local package_dir_url="${FLUENTDO_AGENT_URL}/${version}/output/${matching_dir}/"
+    log_debug "Fetching package list from: $package_dir_url"
     local package_list
     package_list=$(curl -s "$package_dir_url" 2>/dev/null || echo "")
 
@@ -369,18 +428,24 @@ find_package() {
         return 1
     fi
 
+    log_debug "Package list received (${#package_list} bytes)"
+
     # Extract the package filename based on format
     local package_file=""
+    log_debug "Looking for package with format: $pkg_format"
 
     case "$pkg_format" in
         deb)
             package_file=$(echo "$package_list" | grep -o 'href="[^"]*\.deb"' | sed 's/href="\([^"]*\)"/\1/' | head -1)
+            log_debug "Searching for .deb files"
             ;;
         rpm)
             package_file=$(echo "$package_list" | grep -o 'href="[^"]*\.rpm"' | sed 's/href="\([^"]*\)"/\1/' | head -1)
+            log_debug "Searching for .rpm files"
             ;;
         apk)
             package_file=$(echo "$package_list" | grep -o 'href="[^"]*\.apk"' | sed 's/href="\([^"]*\)"/\1/' | head -1)
+            log_debug "Searching for .apk files"
             ;;
     esac
 
@@ -388,8 +453,11 @@ find_package() {
         log_error "No .${pkg_format} package file found in $package_dir_url"
         log "Available files:"
         echo "$package_list" | grep -o 'href="[^"]*"' | sed 's/href="\([^"]*\)"/\1/' | grep -v '^\.\.' | sed 's/^/  /'
+        log_debug "No package file found matching format: $pkg_format"
         return 1
     fi
+
+    log_debug "Found package file: $package_file"
 
     # Construct the full package path
     local full_package_path="${version}/output/${matching_dir}/${package_file}"
@@ -404,8 +472,10 @@ download_package() {
     local output_file="$2"
 
     log "Downloading package: $package_path"
+    log_debug "Output file: $output_file"
 
     local url="${FLUENTDO_AGENT_URL}/${package_path}"
+    log_debug "Download URL: $url"
 
     if ! curl -L -f -o "$output_file" "$url"; then
         log_error "Failed to download package from $url"
@@ -417,7 +487,10 @@ download_package() {
         return 1
     fi
 
-    log_success "Package downloaded to $output_file ($(du -h "$output_file" | cut -f1))"
+    local file_size
+    file_size=$(du -h "$output_file" | cut -f1)
+    log_success "Package downloaded to $output_file ($file_size)"
+    log_debug "File size: $file_size"
 }
 
 # Install package based on format
@@ -429,21 +502,27 @@ install_package() {
 
     case "$pkg_format" in
         deb)
+            log_debug "Installing .deb package"
 			if ! "$SUDO" "$PKG_MANAGER" update; then
 				log_warning "Unable to update repositories"
 			fi
+            log_debug "Running: $SUDO $PKG_MANAGER install -y $package_file"
             if ! "$SUDO" "$PKG_MANAGER" install -y "$package_file"; then
                 log_error "Failed to install .deb package"
                 return 1
             fi
             ;;
         rpm)
+            log_debug "Installing .rpm package"
+            log_debug "Running: $SUDO $PKG_MANAGER install -y $package_file"
             if ! "$SUDO" "$PKG_MANAGER" install -y "$package_file"; then
                 log_error "Failed to install .rpm package"
                 return 1
             fi
             ;;
         apk)
+            log_debug "Installing .apk package"
+            log_debug "Running: $SUDO $PKG_MANAGER add --allow-untrusted $package_file"
             if ! "$SUDO" "$PKG_MANAGER" add --allow-untrusted "$package_file"; then
                 log_error "Failed to install .apk package"
                 return 1
@@ -461,6 +540,7 @@ install_package() {
 # Verify installation
 verify_installation() {
     log "Verifying installation..."
+    log_debug "Verifying with binary: ${FLUENTDO_AGENT_BINARY}"
 
     if "${FLUENTDO_AGENT_BINARY}" --help &> /dev/null; then
         local version
@@ -473,14 +553,22 @@ verify_installation() {
     fi
 }
 
+# ============================================================================
+# Main Installation Flow
+# ============================================================================
+
 # Main installation flow
 main() {
     log "Starting FluentDo Agent installation..."
     log "Packages URL: $FLUENTDO_AGENT_URL"
+    log_debug "Debug mode: $DEBUG"
+    log "Log file: $LOG_FILE"
+    log "Download directory: $DOWNLOAD_DIR"
     echo ""
 
     # Initialize log file
     mkdir -p "$(dirname "$LOG_FILE")"
+    log_debug "Created log directory: $(dirname "$LOG_FILE")"
     echo "Installation started at $(date)" >> "$LOG_FILE"
 
     # Detect platform
@@ -490,6 +578,7 @@ main() {
     # Check if we have a supported package format
     if [ "$PKG_FORMAT" = "generic" ] && [ "${FORCE:-}" != "true" ]; then
         log_error "Unsupported Linux distribution. Use -f/--force to attempt generic installation."
+        log_debug "PKG_FORMAT=$PKG_FORMAT, FORCE=$FORCE"
         exit 1
     fi
 
@@ -505,14 +594,18 @@ main() {
         log "Using specified version: $VERSION"
         install_version="$VERSION"
     elif [ "$INTERACTIVE" = "true" ]; then
+        log_debug "Interactive mode enabled"
         install_version=$(select_version) || {
             log_error "Failed to select version"
             exit 1
         }
     else
+        log_debug "Auto-selecting latest version"
         install_version=$(get_latest_version)
         log "Installing latest version: $install_version"
     fi
+
+    log_debug "Install version determined: $install_version"
 
     # Find matching package
     local package_path
@@ -524,6 +617,7 @@ main() {
     log "Found package: $package_path"
 
     local package_file="$DOWNLOAD_DIR/fluentdo-agent.${PKG_FORMAT}"
+    log_debug "Package file destination: $package_file"
 
     download_package "$package_path" "$package_file" || {
         log_error "Failed to download package"
@@ -549,11 +643,17 @@ main() {
 		echo "  1. Configure the agent: /etc/fluent-bit/fluent-bit.conf"
 		echo "  2. Start the agent: systemctl start fluent-bit"
 		echo "  3. Enable at startup: systemctl enable fluent-bit"
+	else
+		log_success "Package downloaded successfully (installation skipped with --download flag): package saved to $package_file"
 	fi
     echo ""
     log "Documentation: https://fluent.do/docs/agent"
     echo ""
 }
+
+# ============================================================================
+# Argument Parsing
+# ============================================================================
 
 # Show usage
 usage() {
@@ -569,6 +669,7 @@ Options:
     -l, --log-file FILE         Log file path (default: $LOG_FILE)
     -f, --force                 Force installation on unsupported distributions
 	-d, --download              Download the package only
+    --debug                     Enable debug output
     -h, --help                  Show this help message
 
 Examples:
@@ -584,10 +685,17 @@ Examples:
     # Custom packages URL
     $0 -u https://staging.fluent.do
 
+    # Install with debug output
+    $0 --debug
+
+    # Download only (no installation)
+    $0 -d
+
 Environment Variables:
     FLUENTDO_AGENT_URL          Override packages URL (default: $FLUENTDO_AGENT_URL)
     LOG_FILE                    Override log file location (default: $LOG_FILE)
     DOWNLOAD_DIR                Override download directory (default: $DOWNLOAD_DIR)
+    DEBUG                       Enable debug output (default: 0)
 
 EOF
 }
@@ -597,36 +705,42 @@ INTERACTIVE=false
 FORCE=false
 DOWNLOAD_ONLY=false
 
-log "Parsing arguments: $*"
+log "Parsing command line arguments: $*"
 while [[ $# -gt 0 ]]; do
     case $1 in
 		--debug)
 			DEBUG="1"
-			log_debug "Debug mode enabled"
+			log_debug "Debug mode enabled via command line"
 			shift
 			;;
         -v|--version)
             VERSION="$2"
+            log_debug "Version specified: $VERSION"
             shift 2
             ;;
         -i|--interactive)
             INTERACTIVE=true
+            log_debug "Interactive mode enabled"
             shift
             ;;
         -u|--url)
             FLUENTDO_AGENT_URL="$2"
+            log_debug "Custom URL specified: $FLUENTDO_AGENT_URL"
             shift 2
             ;;
         -l|--log-file)
             LOG_FILE="$2"
+            log_debug "Log file specified: $LOG_FILE"
             shift 2
             ;;
         -f|--force)
             FORCE=true
+            log_debug "Force mode enabled"
             shift
             ;;
         -d|--download)
             DOWNLOAD_ONLY=true
+            log_debug "Download-only mode enabled"
             shift
             ;;
         -h|--help)
@@ -640,6 +754,9 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+log_debug "Argument parsing complete"
+log_debug "Final settings: DEBUG=$DEBUG, INTERACTIVE=$INTERACTIVE, FORCE=$FORCE, DOWNLOAD_ONLY=$DOWNLOAD_ONLY"
 
 # Run main installation
 main
