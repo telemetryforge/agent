@@ -21,7 +21,7 @@ setupFile() {
     local repo_root="${BATS_TEST_DIRNAME:?}/../../../../.."
     local install_script="${repo_root}/install.sh"
     assert_file_exist "$install_script"
-    run ${CONTAINER_RUNTIME:-docker} run --rm -it -v "${install_script}:/install.sh:ro" \
+    run ${CONTAINER_RUNTIME:-docker} run --rm -t -v "${install_script}:/install.sh:ro" \
         centos:7 /bin/sh -c 'sed -i -e "s|^mirrorlist=http://mirrorlist.centos.org|#mirrorlist=http://mirrorlist.centos.org|g" /etc/yum.repos.d/CentOS-Base.repo && \
             sed -i -e "s|^#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-Base.repo && \
             /install.sh --debug'
@@ -34,7 +34,7 @@ setupFile() {
     local repo_root="${BATS_TEST_DIRNAME:?}/../../../../.."
     local install_script="${repo_root}/install.sh"
     assert_file_exist "$install_script"
-    run ${CONTAINER_RUNTIME:-docker} run --rm -it -v "${install_script}:/install.sh:ro" \
+    run ${CONTAINER_RUNTIME:-docker} run --rm -t -v "${install_script}:/install.sh:ro" \
         almalinux:8 /bin/sh -c '/install.sh --debug'
     assert_success
     assert_output --partial 'FluentDo Agent installation completed successfully!'
@@ -45,7 +45,7 @@ setupFile() {
     local repo_root="${BATS_TEST_DIRNAME:?}/../../../../.."
     local install_script="${repo_root}/install.sh"
     assert_file_exist "$install_script"
-    run ${CONTAINER_RUNTIME:-docker} run --rm -it -v "${install_script}:/install.sh:ro" \
+    run ${CONTAINER_RUNTIME:-docker} run --rm -t -v "${install_script}:/install.sh:ro" \
         almalinux:9 /bin/sh -c 'yum install -y epel-release && \
             /install.sh --debug'
     assert_success
@@ -57,7 +57,7 @@ setupFile() {
     local repo_root="${BATS_TEST_DIRNAME:?}/../../../../.."
     local install_script="${repo_root}/install.sh"
     assert_file_exist "$install_script"
-    run ${CONTAINER_RUNTIME:-docker} run --rm -it -v "${install_script}:/install.sh:ro" \
+    run ${CONTAINER_RUNTIME:-docker} run --rm -t -v "${install_script}:/install.sh:ro" \
         almalinux:10 /bin/sh -c 'yum install -y epel-release && \
             /install.sh --debug'
     assert_success
@@ -69,7 +69,7 @@ setupFile() {
     local repo_root="${BATS_TEST_DIRNAME:?}/../../../../.."
     local install_script="${repo_root}/install.sh"
     assert_file_exist "$install_script"
-    run ${CONTAINER_RUNTIME:-docker} run --rm -it -v "${install_script}:/install.sh:ro" \
+    run ${CONTAINER_RUNTIME:-docker} run --rm -t -v "${install_script}:/install.sh:ro" \
         ubuntu:22.04 /bin/sh -c 'apt-get update && apt-get install -y curl && /install.sh --debug'
     assert_success
     assert_output --partial 'FluentDo Agent installation completed successfully!'
@@ -80,7 +80,7 @@ setupFile() {
     local repo_root="${BATS_TEST_DIRNAME:?}/../../../../.."
     local install_script="${repo_root}/install.sh"
     assert_file_exist "$install_script"
-    run ${CONTAINER_RUNTIME:-docker} run --rm -it -v "${install_script}:/install.sh:ro" \
+    run ${CONTAINER_RUNTIME:-docker} run --rm -t -v "${install_script}:/install.sh:ro" \
         ubuntu:24.04 /bin/sh -c 'apt-get update && apt-get install -y curl && /install.sh --debug'
     assert_success
     assert_output --partial 'FluentDo Agent installation completed successfully!'
@@ -91,7 +91,7 @@ setupFile() {
     local repo_root="${BATS_TEST_DIRNAME:?}/../../../../.."
     local install_script="${repo_root}/install.sh"
     assert_file_exist "$install_script"
-    run ${CONTAINER_RUNTIME:-docker} run --rm -it -v "${install_script}:/install.sh:ro" \
+    run ${CONTAINER_RUNTIME:-docker} run --rm -t -v "${install_script}:/install.sh:ro" \
         debian:bookworm /bin/sh -c 'apt-get update && apt-get install -y curl && /install.sh --debug'
     assert_success
     assert_output --partial 'FluentDo Agent installation completed successfully!'
@@ -102,7 +102,7 @@ setupFile() {
     local repo_root="${BATS_TEST_DIRNAME:?}/../../../../.."
     local install_script="${repo_root}/install.sh"
     assert_file_exist "$install_script"
-    run ${CONTAINER_RUNTIME:-docker} run --rm -it -v "${install_script}:/install.sh:ro" \
+    run ${CONTAINER_RUNTIME:-docker} run --rm -t -v "${install_script}:/install.sh:ro" \
         debian:trixie /bin/sh -c 'apt-get update && apt-get install -y curl && /install.sh --debug'
     assert_success
     assert_output --partial 'FluentDo Agent installation completed successfully!'

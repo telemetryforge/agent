@@ -200,9 +200,12 @@ detect_platform() {
 # Convert Debian version number to codename
 convert_debian_version_to_codename() {
     local version="$1"
-    local codename=""
+    local codename="$1"
 
     case "$version" in
+        13|13.*)
+            codename="trixie"
+            ;;
         12|12.*)
             codename="bookworm"
             ;;
@@ -222,12 +225,10 @@ convert_debian_version_to_codename() {
             codename="wheezy"
             ;;
         *)
-            log_debug "No mapping found for Debian version: $version"
-            return 1
+            log_warning "No codename mapping found for Debian version: $version"
             ;;
     esac
-
-    echo "$codename"
+	DISTRO_VERSION=$codename
 }
 
 # Detect Linux distribution and package manager
@@ -274,14 +275,8 @@ detect_distro() {
 			;;
 		debian)
 			# Convert Debian version number to codename
-			local debian_codename
-			debian_codename=$(convert_debian_version_to_codename "$DISTRO_VERSION")
-			if [ -n "$debian_codename" ]; then
-				DISTRO_VERSION="$debian_codename"
-				log_debug "Converted Debian version to codename: $DISTRO_VERSION"
-			else
-				log_warning "Unknown Debian version: $DISTRO_VERSION"
-			fi
+			convert_debian_version_to_codename "$DISTRO_VERSION"
+			log_debug "Converted Debian version to codename: $DISTRO_VERSION"
 			;;
 		*)
 			# Extract major version only for other distros
