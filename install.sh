@@ -38,6 +38,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
 NC='\033[0m' # No colour
 
 # Optionally disable all colour output
@@ -46,6 +47,7 @@ if [ -n "${DISABLE_CONTROL_CHARS:-}" ]; then
 	GREEN=''
 	YELLOW=''
 	BLUE=''
+	MAGENTA=''
 	NC=''
 fi
 
@@ -71,7 +73,7 @@ log_warning() {
 
 log_debug() {
     if [ "$DEBUG" = "1" ]; then
-        echo -e "${BLUE}[DEBUG]${NC} $*" | tee -a "$LOG_FILE"
+        echo -e "${MAGENTA}[DEBUG]${NC} $*" | tee -a "$LOG_FILE"
     fi
 }
 
