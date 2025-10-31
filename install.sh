@@ -197,7 +197,39 @@ detect_platform() {
     log_success "Detected platform: $OS_TYPE/$ARCH_TYPE"
 }
 
-# Detect Linux distribution and package manager
+# Convert Debian version number to codename
+convert_debian_version_to_codename() {
+    local version="$1"
+    local codename=""
+
+    case "$version" in
+        12|12.*)
+            codename="bookworm"
+            ;;
+        11|11.*)
+            codename="bullseye"
+            ;;
+        10|10.*)
+            codename="buster"
+            ;;
+        9|9.*)
+            codename="stretch"
+            ;;
+        8|8.*)
+            codename="jessie"
+            ;;
+        7|7.*)
+            codename="wheezy"
+            ;;
+        *)
+            log_debug "No mapping found for Debian version: $version"
+            return 1
+            ;;
+    esac
+
+    echo "$codename"
+}
+
 # Detect Linux distribution and package manager
 detect_distro() {
     if [[ "$OS_TYPE" != "linux" ]]; then
@@ -233,11 +265,23 @@ detect_distro() {
 
 	# Extract version appropriately based on distribution
 	# Ubuntu uses full X.Y version (e.g., 24.04)
+	# Debian uses codename (e.g., bookworm, bullseye)
 	# RPM-based distros use major version only (e.g., 8, 9)
 	case "$DISTRO_ID" in
-		ubuntu|debian)
-			# Keep full version for Debian/Ubuntu (X.Y format)
-			log_debug "Keeping full version for $DISTRO_ID: $DISTRO_VERSION"
+		ubuntu)
+			# Keep full version for Ubuntu (X.Y format)
+			log_debug "Keeping full version for ubuntu: $DISTRO_VERSION"
+			;;
+		debian)
+			# Convert Debian version number to codename
+			local debian_codename
+			debian_codename=$(convert_debian_version_to_codename "$DISTRO_VERSION")
+			if [ -n "$debian_codename" ]; then
+				DISTRO_VERSION="$debian_codename"
+				log_debug "Converted Debian version to codename: $DISTRO_VERSION"
+			else
+				log_warning "Unknown Debian version: $DISTRO_VERSION"
+			fi
 			;;
 		*)
 			# Extract major version only for other distros

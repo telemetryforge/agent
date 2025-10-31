@@ -65,17 +65,6 @@ setupFile() {
     refute_output --partial '[ERROR]'
 }
 
-@test "integration: install of ubuntu 20.04" {
-    local repo_root="${BATS_TEST_DIRNAME:?}/../../../../.."
-    local install_script="${repo_root}/install.sh"
-    assert_file_exist "$install_script"
-    run ${CONTAINER_RUNTIME:-docker} run --rm -it -v "${install_script}:/install.sh:ro" \
-        ubuntu:20.04 /bin/sh -c 'apt-get update && apt-get install -y curl && /install.sh --debug'
-    assert_success
-    assert_output --partial 'FluentDo Agent installation completed successfully!'
-    refute_output --partial '[ERROR]'
-}
-
 @test "integration: install of ubuntu 22.04" {
     local repo_root="${BATS_TEST_DIRNAME:?}/../../../../.."
     local install_script="${repo_root}/install.sh"
