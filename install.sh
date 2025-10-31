@@ -322,7 +322,7 @@ find_package() {
 
     # Determine the target OS and architecture identifiers
     local target_os=""
-    local target_arch=""
+    local target_arch_dir_suffix=""
 
     # Map detected OS to package directory names
     case "$os_type" in
@@ -368,36 +368,36 @@ find_package() {
             ;;
     esac
 
+	local rpm_arch_type=$arch_type
+	local deb_arch_type=$arch_type
     # Map detected architecture to package directory names
     case "$arch_type" in
-        amd64)
-            target_arch="amd64"
-            log_debug "Mapped arch_type=amd64 to target_arch=amd64"
+        amd64|x86_64)
+            target_arch_dir_suffix=""
+			rpm_arch_type="x86_64"
+			deb_arch_type="amd64"
+            log_debug "Mapped arch_type=amd64 to target_arch_dir_suffix=''"
             ;;
-        arm64)
-            target_arch="arm64v8"
-            log_debug "Mapped arch_type=arm64 to target_arch=arm64v8"
+        arm64|aarch64)
+            target_arch_dir_suffix=".arm64v8"
+			rpm_arch_type="arm64"
+			deb_arch_type="aarch64"
+            log_debug "Mapped arch_type=arm64 to target_arch_dir_suffix=.arm64v8"
             ;;
         *)
-            target_arch="$arch_type"
-            log_debug "No mapping needed for arch_type=$arch_type"
+            log_warning "Unknown arch_type=$arch_type"
             ;;
     esac
 
-    log_debug "Final mapping: target_os=$target_os, target_arch=$target_arch, DISTRO_VERSION=$DISTRO_VERSION"
+    log_debug "Final mapping: target_os=$target_os, target_arch_dir_suffix=$target_arch_dir_suffix, DISTRO_VERSION=$DISTRO_VERSION"
 
     # Build the expected package directory path
     # Construct candidate directory names for the package
-    local package_dirs=(
-        "package-${target_os}-${DISTRO_VERSION}.${target_arch}"   # e.g., package-almalinux-8.arm64
-        "package-${target_os}-${DISTRO_VERSION}"                  # e.g., package-almalinux-8 (for amd64)
-    )
+	# e.g., package-almalinux-8.arm64
+    # e.g., package-almalinux-8 (for amd64)
+    local package_dir="package-${target_os}-${DISTRO_VERSION}${target_arch_dir_suffix}"
 
-    log_debug "Attempting to find package in these directories:"
-    for dir in "${package_dirs[@]}"; do
-        log_debug "  - $dir"
-    done
-
+    log_debug "Attempting to find package in: $package_dir"
     # Build candidate package filenames based on format
     local package_filenames=()
 
@@ -406,7 +406,9 @@ find_package() {
             # Debian package naming: fluentdo-agent_<version>_<arch>.deb
             package_filenames=(
                 "fluentdo-agent_${version}_${arch_type}.deb"
+                "fluentdo-agent_${version}_${deb_arch_type}.deb"
                 "fluentdo-agent-${version}_${arch_type}.deb"
+                "fluentdo-agent-${version}_${deb_arch_type}.deb"
             )
             log_debug "Looking for .deb files with patterns: ${package_filenames[*]}"
             ;;
@@ -414,6 +416,7 @@ find_package() {
             # RPM package naming: fluentdo-agent-<version>-1.<arch>.rpm
             package_filenames=(
                 "fluentdo-agent-${version}-1.${arch_type}.rpm"
+                "fluentdo-agent-${version}-1.${rpm_arch_type}.rpm"
                 "fluentdo-agent-${version}-1.noarch.rpm"
             )
             log_debug "Looking for .rpm files with patterns: ${package_filenames[*]}"
@@ -432,37 +435,32 @@ find_package() {
     local found_package=""
     local found_dir=""
 
-    for dir in "${package_dirs[@]}"; do
-        log_debug "Trying directory: $dir"
-        for filename in "${package_filenames[@]}"; do
-            local package_url="${FLUENTDO_AGENT_URL}/${version}/output/${dir}/${filename}"
-            log_debug "Attempting to access: $package_url"
+	log_debug "Trying directory: $package_dir"
+	for filename in "${package_filenames[@]}"; do
+		local package_url="${FLUENTDO_AGENT_URL}/${version}/output/${package_dir}/${filename}"
+		log_debug "Attempting to access: $package_url"
 
-            # Use HEAD request to check if file exists without downloading
-            local http_code
-            http_code=$(curl -s -o /dev/null -w "%{http_code}" -L "$package_url" 2>/dev/null)
-            log_debug "HTTP response code: $http_code"
+		# Use HEAD request to check if file exists without downloading
+		local http_code
+		http_code=$(curl -s -o /dev/null -w "%{http_code}" -L "$package_url" 2>/dev/null)
+		log_debug "HTTP response code: $http_code"
 
-            if [ "$http_code" = "200" ]; then
-                log_debug "Found package at: $package_url"
-                found_package="$filename"
-                found_dir="$dir"
-                break 2  # Break out of both loops
-            else
-                log_debug "Not found (HTTP $http_code): $package_url"
-            fi
-        done
-    done
+		if [ "$http_code" = "200" ]; then
+			log_debug "Found package at: $package_url"
+			found_package="$filename"
+			found_dir="$package_dir"
+			break 2  # Break out of both loops
+		else
+			log_debug "Not found (HTTP $http_code): $package_url"
+		fi
+	done
 
     if [ -z "$found_package" ]; then
         log_error "No package file found for version=$version, os=$target_os, arch=$arch_type, format=$pkg_format"
         log_error "Attempted paths:"
-        for dir in "${package_dirs[@]}"; do
-            for filename in "${package_filenames[@]}"; do
-                log_error "  ${FLUENTDO_AGENT_URL}/${version}/output/${dir}/${filename}"
-            done
-        done
-        log_debug "Failed to find any matching package"
+		for filename in "${package_filenames[@]}"; do
+			log_error "  ${FLUENTDO_AGENT_URL}/${version}/output/${package_dir}/${filename}"
+		done
         return 1
     fi
 
