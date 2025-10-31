@@ -140,7 +140,7 @@ function download_package_test() {
         os_version=$(echo "$target" | cut -d'/' -f2)
 
         if [[ "${BATS_FORMATTER:-}" == "tap" ]]; then
-            echo "# Testing $target" >&3
+            echo "# Testing install.sh of $target" >&3
         fi
         download_package_test "$os" "$os_version"
     done

@@ -6,7 +6,7 @@
 # You can also download direct from https://packages.fluent.do/index.html
 #
 # All packages follow the following URL format:
-# https://packages.fluent.do/<VERSION>/output/<OS + ARCH>/<PACKAGE NAME>
+# https://packages.fluent.do/<FLUENTDO_AGENT_VERSION>/output/<OS + ARCH>/<PACKAGE NAME>
 # e.g.
 # https://packages.fluent.do/25.10.1/output/package-debian-bookworm.arm64v8/fluentdo-agent_25.10.1_arm64.deb
 # https://packages.fluent.do/25.10.1/output/package-almalinux-8/fluentdo-agent-25.10.1-1.x86_64.rpm
@@ -19,8 +19,6 @@ FLUENTDO_AGENT_URL="${FLUENTDO_AGENT_URL:-https://packages.fluent.do}"
 LOG_FILE="${LOG_FILE:-$PWD/fluentdo-agent-install.log}"
 # The output binary to test
 FLUENTDO_AGENT_BINARY=${FLUENTDO_AGENT_BINARY:-/opt/fluent-bit/bin/fluent-bit}
-# The sudo executable, allows us to disable or customise
-SUDO=${SUDO:-sudo}
 # Where to download files
 DOWNLOAD_DIR=${DOWNLOAD_DIR:-$(mktemp -d)}
 
@@ -74,6 +72,48 @@ log_warning() {
 log_debug() {
     if [ "$DEBUG" = "1" ]; then
         echo -e "${MAGENTA}[DEBUG]${NC} $*" | tee -a "$LOG_FILE"
+    fi
+}
+
+# The sudo executable, allows us to disable or customise
+# Set to empty string to disable, or set DISABLE_SUDO=1
+SUDO=${SUDO:-sudo}
+
+# ============================================================================
+# Privilege Detection and Sudo Management
+# ============================================================================
+
+# Detect if running as root and configure sudo usage
+setup_sudo() {
+    local current_uid
+    current_uid=$(id -u)
+
+    log_debug "Current user ID: $current_uid"
+
+    # Check if explicitly disabled via environment variable
+    if [ "${DISABLE_SUDO:-0}" = "1" ]; then
+        log_debug "DISABLE_SUDO=1: sudo disabled via environment variable"
+        SUDO=""
+        log "Sudo disabled (DISABLE_SUDO=1)"
+        return
+    fi
+
+    # Check if running as root (UID 0)
+    if [ "$current_uid" = "0" ]; then
+        log_debug "Running as root (UID 0)"
+        SUDO=""
+        log_success "Running as root - sudo not required"
+        return
+    fi
+
+    # Running as non-root user with sudo available
+    if command -v sudo &> /dev/null; then
+        log_debug "Non-root user detected, sudo is available"
+        log "Running as non-root user - will use sudo for privileged operations"
+    else
+        log_warning "Non-root user detected but sudo is not available"
+        log_error "Cannot proceed: non-root user without sudo access"
+        exit 1
     fi
 }
 
@@ -540,12 +580,12 @@ install_package() {
     case "$pkg_format" in
         deb)
             log_debug "Installing .deb package"
-			if ! "$SUDO" "$PKG_MANAGER" update; then
+			if ! $SUDO "$PKG_MANAGER" update; then
 				log_warning "Unable to update repositories"
 				log_debug "$SUDO $PKG_MANAGER update failed"
 			fi
             log_debug "Running: $SUDO $PKG_MANAGER install -y $package_file"
-            if ! "$SUDO" "$PKG_MANAGER" install -y "$package_file"; then
+            if ! $SUDO "$PKG_MANAGER" install -y "$package_file"; then
                 log_error "Failed to install .deb package"
                 return 1
             fi
@@ -553,7 +593,7 @@ install_package() {
         rpm)
             log_debug "Installing .rpm package"
             log_debug "Running: $SUDO $PKG_MANAGER install -y $package_file"
-            if ! "$SUDO" "$PKG_MANAGER" install -y "$package_file"; then
+            if ! $SUDO "$PKG_MANAGER" install -y "$package_file"; then
                 log_error "Failed to install .rpm package"
                 return 1
             fi
@@ -561,7 +601,7 @@ install_package() {
         apk)
             log_debug "Installing .apk package"
             log_debug "Running: $SUDO $PKG_MANAGER add --allow-untrusted $package_file"
-            if ! "$SUDO" "$PKG_MANAGER" add --allow-untrusted "$package_file"; then
+            if ! $SUDO "$PKG_MANAGER" add --allow-untrusted "$package_file"; then
                 log_error "Failed to install .apk package"
                 return 1
             fi
@@ -609,6 +649,9 @@ main() {
     log_debug "Created log directory: $(dirname "$LOG_FILE")"
     echo "Installation started at $(date)" >> "$LOG_FILE"
 
+	# Setup sudo based on privilege level
+    setup_sudo
+
     # Detect platform
     detect_platform
     detect_distro
@@ -628,9 +671,9 @@ main() {
 
     # Determine version to install
     local install_version
-    if [ -n "${VERSION:-}" ]; then
-        log "Using specified version: $VERSION"
-        install_version="$VERSION"
+    if [ -n "${FLUENTDO_AGENT_VERSION:-}" ]; then
+        log "Using specified version: $FLUENTDO_AGENT_VERSION"
+        install_version="$FLUENTDO_AGENT_VERSION"
     elif [ "$INTERACTIVE" = "true" ]; then
         log_debug "Interactive mode enabled"
         if ! select_version; then
@@ -745,6 +788,8 @@ Environment Variables:
     FLUENTDO_AGENT_URL          Override packages URL (default: $FLUENTDO_AGENT_URL)
     LOG_FILE                    Override log file location (default: $LOG_FILE)
     DOWNLOAD_DIR                Override download directory (default: $DOWNLOAD_DIR)
+    SUDO                        Override sudo command (default: sudo, set to empty to disable)
+    DISABLE_SUDO                Set to 1 to explicitly disable sudo (default: 0)
     DEBUG                       Enable debug output (default: 0)
 
 EOF
@@ -764,8 +809,8 @@ while [[ $# -gt 0 ]]; do
 			shift
 			;;
         -v|--version)
-            VERSION="$2"
-            log_debug "Version specified: $VERSION"
+            FLUENTDO_AGENT_VERSION="$2"
+            log_debug "Version specified: $FLUENTDO_AGENT_VERSION"
             shift 2
             ;;
         -i|--interactive)
