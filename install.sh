@@ -285,8 +285,8 @@ find_package() {
     # Build the expected package directory path
     # Try common patterns for the directory name
     local package_dirs=(
-        "package-${target_os}-${DISTRO_VERSION}.${target_arch}"   # e.g., package-debian-bookworm.arm64v8
-        "package-${target_os}-${DISTRO_VERSION}"                  # e.g., package-debian-bookworm (amd64 default)
+        "package-${target_os}-${DISTRO_VERSION:?Missing version}.${target_arch}"   # e.g., package-debian-bookworm.arm64v8
+        "package-${target_os}-${DISTRO_VERSION:?Missing version}"                  # e.g., package-debian-bookworm (amd64 default)
     )
 
     local matching_dir=""
