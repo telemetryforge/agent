@@ -14,13 +14,21 @@
 set -e
 
 # The URL to get packages from
-PACKAGES_URL="${PACKAGES_URL:-https://packages.fluent.do}"
+FLUENTDO_AGENT_URL="${FLUENTDO_AGENT_URL:-https://packages.fluent.do}"
 # Any logs from this script
-LOG_FILE="${LOG_FILE:-/var/log/fluentdo-agent-install.log}"
+LOG_FILE="${LOG_FILE:-$PWD/fluentdo-agent-install.log}"
 # The output binary to test
 FLUENTDO_AGENT_BINARY=${FLUENTDO_AGENT_BINARY:-/opt/fluent-bit/bin/fluent-bit}
 # The sudo executable, allows us to disable or customise
 SUDO=${SUDO:-sudo}
+# Where to download files
+DOWNLOAD_DIR=${DOWNLOAD_DIR:-$(mktemp -d)}
+
+# Override detected versions, useful for testing or downloading only
+OS_TYPE=${OS_TYPE:-}
+ARCH_TYPE=${ARCH_TYPE:-}
+DISTRO_ID=${DISTRO_ID:-}
+DISTRO_VERSION=${DISTRO_VERSION:-}
 
 # Colour codes for output
 RED='\033[0;31m'
@@ -38,59 +46,71 @@ if [ -n "${DISABLE_CONTROL_CHARS:-}" ]; then
 	NC=''
 fi
 
+# Enable debug output
+DEBUG="${DEBUG:-0}"
+
 # Logging functions
 log() {
-    echo -e "${BLUE}[INFO]${NC} $1" | tee -a "$LOG_FILE"
+    echo -e "${BLUE}[INFO]${NC} $*" | tee -a "$LOG_FILE"
 }
 
 log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1" | tee -a "$LOG_FILE"
+    echo -e "${GREEN}[SUCCESS]${NC} $*" | tee -a "$LOG_FILE"
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1" | tee -a "$LOG_FILE"
+    echo -e "${RED}[ERROR]${NC} $*" | tee -a "$LOG_FILE"
 }
 
 log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1" | tee -a "$LOG_FILE"
+    echo -e "${YELLOW}[WARNING]${NC} $*" | tee -a "$LOG_FILE"
+}
+
+log_debug() {
+    if [ "$DEBUG" = "1" ]; then
+        echo "[DEBUG] $*" | tee -a "$LOG_FILE"
+    fi
 }
 
 # Detect OS and architecture
 detect_platform() {
-    log "Detecting platform..."
+	if [[ -n "$OS_TYPE" ]] && [[ -n "$ARCH_TYPE" ]]; then
+		log "Using specified platform: $OS_TYPE/$ARCH_TYPE"
+	else
+		log "Detecting platform..."
 
-    OS=$(uname -s)
-    ARCH=$(uname -m)
+		OS=$(uname -s)
+		ARCH=$(uname -m)
 
-    case "$OS" in
-        Linux)
-            OS_TYPE="linux"
-            ;;
-        Darwin)
-            OS_TYPE="darwin"
-            ;;
-        *)
-            log_error "Unsupported OS: $OS"
-            exit 1
-            ;;
-    esac
+		case "$OS" in
+			Linux)
+				OS_TYPE="linux"
+				;;
+			Darwin)
+				OS_TYPE="darwin"
+				;;
+			*)
+				log_error "Unsupported OS: $OS"
+				exit 1
+				;;
+		esac
 
-    case "$ARCH" in
-        x86_64)
-            ARCH_TYPE="amd64"
-            ;;
-        aarch64)
-            ARCH_TYPE="arm64"
-            ;;
-        arm64)
-            ARCH_TYPE="arm64"
-            ;;
-        *)
-            log_error "Unsupported architecture: $ARCH"
-            exit 1
-            ;;
-    esac
-
+		case "$ARCH" in
+			x86_64)
+				ARCH_TYPE="amd64"
+				;;
+			aarch64)
+				ARCH_TYPE="arm64"
+				;;
+			arm64)
+				ARCH_TYPE="arm64"
+				;;
+			*)
+				log_error "Unsupported architecture: $ARCH"
+				exit 1
+				;;
+		esac
+	fi
     log_success "Detected platform: $OS_TYPE/$ARCH_TYPE"
 }
 
@@ -100,22 +120,26 @@ detect_distro() {
         return
     fi
 
-    log "Detecting Linux distribution..."
+	if [[ -n "$DISTRO_ID" ]] && [[ -n "$DISTRO_VERSION" ]]; then
+		log "Using specified DISTRO_ID: '$DISTRO_ID', DISTRO_VERSION: '$DISTRO_VERSION'"
+	else
+		log "Detecting Linux distribution..."
 
-    if [ -f /etc/os-release ]; then
-        # shellcheck disable=SC1091
-        . /etc/os-release
-        DISTRO_ID="$ID"
-        DISTRO_VERSION="$VERSION_ID"
-    elif [ -f /etc/lsb-release ]; then
-        # shellcheck disable=SC1091
-        . /etc/lsb-release
-        DISTRO_ID=$(echo "$DISTRIB_ID" | tr '[:upper:]' '[:lower:]')
-        DISTRO_VERSION="$DISTRIB_RELEASE"
-    else
-        log_warning "Could not detect distribution"
-        return
-    fi
+		if [ -f /etc/os-release ]; then
+			# shellcheck disable=SC1091
+			. /etc/os-release
+			DISTRO_ID="$ID"
+			DISTRO_VERSION="$VERSION_ID"
+		elif [ -f /etc/lsb-release ]; then
+			# shellcheck disable=SC1091
+			. /etc/lsb-release
+			DISTRO_ID=$(echo "$DISTRIB_ID" | tr '[:upper:]' '[:lower:]')
+			DISTRO_VERSION="$DISTRIB_RELEASE"
+		else
+			log_warning "Could not detect distribution"
+			return
+		fi
+	fi
 
     case "$DISTRO_ID" in
         ubuntu|debian)
@@ -141,23 +165,41 @@ detect_distro() {
 
 # Fetch available versions from packages.fluent.do
 fetch_available_versions() {
-    log "Fetching available versions from $PACKAGES_URL..."
+    log "Fetching available versions from $FLUENTDO_AGENT_URL..."
 
-    # Fetch the index.html and extract version directories
-    local html_response
-    html_response=$(curl -s "$PACKAGES_URL/" 2>/dev/null || echo "")
+    local versions_response
+    # Fetch the response
+    versions_response=$(curl -s -L "$FLUENTDO_AGENT_URL/" 2>/dev/null || echo "")
 
-    if [ -z "$html_response" ]; then
-        log_error "Failed to fetch versions from $PACKAGES_URL"
+    if [ -z "$versions_response" ]; then
+        log_error "Failed to fetch versions from $FLUENTDO_AGENT_URL"
         return 1
     fi
 
-    # Extract version numbers from the HTML (looking for data-version attributes or version directories)
-    # The HTML structure contains version sections with data-version attributes
-    AVAILABLE_VERSIONS=$(echo "$html_response" | grep -o 'data-version="[^"]*"' | sed 's/data-version="\([^"]*\)"/\1/' | sort -V -r)
+    # Try multiple patterns to extract versions
+    AVAILABLE_VERSIONS=$(
+        echo "$versions_response" | \
+        grep -oE '(href|data-version)="?([0-9]+\.[0-9]+\.[0-9]+)[^"]*"?' | \
+        sed -E 's/.*"?([0-9]+\.[0-9]+\.[0-9]+).*/\1/' | \
+        sort -V -r | \
+        uniq
+    )
 
     if [ -z "$AVAILABLE_VERSIONS" ]; then
-        log_error "No versions found at $PACKAGES_URL"
+        # Try alternate pattern: look for any version-like strings in links
+        AVAILABLE_VERSIONS=$(
+            echo "$versions_response" | \
+            grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | \
+            sort -V -r | \
+            uniq | \
+            head -10
+        )
+    fi
+
+    if [ -z "$AVAILABLE_VERSIONS" ]; then
+        log_error "No versions found at $FLUENTDO_AGENT_URL"
+        log_error "Response content:"
+        echo "$versions_response" | head -20
         return 1
     fi
 
@@ -292,7 +334,7 @@ find_package() {
     local matching_dir=""
 
     for dir in "${package_dirs[@]}"; do
-        local package_dir_url="${PACKAGES_URL}/${version}/output/${dir}/"
+        local package_dir_url="${FLUENTDO_AGENT_URL}/${version}/output/${dir}/"
         log "Checking for package directory: $package_dir_url"
 
         # Check if the directory exists by attempting to fetch it
@@ -310,7 +352,7 @@ find_package() {
         log_error "No matching package directory found for os=$target_os, arch=$target_arch, version=$version"
         log "Attempted paths:"
         for dir in "${package_dirs[@]}"; do
-            echo "  ${PACKAGES_URL}/${version}/output/${dir}/"
+            echo "  ${FLUENTDO_AGENT_URL}/${version}/output/${dir}/"
         done
         return 1
     fi
@@ -318,7 +360,7 @@ find_package() {
     log "Using package directory: $matching_dir"
 
     # Fetch the package directory listing
-    local package_dir_url="${PACKAGES_URL}/${version}/output/${matching_dir}/"
+    local package_dir_url="${FLUENTDO_AGENT_URL}/${version}/output/${matching_dir}/"
     local package_list
     package_list=$(curl -s "$package_dir_url" 2>/dev/null || echo "")
 
@@ -363,7 +405,7 @@ download_package() {
 
     log "Downloading package: $package_path"
 
-    local url="${PACKAGES_URL}/${package_path}"
+    local url="${FLUENTDO_AGENT_URL}/${package_path}"
 
     if ! curl -L -f -o "$output_file" "$url"; then
         log_error "Failed to download package from $url"
@@ -434,7 +476,7 @@ verify_installation() {
 # Main installation flow
 main() {
     log "Starting FluentDo Agent installation..."
-    log "Packages URL: $PACKAGES_URL"
+    log "Packages URL: $FLUENTDO_AGENT_URL"
     echo ""
 
     # Initialize log file
@@ -481,13 +523,7 @@ main() {
 
     log "Found package: $package_path"
 
-    # Download package
-    local temp_dir
-    temp_dir=$(mktemp -d)
-    # shellcheck disable=SC2064
-    trap "rm -rf $temp_dir" EXIT
-
-    local package_file="$temp_dir/fluentdo-agent.${PKG_FORMAT}"
+    local package_file="$DOWNLOAD_DIR/fluentdo-agent.${PKG_FORMAT}"
 
     download_package "$package_path" "$package_file" || {
         log_error "Failed to download package"
@@ -529,7 +565,7 @@ Usage: $0 [OPTIONS]
 Options:
     -v, --version VERSION       Install specific version (default: latest)
     -i, --interactive           Interactively select version
-    -u, --url URL               Use custom packages URL (default: $PACKAGES_URL)
+    -u, --url URL               Use custom packages URL (default: $FLUENTDO_AGENT_URL)
     -l, --log-file FILE         Log file path (default: $LOG_FILE)
     -f, --force                 Force installation on unsupported distributions
 	-d, --download              Download the package only
@@ -549,9 +585,9 @@ Examples:
     $0 -u https://staging.fluent.do
 
 Environment Variables:
-    PACKAGES_URL                Override packages URL
-    AGENT_INSTALL_DIR           Override installation directory
-    LOG_FILE                    Override log file location
+    FLUENTDO_AGENT_URL          Override packages URL (default: $FLUENTDO_AGENT_URL)
+    LOG_FILE                    Override log file location (default: $LOG_FILE)
+    DOWNLOAD_DIR                Override download directory (default: $DOWNLOAD_DIR)
 
 EOF
 }
@@ -561,8 +597,14 @@ INTERACTIVE=false
 FORCE=false
 DOWNLOAD_ONLY=false
 
+log "Parsing arguments: $*"
 while [[ $# -gt 0 ]]; do
     case $1 in
+		--debug)
+			DEBUG="1"
+			log_debug "Debug mode enabled"
+			shift
+			;;
         -v|--version)
             VERSION="$2"
             shift 2
@@ -572,7 +614,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         -u|--url)
-            PACKAGES_URL="$2"
+            FLUENTDO_AGENT_URL="$2"
             shift 2
             ;;
         -l|--log-file)

@@ -15,6 +15,7 @@ SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 
 export FLUENT_BIT_BINARY=${FLUENT_BIT_BINARY:-/fluent-bit/bin/fluent-bit}
 export FLUENTDO_AGENT_VERSION=${FLUENTDO_AGENT_VERSION:-25.10.4}
+export FLUENTDO_AGENT_URL="${FLUENTDO_AGENT_URL:-https://staging.fluent.do}"
 
 # Optional variables for container/k8s tests
 # FLUENTDO_AGENT_IMAGE=...
