@@ -50,6 +50,38 @@ if [ -n "${DISABLE_CONTROL_CHARS:-}" ]; then
 fi
 
 # ============================================================================
+# Prerequisites Check
+# ============================================================================
+
+# Check if required tools are available
+check_required_tools() {
+    log "Checking for required tools..."
+    local missing_tools=()
+    local required_tools=("curl" "grep" "sed" "cut")
+
+    for tool in "${required_tools[@]}"; do
+        log_debug "Checking for: $tool"
+        if ! command -v "$tool" &> /dev/null; then
+            log_debug "Missing tool: $tool"
+            missing_tools+=("$tool")
+        else
+            log_debug "Found: $tool"
+        fi
+    done
+
+    if [ ${#missing_tools[@]} -gt 0 ]; then
+        log_error "Missing required tools: ${missing_tools[*]}"
+        log_error "Please install the following tools and try again:"
+        for tool in "${missing_tools[@]}"; do
+            log_error "  - $tool"
+        done
+        return 1
+    fi
+
+    log_success "All required tools are available"
+}
+
+# ============================================================================
 # Logging Functions
 # ============================================================================
 
@@ -166,6 +198,7 @@ detect_platform() {
 }
 
 # Detect Linux distribution and package manager
+# Detect Linux distribution and package manager
 detect_distro() {
     if [[ "$OS_TYPE" != "linux" ]]; then
         log_debug "Skipping distro detection (not Linux)"
@@ -198,6 +231,10 @@ detect_distro() {
 		fi
 	fi
 
+	# Extract major version only (handle X.Y.Z -> X)
+	DISTRO_VERSION=$(echo "$DISTRO_VERSION" | cut -d. -f1)
+	log_debug "Extracted major version: DISTRO_VERSION=$DISTRO_VERSION"
+
     log_debug "Mapping DISTRO_ID=$DISTRO_ID to package format"
     case "$DISTRO_ID" in
         ubuntu|debian)
@@ -213,7 +250,7 @@ detect_distro() {
 		opensuse-leap|suse|sles|opensuse)
             PKG_MANAGER="zypper"
             PKG_FORMAT="rpm"
-            log_debug "Mapped to: PKG_MANAGER=yum, PKG_FORMAT=rpm"
+            log_debug "Mapped to: PKG_MANAGER=zypper, PKG_FORMAT=rpm"
             ;;
         alpine)
             PKG_MANAGER="apk"
@@ -393,15 +430,18 @@ find_package() {
 						# Versions earlier than 8 should be mapped to centos, otherwise use almalinux
 						target_os="almalinux"
 
-						if ! [[ "$DISTRO_VERSION" =~ ^[0-9]+$ ]]; then
-							log_warning "DISTRO_VERSION not a valid integer: $DISTRO_VERSION"
-						fi
+						# Extract major version for comparison
+						local major_version
+						major_version=$(echo "$DISTRO_VERSION" | cut -d. -f1)
+						log_debug "Extracted major version for comparison: $major_version"
 
-						if (( DISTRO_VERSION < 8 )); then
-							log_debug "CentOS version $DISTRO_VERSION (less than 8)"
+						if ! [[ "$major_version" =~ ^[0-9]+$ ]]; then
+							log_warning "Major version not a valid integer: $major_version"
+						elif (( major_version < 8 )); then
+							log_debug "CentOS version $major_version (less than 8)"
 							target_os="centos"
 						else
-							log_debug "CentOS version $DISTRO_VERSION (8 or greater) uses AlmaLinux by default"
+							log_debug "CentOS version $major_version (8 or greater) uses AlmaLinux by default"
 						fi
                         log_debug "Mapped DISTRO_ID=$DISTRO_ID to target_os=$target_os"
                         ;;
@@ -651,6 +691,12 @@ main() {
 
 	# Setup sudo based on privilege level
     setup_sudo
+
+	# Check for required tools
+    if ! check_required_tools; then
+        log_error "Prerequisites check failed"
+        exit 1
+    fi
 
     # Detect platform
     detect_platform
