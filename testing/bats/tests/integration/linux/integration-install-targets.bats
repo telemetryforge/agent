@@ -97,3 +97,25 @@ setupFile() {
     assert_output --partial 'FluentDo Agent installation completed successfully!'
     refute_output --partial '[ERROR]'
 }
+
+@test "integration: install of Debian Bookworm" {
+    local repo_root="${BATS_TEST_DIRNAME:?}/../../../../.."
+    local install_script="${repo_root}/install.sh"
+    assert_file_exist "$install_script"
+    run ${CONTAINER_RUNTIME:-docker} run --rm -it -v "${install_script}:/install.sh:ro" \
+        debian:bookworm /bin/sh -c 'apt-get update && apt-get install -y curl && /install.sh --debug'
+    assert_success
+    assert_output --partial 'FluentDo Agent installation completed successfully!'
+    refute_output --partial '[ERROR]'
+}
+
+@test "integration: install of Debian Trixie" {
+    local repo_root="${BATS_TEST_DIRNAME:?}/../../../../.."
+    local install_script="${repo_root}/install.sh"
+    assert_file_exist "$install_script"
+    run ${CONTAINER_RUNTIME:-docker} run --rm -it -v "${install_script}:/install.sh:ro" \
+        debian:trixie /bin/sh -c 'apt-get update && apt-get install -y curl && /install.sh --debug'
+    assert_success
+    assert_output --partial 'FluentDo Agent installation completed successfully!'
+    refute_output --partial '[ERROR]'
+}

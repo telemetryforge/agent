@@ -231,9 +231,20 @@ detect_distro() {
 		fi
 	fi
 
-	# Extract major version only (handle X.Y.Z -> X)
-	DISTRO_VERSION=$(echo "$DISTRO_VERSION" | cut -d. -f1)
-	log_debug "Extracted major version: DISTRO_VERSION=$DISTRO_VERSION"
+	# Extract version appropriately based on distribution
+	# Ubuntu uses full X.Y version (e.g., 24.04)
+	# RPM-based distros use major version only (e.g., 8, 9)
+	case "$DISTRO_ID" in
+		ubuntu|debian)
+			# Keep full version for Debian/Ubuntu (X.Y format)
+			log_debug "Keeping full version for $DISTRO_ID: $DISTRO_VERSION"
+			;;
+		*)
+			# Extract major version only for other distros
+			DISTRO_VERSION=$(echo "$DISTRO_VERSION" | cut -d. -f1)
+			log_debug "Extracted major version for $DISTRO_ID: DISTRO_VERSION=$DISTRO_VERSION"
+			;;
+	esac
 
     log_debug "Mapping DISTRO_ID=$DISTRO_ID to package format"
     case "$DISTRO_ID" in
