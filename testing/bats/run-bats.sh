@@ -23,12 +23,14 @@ export FLUENTDO_AGENT_URL="${FLUENTDO_AGENT_URL:-https://staging.fluent.do}"
 
 # Attempt to auto-parallelise when available
 if command -v rush &>/dev/null; then
+	echo "Using rush for parallelism"
 	export BATS_NO_PARALLELIZE_ACROSS_FILES=${BATS_NO_PARALLELIZE_ACROSS_FILES:-1}
-	export BATS_NUMBER_OF_PARALLEL_JOBS=${BATS_NUMBER_OF_PARALLEL_JOBS:-8}
+	export BATS_NUMBER_OF_PARALLEL_JOBS=${BATS_NUMBER_OF_PARALLEL_JOBS:-4}
 	export BATS_PARALLEL_BINARY_NAME=${BATS_PARALLEL_BINARY_NAME:-rush}
 elif command -v parallel &>/dev/null; then
+	echo "Using parallel for parallelism"
 	export BATS_NO_PARALLELIZE_ACROSS_FILES=${BATS_NO_PARALLELIZE_ACROSS_FILES:-1}
-	export BATS_NUMBER_OF_PARALLEL_JOBS=${BATS_NUMBER_OF_PARALLEL_JOBS:-8}
+	export BATS_NUMBER_OF_PARALLEL_JOBS=${BATS_NUMBER_OF_PARALLEL_JOBS:-4}
 	export BATS_PARALLEL_BINARY_NAME=${BATS_PARALLEL_BINARY_NAME:-parallel}
 fi
 
