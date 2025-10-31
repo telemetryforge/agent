@@ -126,7 +126,7 @@ detect_platform() {
 # Detect Linux distribution and package manager
 detect_distro() {
     if [[ "$OS_TYPE" != "linux" ]]; then
-        log "Skipping distro detection (not Linux)"
+        log_debug "Skipping distro detection (not Linux)"
         return
     fi
 
@@ -197,6 +197,7 @@ fetch_available_versions() {
 
     if [ -z "$versions_response" ]; then
         log_error "Failed to fetch versions from $FLUENTDO_AGENT_URL"
+        log_debug "curl returned empty response"
         return 1
     fi
 
@@ -240,9 +241,13 @@ get_latest_version() {
     latest=$(echo "$AVAILABLE_VERSIONS" | head -n1)
     if [ -z "$latest" ]; then
         log_error "No versions available"
+        log_debug "AVAILABLE_VERSIONS is empty"
         return 1
     fi
-    echo "$latest"
+    log_debug "Latest version: $latest"
+
+    # Set return variable
+    SELECTED_VERSION="$latest"
 }
 
 # List available versions
@@ -278,6 +283,7 @@ select_version() {
         selected=$(echo "$AVAILABLE_VERSIONS" | sed -n "${selection}p")
         if [ -z "$selected" ]; then
             log_error "Invalid selection: $selection"
+            log_debug "Line $selection not found in AVAILABLE_VERSIONS"
             return 1
         fi
     else
@@ -288,11 +294,15 @@ select_version() {
             log_debug "Version $selection found in available versions"
         else
             log_error "Version not found: $selection"
+            log_debug "Version $selection not found in AVAILABLE_VERSIONS"
             return 1
         fi
     fi
 
-    echo "$selected"
+    log_debug "Selected version: $selected"
+
+    # Set return variable
+    SELECTED_VERSION="$selected"
 }
 
 # ============================================================================
@@ -375,10 +385,10 @@ find_package() {
     log_debug "Final mapping: target_os=$target_os, target_arch=$target_arch, DISTRO_VERSION=$DISTRO_VERSION"
 
     # Build the expected package directory path
-    # Try common patterns for the directory name
+    # Construct candidate directory names for the package
     local package_dirs=(
-        "package-${target_os}-${DISTRO_VERSION:?Missing version}.${target_arch}"   # e.g., package-debian-bookworm.arm64v8
-        "package-${target_os}-${DISTRO_VERSION:?Missing version}"                  # e.g., package-debian-bookworm (amd64 default)
+        "package-${target_os}-${DISTRO_VERSION}.${target_arch}"   # e.g., package-almalinux-8.arm64
+        "package-${target_os}-${DISTRO_VERSION}"                  # e.g., package-almalinux-8 (for amd64)
     )
 
     log_debug "Attempting to find package in these directories:"
@@ -386,84 +396,80 @@ find_package() {
         log_debug "  - $dir"
     done
 
-    local matching_dir=""
-
-    for dir in "${package_dirs[@]}"; do
-        local package_dir_url="${FLUENTDO_AGENT_URL}/${version}/output/${dir}/"
-        log "Checking for package directory: $package_dir_url"
-
-        # Check if the directory exists by attempting to fetch it
-        local dir_response
-        dir_response=$(curl -s -I "$package_dir_url" 2>/dev/null | head -1)
-        log_debug "HTTP response: $dir_response"
-
-        if [[ "$dir_response" == *"200"* ]] || [[ "$dir_response" == *"301"* ]] || [[ "$dir_response" == *"302"* ]]; then
-            log "Found package directory: $dir"
-            matching_dir="$dir"
-            break
-        else
-            log_debug "Directory not found (response: $dir_response)"
-        fi
-    done
-
-    if [ -z "$matching_dir" ]; then
-        log_error "No matching package directory found for os=$target_os, arch=$target_arch, version=$version"
-        log "Attempted paths:"
-        for dir in "${package_dirs[@]}"; do
-            echo "  ${FLUENTDO_AGENT_URL}/${version}/output/${dir}/"
-        done
-        return 1
-    fi
-
-    log "Using package directory: $matching_dir"
-
-    # Fetch the package directory listing
-    local package_dir_url="${FLUENTDO_AGENT_URL}/${version}/output/${matching_dir}/"
-    log_debug "Fetching package list from: $package_dir_url"
-    local package_list
-    package_list=$(curl -s "$package_dir_url" 2>/dev/null || echo "")
-
-    if [ -z "$package_list" ]; then
-        log_error "Failed to list packages in $package_dir_url"
-        return 1
-    fi
-
-    log_debug "Package list received (${#package_list} bytes)"
-
-    # Extract the package filename based on format
-    local package_file=""
-    log_debug "Looking for package with format: $pkg_format"
+    # Build candidate package filenames based on format
+    local package_filenames=()
 
     case "$pkg_format" in
         deb)
-            package_file=$(echo "$package_list" | grep -o 'href="[^"]*\.deb"' | sed 's/href="\([^"]*\)"/\1/' | head -1)
-            log_debug "Searching for .deb files"
+            # Debian package naming: fluentdo-agent_<version>_<arch>.deb
+            package_filenames=(
+                "fluentdo-agent_${version}_${arch_type}.deb"
+                "fluentdo-agent-${version}_${arch_type}.deb"
+            )
+            log_debug "Looking for .deb files with patterns: ${package_filenames[*]}"
             ;;
         rpm)
-            package_file=$(echo "$package_list" | grep -o 'href="[^"]*\.rpm"' | sed 's/href="\([^"]*\)"/\1/' | head -1)
-            log_debug "Searching for .rpm files"
+            # RPM package naming: fluentdo-agent-<version>-1.<arch>.rpm
+            package_filenames=(
+                "fluentdo-agent-${version}-1.${arch_type}.rpm"
+                "fluentdo-agent-${version}-1.noarch.rpm"
+            )
+            log_debug "Looking for .rpm files with patterns: ${package_filenames[*]}"
             ;;
         apk)
-            package_file=$(echo "$package_list" | grep -o 'href="[^"]*\.apk"' | sed 's/href="\([^"]*\)"/\1/' | head -1)
-            log_debug "Searching for .apk files"
+            # Alpine package naming: fluentdo-agent-<version>-r0_<arch>.apk
+            package_filenames=(
+                "fluentdo-agent-${version}-r0.${arch_type}.apk"
+                "fluentdo-agent-${version}.${arch_type}.apk"
+            )
+            log_debug "Looking for .apk files with patterns: ${package_filenames[*]}"
             ;;
     esac
 
-    if [ -z "$package_file" ]; then
-        log_error "No .${pkg_format} package file found in $package_dir_url"
-        log "Available files:"
-        echo "$package_list" | grep -o 'href="[^"]*"' | sed 's/href="\([^"]*\)"/\1/' | grep -v '^\.\.' | sed 's/^/  /'
-        log_debug "No package file found matching format: $pkg_format"
+    # Try to find the package by attempting direct downloads
+    local found_package=""
+    local found_dir=""
+
+    for dir in "${package_dirs[@]}"; do
+        log_debug "Trying directory: $dir"
+        for filename in "${package_filenames[@]}"; do
+            local package_url="${FLUENTDO_AGENT_URL}/${version}/output/${dir}/${filename}"
+            log_debug "Attempting to access: $package_url"
+
+            # Use HEAD request to check if file exists without downloading
+            local http_code
+            http_code=$(curl -s -o /dev/null -w "%{http_code}" -L "$package_url" 2>/dev/null)
+            log_debug "HTTP response code: $http_code"
+
+            if [ "$http_code" = "200" ]; then
+                log_debug "Found package at: $package_url"
+                found_package="$filename"
+                found_dir="$dir"
+                break 2  # Break out of both loops
+            else
+                log_debug "Not found (HTTP $http_code): $package_url"
+            fi
+        done
+    done
+
+    if [ -z "$found_package" ]; then
+        log_error "No package file found for version=$version, os=$target_os, arch=$arch_type, format=$pkg_format"
+        log_error "Attempted paths:"
+        for dir in "${package_dirs[@]}"; do
+            for filename in "${package_filenames[@]}"; do
+                log_error "  ${FLUENTDO_AGENT_URL}/${version}/output/${dir}/${filename}"
+            done
+        done
+        log_debug "Failed to find any matching package"
         return 1
     fi
 
-    log_debug "Found package file: $package_file"
-
-    # Construct the full package path
-    local full_package_path="${version}/output/${matching_dir}/${package_file}"
+    local full_package_path="${version}/output/${found_dir}/${found_package}"
 
     log_success "Found package: $full_package_path"
-    echo "$full_package_path"
+
+    # Set return variable
+    FOUND_PACKAGE_PATH="$full_package_path"
 }
 
 # Download package
@@ -479,11 +485,13 @@ download_package() {
 
     if ! curl -L -f -o "$output_file" "$url"; then
         log_error "Failed to download package from $url"
+        log_debug "curl failed to download from $url"
         return 1
     fi
 
     if [ ! -f "$output_file" ] || [ ! -s "$output_file" ]; then
         log_error "Downloaded file is empty or does not exist: $output_file"
+        log_debug "File check failed: exists=$([ -f "$output_file" ] && echo yes || echo no), size=$([ -s "$output_file" ] && echo non-empty || echo empty)"
         return 1
     fi
 
@@ -505,6 +513,7 @@ install_package() {
             log_debug "Installing .deb package"
 			if ! "$SUDO" "$PKG_MANAGER" update; then
 				log_warning "Unable to update repositories"
+				log_debug "$SUDO $PKG_MANAGER update failed"
 			fi
             log_debug "Running: $SUDO $PKG_MANAGER install -y $package_file"
             if ! "$SUDO" "$PKG_MANAGER" install -y "$package_file"; then
@@ -562,8 +571,8 @@ main() {
     log "Starting FluentDo Agent installation..."
     log "Packages URL: $FLUENTDO_AGENT_URL"
     log_debug "Debug mode: $DEBUG"
-    log "Log file: $LOG_FILE"
-    log "Download directory: $DOWNLOAD_DIR"
+    log_debug "Log file: $LOG_FILE"
+    log_debug "Download directory: $DOWNLOAD_DIR"
     echo ""
 
     # Initialize log file
@@ -583,58 +592,70 @@ main() {
     fi
 
     # Fetch versions
-    fetch_available_versions || {
+    if ! fetch_available_versions; then
         log_error "Failed to fetch available versions"
         exit 1
-    }
+    fi
 
     # Determine version to install
     local install_version
-    if [ -n "$VERSION" ]; then
+    if [ -n "${VERSION:-}" ]; then
         log "Using specified version: $VERSION"
         install_version="$VERSION"
     elif [ "$INTERACTIVE" = "true" ]; then
         log_debug "Interactive mode enabled"
-        install_version=$(select_version) || {
+        if ! select_version; then
             log_error "Failed to select version"
             exit 1
-        }
+        fi
+        install_version="$SELECTED_VERSION"
     else
         log_debug "Auto-selecting latest version"
-        install_version=$(get_latest_version)
+        if ! get_latest_version; then
+            log_error "Failed to get latest version"
+            exit 1
+        fi
+        install_version="$SELECTED_VERSION"
         log "Installing latest version: $install_version"
     fi
 
     log_debug "Install version determined: $install_version"
 
     # Find matching package
-    local package_path
-    package_path=$(find_package "$install_version" "$OS_TYPE" "$ARCH_TYPE" "$PKG_FORMAT") || {
+    log_debug "About to call find_package with: version=$install_version, os_type=$OS_TYPE, arch_type=$ARCH_TYPE, pkg_format=$PKG_FORMAT"
+    if ! find_package "$install_version" "$OS_TYPE" "$ARCH_TYPE" "$PKG_FORMAT"; then
         log_error "Failed to find package for version $install_version"
         exit 1
-    }
+    fi
+
+    local package_path="$FOUND_PACKAGE_PATH"
+    if [ -z "$package_path" ]; then
+        log_error "Package path is empty"
+        exit 1
+    fi
 
     log "Found package: $package_path"
 
     local package_file="$DOWNLOAD_DIR/fluentdo-agent.${PKG_FORMAT}"
     log_debug "Package file destination: $package_file"
 
-    download_package "$package_path" "$package_file" || {
+    if ! download_package "$package_path" "$package_file"; then
         log_error "Failed to download package"
         exit 1
-    }
+    fi
 
 	if [ "$DOWNLOAD_ONLY" != true ]; then
 		# Install package
-		install_package "$package_file" "$PKG_FORMAT" || {
+		if ! install_package "$package_file" "$PKG_FORMAT"; then
 			log_error "Installation failed"
 			exit 1
-		}
+		fi
 
 		# Verify installation
-		verify_installation || {
+		if ! verify_installation; then
 			log_warning "Verification encountered issues, but installation may still be complete"
-		}
+			log_debug "verify_installation returned non-zero status"
+		fi
 
 		echo ""
 		log_success "FluentDo Agent installation completed successfully!"
@@ -644,7 +665,7 @@ main() {
 		echo "  2. Start the agent: systemctl start fluent-bit"
 		echo "  3. Enable at startup: systemctl enable fluent-bit"
 	else
-		log_success "Package downloaded successfully (installation skipped with --download flag): package saved to $package_file"
+		log_success "Package downloaded successfully: $package_file"
 	fi
     echo ""
     log "Documentation: https://fluent.do/docs/agent"
@@ -668,7 +689,7 @@ Options:
     -u, --url URL               Use custom packages URL (default: $FLUENTDO_AGENT_URL)
     -l, --log-file FILE         Log file path (default: $LOG_FILE)
     -f, --force                 Force installation on unsupported distributions
-	-d, --download              Download the package only
+    -d, --download              Download the package only
     --debug                     Enable debug output
     -h, --help                  Show this help message
 
@@ -755,7 +776,6 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-log_debug "Argument parsing complete"
 log_debug "Final settings: DEBUG=$DEBUG, INTERACTIVE=$INTERACTIVE, FORCE=$FORCE, DOWNLOAD_ONLY=$DOWNLOAD_ONLY"
 
 # Run main installation
