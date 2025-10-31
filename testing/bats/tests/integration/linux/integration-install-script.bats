@@ -78,7 +78,7 @@ setupFile() {
         export DISTRO_VERSION="$os_version"
 
         # Download only and log to writeable directory
-        run "$install_script" -d -l "${BATS_TEST_TMPDIR}/install.log"
+        run "$install_script" -d --debug -l "${BATS_TEST_TMPDIR}/install.log"
         assert_success
         assert_output --partial 'Found package'
         refute_output --partial 'Failed to download package'

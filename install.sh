@@ -165,7 +165,7 @@ detect_distro() {
             PKG_FORMAT="deb"
             log_debug "Mapped to: PKG_MANAGER=apt-get, PKG_FORMAT=deb"
             ;;
-        fedora|rhel|centos|rocky|almalinux)
+        fedora|rhel|centos|rocky|almalinux|amazonlinux)
             PKG_MANAGER="yum"
             PKG_FORMAT="rpm"
             log_debug "Mapped to: PKG_MANAGER=yum, PKG_FORMAT=rpm"
@@ -340,7 +340,27 @@ find_package() {
                         target_os="debian"
                         log_debug "Mapped DISTRO_ID=debian to target_os=debian"
                         ;;
-                    fedora|rhel|centos|rocky|almalinux)
+					amazonlinux)
+                        target_os="amazonlinux"
+                        log_debug "Mapped DISTRO_ID=$DISTRO_ID to target_os=amazonlinux"
+                        ;;
+                    fedora|rhel|centos)
+						# Versions earlier than 8 should be mapped to centos, otherwise use almalinux
+						target_os="almalinux"
+
+						if ! [[ "$DISTRO_VERSION" =~ ^[0-9]+$ ]]; then
+							log_warning "DISTRO_VERSION not a valid integer: $DISTRO_VERSION"
+						fi
+
+						if (( DISTRO_VERSION < 8 )); then
+							log_debug "CentOS version $DISTRO_VERSION (less than 8)"
+							target_os="centos"
+						else
+							log_debug "CentOS version $DISTRO_VERSION (8 or greater) uses AlmaLinux by default"
+						fi
+                        log_debug "Mapped DISTRO_ID=$DISTRO_ID to target_os=$target_os"
+                        ;;
+                    rocky|almalinux)
                         target_os="almalinux"
                         log_debug "Mapped DISTRO_ID=$DISTRO_ID to target_os=almalinux"
                         ;;
@@ -350,12 +370,12 @@ find_package() {
                         ;;
                     *)
                         target_os="linux"
-                        log_debug "No specific mapping for DISTRO_ID=$DISTRO_ID, using generic linux"
+                        log_warning "No specific mapping for DISTRO_ID=$DISTRO_ID, using generic linux"
                         ;;
                 esac
             else
                 target_os="linux"
-                log_debug "DISTRO_ID not set, using generic linux"
+                log_warning "DISTRO_ID not set, using generic linux"
             fi
             ;;
         darwin)
