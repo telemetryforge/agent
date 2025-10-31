@@ -170,6 +170,11 @@ detect_distro() {
             PKG_FORMAT="rpm"
             log_debug "Mapped to: PKG_MANAGER=yum, PKG_FORMAT=rpm"
             ;;
+		opensuse-leap|suse|sles|opensuse)
+            PKG_MANAGER="zypper"
+            PKG_FORMAT="rpm"
+            log_debug "Mapped to: PKG_MANAGER=yum, PKG_FORMAT=rpm"
+            ;;
         alpine)
             PKG_MANAGER="apk"
             PKG_FORMAT="apk"
@@ -334,15 +339,15 @@ find_package() {
                 case "$DISTRO_ID" in
                     ubuntu)
                         target_os="ubuntu"
-                        log_debug "Mapped DISTRO_ID=ubuntu to target_os=ubuntu"
+                        log_debug "Mapped DISTRO_ID=ubuntu to target_os=$target_os"
                         ;;
                     debian)
                         target_os="debian"
-                        log_debug "Mapped DISTRO_ID=debian to target_os=debian"
+                        log_debug "Mapped DISTRO_ID=debian to target_os=$target_os"
                         ;;
 					amazonlinux)
                         target_os="amazonlinux"
-                        log_debug "Mapped DISTRO_ID=$DISTRO_ID to target_os=amazonlinux"
+                        log_debug "Mapped DISTRO_ID=$DISTRO_ID to target_os=$target_os"
                         ;;
                     fedora|rhel|centos)
 						# Versions earlier than 8 should be mapped to centos, otherwise use almalinux
@@ -362,11 +367,15 @@ find_package() {
                         ;;
                     rocky|almalinux)
                         target_os="almalinux"
-                        log_debug "Mapped DISTRO_ID=$DISTRO_ID to target_os=almalinux"
+                        log_debug "Mapped DISTRO_ID=$DISTRO_ID to target_os=$target_os"
+                        ;;
+					opensuse-leap|suse|sles|opensuse)
+						target_os="suse"
+                        log_debug "Mapped DISTRO_ID=$DISTRO_ID to target_os=$target_os"
                         ;;
                     alpine)
                         target_os="alpine"
-                        log_debug "Mapped DISTRO_ID=alpine to target_os=alpine"
+                        log_debug "Mapped DISTRO_ID=alpine to target_os=$target_os"
                         ;;
                     *)
                         target_os="linux"
