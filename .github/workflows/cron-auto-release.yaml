@@ -1,7 +1,10 @@
 name: Tag a new release
 on:
   schedule:
+    # 25.10 releases
     - cron: "0 10 * * 1"
+    # Latest releases
+    - cron: "0 10 * * 2"
   workflow_dispatch:
 jobs:
   find-last-good:
@@ -11,23 +14,43 @@ jobs:
       actions: read
     outputs:
       sha: ${{ steps.get-commit.outputs.sha }}
+      branch: ${{ steps.detect-branch.outputs.branch || 'main' }}
     steps:
       - uses: actions/checkout@v5
         with:
           # check out the entire repo history for SHA verification
           fetch-depth: 0
 
+      - name: 25.10 run
+        if: github.event_name == 'schedule' && github.event.schedule=='0 10 * * 1'
+        run: |
+          echo "BRANCH=release/25.10-lts" >> $GITHUB_ENV
+        shell: bash
+
+      - name: main run
+        if: github.event_name == 'schedule' && github.event.schedule=='0 10 * * 2'
+        run: |
+          echo "BRANCH=main" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Figure out branch we are running for
+        id: detect-branch
+        run: |
+          echo "branch=$BRANCH"
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+        shell: bash
+
       - name: Find matching workflow
         uses: SamhammerAG/last-successful-build-action@v7
         id: get-commit
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
-          branch: "main"
+          branch: ${{ steps.detect-branch.outputs.branch || 'main' }}
           workflow: "Build and test"
           verify: true
 
   create-tag:
-    name: Create tag
+    name: Create tag for ${{ needs.find-last-good.outputs.branch }}
     runs-on: ubuntu-latest
     needs:
       - find-last-good
@@ -36,7 +59,6 @@ jobs:
       id-token: write
     outputs:
       tag_name: ${{ steps.tag_name.outputs.tag_name }}
-      next_tag: ${{ steps.tag_name.outputs.next_tag }}
     steps:
       - name: Authenticate with GCP
         uses: google-github-actions/auth@v3
@@ -64,27 +86,30 @@ jobs:
       - name: Tag name
         id: tag_name
         run: |
-          # Create a tag name based on the current date
-          # Format: vYY.M.W
-          YEAR=$(date +%y)
-          MONTH=$(date +%-m)
-          WEEK=$((($(date +%-d)-1)/7+1))
-          echo "tag_name=v${YEAR}.${MONTH}.${WEEK}"
-          echo "tag_name=v${YEAR}.${MONTH}.${WEEK}" >> $GITHUB_OUTPUT
-
-          NEXT_WEEK=$((WEEK + 1))
-          # Ignore 5 week months
-          if [ $NEXT_WEEK -gt 4 ]; then
-            NEXT_WEEK=1
-            MONTH=$((MONTH + 1))
-            if [ $MONTH -gt 12 ]; then
-            MONTH=1
-            YEAR=$((YEAR + 1))
-            fi
+          if [[ "$BRANCH" != 'main' ]]; then
+            echo "Creating next tag name in sequence"
+            # Get last tag for branch
+            LAST_TAG=$(git describe --tags --match="v*" "$BRANCH" --abbrev=0)
+            echo "Found last tag=$LAST_TAG"
+            VNUM1=$(echo "$VERSION" | cut -d"." -f1)
+            VNUM2=$(echo "$VERSION" | cut -d"." -f2)
+            VNUM3=$(echo "$VERSION" | cut -d"." -f3)
+            VNUM3=$((VNUM3+1))
+            NEW_TAG="$VNUM1.$VNUM2.$VNUM3"
+            echo "tag_name=$NEW_TAG"
+            echo "tag_name=$NEW_TAG" >> $GITHUB_OUTPUT
+          else
+            echo "Create a tag name based on the current date"
+            # Format: vYY.M.W
+            YEAR=$(date +%y)
+            MONTH=$(date +%-m)
+            WEEK=$((($(date +%-d)-1)/7+1))
+            echo "tag_name=v${YEAR}.${MONTH}.${WEEK}"
+            echo "tag_name=v${YEAR}.${MONTH}.${WEEK}" >> $GITHUB_OUTPUT
           fi
-          echo "next_tag=v${YEAR}.${MONTH}.${NEXT_WEEK}"
-          echo "next_tag=v${YEAR}.${MONTH}.${NEXT_WEEK}" >> $GITHUB_OUTPUT
         shell: bash
+        env:
+          BRANCH: ${{ needs.find-last-good.outputs.branch }}
 
       - name: Check if tag already exists
         run: |
