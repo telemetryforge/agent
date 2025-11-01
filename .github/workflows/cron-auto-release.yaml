@@ -91,9 +91,9 @@ jobs:
             # Get last tag for branch
             LAST_TAG=$(git describe --tags --match="v*" "$BRANCH" --abbrev=0)
             echo "Found last tag=$LAST_TAG"
-            VNUM1=$(echo "$VERSION" | cut -d"." -f1)
-            VNUM2=$(echo "$VERSION" | cut -d"." -f2)
-            VNUM3=$(echo "$VERSION" | cut -d"." -f3)
+            VNUM1=$(echo "$LAST_TAG" | cut -d"." -f1)
+            VNUM2=$(echo "$LAST_TAG" | cut -d"." -f2)
+            VNUM3=$(echo "$LAST_TAG" | cut -d"." -f3)
             VNUM3=$((VNUM3+1))
             NEW_TAG="$VNUM1.$VNUM2.$VNUM3"
             echo "tag_name=$NEW_TAG"
