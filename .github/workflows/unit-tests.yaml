@@ -169,12 +169,12 @@ jobs:
                       source/build/coveralls.json
                   if-no-files-found: error
 
-            - name: Breakpoint if tests failed
-              if: failure() && contains(runner.name, 'nsc-')
-              uses: namespacelabs/breakpoint-action@v0
-              with:
-                  duration: 5m
-                  authorized-users: patrick-stephens,niedbalski
+            # - name: Breakpoint if tests failed
+            #   if: failure() && contains(runner.name, 'nsc-')
+            #   uses: namespacelabs/breakpoint-action@v0
+            #   with:
+            #       duration: 5m
+            #       authorized-users: patrick-stephens,niedbalski
 
     # Placeholder to make it simple to create a status check on this, do not change name.
     # Instead of modifying branch protection rules every time we add a new job, we just
