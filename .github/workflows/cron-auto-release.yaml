@@ -6,6 +6,12 @@ on:
     # Latest releases
     - cron: "0 10 * * 2"
   workflow_dispatch:
+    inputs:
+      branch:
+        description: The branch we want to trigger a tag for.
+        required: false
+        default: "main"
+        type: string
 jobs:
   find-last-good:
     runs-on: ubuntu-latest
@@ -31,6 +37,12 @@ jobs:
         if: github.event_name == 'schedule' && github.event.schedule=='0 10 * * 2'
         run: |
           echo "BRANCH=main" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Manual run
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "BRANCH=${{ github.event.inputs.branch }}" >> $GITHUB_ENV
         shell: bash
 
       - name: Figure out branch we are running for
