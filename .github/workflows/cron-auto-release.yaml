@@ -118,7 +118,7 @@ jobs:
           if [[ "$BRANCH" != 'main' ]]; then
             echo "Creating next tag name in sequence"
             # Get last tag for branch
-            LAST_TAG=$(git describe --tags --match="v*" "$BRANCH" --abbrev=0)
+            LAST_TAG=$(git describe --tags --match="v*" origin/"$BRANCH" --abbrev=0)
             echo "Found last tag=$LAST_TAG"
             VNUM1=$(echo "$LAST_TAG" | cut -d"." -f1)
             VNUM2=$(echo "$LAST_TAG" | cut -d"." -f2)
