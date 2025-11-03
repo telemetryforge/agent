@@ -511,7 +511,6 @@ jobs:
         with:
           commit-message: "ci: update to new version ${{ steps.get-version.outputs.next_tag }}"
           signoff: true
-          base: main
           branch: ci_update-version-${{ steps.get-version.outputs.next_tag }}
           delete-branch: true
           title: "ci: update version"
