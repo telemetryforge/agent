@@ -68,8 +68,13 @@ jobs:
           # TODO: remove once failures are resolved in package testing
           # https://github.com/FluentDo/agent/issues/73
           job: "All tests complete"
-          verify: true
           fallbackToEarliestSha: true
+
+      - name: Debug
+        run: |
+          echo "SHA: ${{ steps.get-commit.outputs.sha }}"
+          echo "Run ID: ${{ steps.get-commit.outputs.run-id }}"
+        shell: bash
 
   create-tag:
     name: Create tag for ${{ needs.find-last-good.outputs.branch }}
