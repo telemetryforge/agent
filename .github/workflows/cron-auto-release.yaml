@@ -149,7 +149,8 @@ jobs:
           git tag ${{ steps.tag_name.outputs.tag_name }}
         shell: bash
 
-        if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && !github.event.inputs.dry-run) }}
+      - name: Push tag
+        if: ${{ github.event_name != 'workflow_dispatch' || !github.event.inputs.dry-run }}
         run: |
           git push origin ${{ steps.tag_name.outputs.tag_name }}
         shell: bash
