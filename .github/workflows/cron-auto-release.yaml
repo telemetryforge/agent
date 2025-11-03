@@ -74,6 +74,7 @@ jobs:
         run: |
           echo "SHA: ${{ steps.get-commit.outputs.sha }}"
           echo "Run ID: ${{ steps.get-commit.outputs.run-id }}"
+          echo "Run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ steps.get-commit.outputs.run-id }}"
         shell: bash
 
   create-tag:
