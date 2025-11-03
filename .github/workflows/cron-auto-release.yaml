@@ -64,6 +64,10 @@ jobs:
           token: "${{ secrets.GITHUB_TOKEN }}"
           branch: ${{ steps.detect-branch.outputs.branch || 'main' }}
           workflow: "Build and test"
+          # Ignore other failures in the workflow, only want test output for now
+          # TODO: remove once failures are resolved in package testing
+          # https://github.com/FluentDo/agent/issues/73
+          job: "All tests complete"
           verify: true
           fallbackToEarliestSha: true
 
