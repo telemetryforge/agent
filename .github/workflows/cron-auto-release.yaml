@@ -28,9 +28,6 @@ jobs:
       branch: ${{ steps.detect-branch.outputs.branch || 'main' }}
     steps:
       - uses: actions/checkout@v5
-        with:
-          # check out the entire repo history for SHA verification
-          fetch-depth: 0
 
       - name: 25.10 run
         if: github.event_name == 'schedule' && github.event.schedule=='0 10 * * 1'
@@ -58,17 +55,13 @@ jobs:
         shell: bash
 
       - name: Find matching workflow
-        uses: SamhammerAG/last-successful-build-action@v7
+        run: ./scripts/get-last-good-run.sh
         id: get-commit
-        with:
-          token: "${{ secrets.GITHUB_TOKEN }}"
-          branch: ${{ steps.detect-branch.outputs.branch || 'main' }}
-          workflow: "Build and test"
-          # Ignore other failures in the workflow, only want test output for now
-          # TODO: remove once failures are resolved in package testing
-          # https://github.com/FluentDo/agent/issues/73
-          job: "All tests complete"
-          fallbackToEarliestSha: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.detect-branch.outputs.branch }}
+          WORKFLOW: "Build and test"
+          JOB: "All tests complete"
 
       - name: Debug
         run: |
