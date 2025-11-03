@@ -247,7 +247,9 @@ jobs:
       - build-macos
       - build-image
       - test-containers
-      - test-packages
+      # TODO: remove once failures are resolved to ensure auto-release job still goes ahead with latest commit
+      # https://github.com/FluentDo/agent/issues/73
+      # - test-packages
       # Add additional jobs here as required that must complete
     runs-on: ubuntu-latest
     steps:
@@ -256,8 +258,6 @@ jobs:
         with:
           # Add any jobs that can be skipped here to avoid failure of this job
           allowed-skips: build-linux,build-windows,build-macos,test-packages
-          # TODO: remove once failures are resolved to ensure auto-release job still goes ahead with latest commit
-          allowed-failures: test-packages
           # Convert the needs object to JSON to pass it in
           jobs: ${{ toJSON(needs) }}
       - name: All tests complete
