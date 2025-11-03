@@ -454,28 +454,70 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # Fetch all history including tags
 
       - name: Get version info
         id: get-version
         run: |
-          # Create a tag name based on the current date
-          # Format: vYY.M.W
-          YEAR=$(date +%y)
-          MONTH=$(date +%-m)
-          WEEK=$((($(date +%-d)-1)/7+1))
+          # Fetch tags to ensure we can get the latest tag
+          git fetch --tags
 
-          NEXT_WEEK=$((WEEK + 1))
-          # Ignore 5 week months
-          if [ $NEXT_WEEK -gt 4 ]; then
-            NEXT_WEEK=1
-            MONTH=$((MONTH + 1))
-            if [ $MONTH -gt 12 ]; then
-            MONTH=1
-            YEAR=$((YEAR + 1))
+          # Get current branch name
+          CURRENT_BRANCH="${{ github.ref_name }}"
+          DEFAULT_BRANCH="${{ github.event.repository.default_branch }}"
+
+          echo "Current branch: $CURRENT_BRANCH"
+          echo "Default branch: $DEFAULT_BRANCH"
+
+          if [ "$CURRENT_BRANCH" = "$DEFAULT_BRANCH" ]; then
+            echo "INFO: On default branch - using date-based versioning"
+            # Create a tag name based on the current date
+            # Format: vYY.M.W
+            YEAR=$(date +%y)
+            MONTH=$(date +%-m)
+            WEEK=$((($(date +%-d)-1)/7+1))
+
+            NEXT_WEEK=$((WEEK + 1))
+            # Ignore 5 week months
+            if [ $NEXT_WEEK -gt 4 ]; then
+              NEXT_WEEK=1
+              MONTH=$((MONTH + 1))
+              if [ $MONTH -gt 12 ]; then
+              MONTH=1
+              YEAR=$((YEAR + 1))
+              fi
             fi
+            NEXT_TAG="v${YEAR}.${MONTH}.${NEXT_WEEK}"
+          else
+            echo "INFO: On LTS release branch - incrementing patch version"
+            # Get the latest tag
+            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
+            echo "INFO: Latest tag: $LATEST_TAG"
+
+            # Extract version numbers (remove 'v' prefix)
+            VERSION=${LATEST_TAG#v}
+
+            # Validate version format (basic check for x.y.z)
+            if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "ERROR: Latest tag '$LATEST_TAG' doesn't match expected format vX.Y.Z, using v0.0.0"
+              exit 1
+            fi
+
+            # Split version into parts
+            IFS='.' read -ra VERSION_PARTS <<< "$VERSION"
+            MAJOR=${VERSION_PARTS[0]}
+            MINOR=${VERSION_PARTS[1]}
+            PATCH=${VERSION_PARTS[2]}
+
+            # Increment patch version
+            PATCH=$((PATCH + 1))
+
+            NEXT_TAG="v${MAJOR}.${MINOR}.${PATCH}"
           fi
-          echo "next_tag=v${YEAR}.${MONTH}.${NEXT_WEEK}"
-          echo "next_tag=v${YEAR}.${MONTH}.${NEXT_WEEK}" >> $GITHUB_OUTPUT
+
+          echo "INFO: Next tag: $NEXT_TAG"
+          echo "next_tag=$NEXT_TAG" >> $GITHUB_OUTPUT
         shell: bash
 
       - name: Update version to next week
