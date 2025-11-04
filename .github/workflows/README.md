@@ -61,7 +61,7 @@ The CI/CD pipeline is designed to:
 
 ### Build and Test
 
-**File:** [`.github/workflows/build.yaml`](.github/workflows/build.yaml)
+**File:** [`.github/workflows/build.yaml`](./build.yaml)
 
 **Triggers:**
 
@@ -106,7 +106,7 @@ The CI/CD pipeline is designed to:
 
 ### Unit Tests
 
-**File:** [`.github/workflows/unit-tests.yaml`](.github/workflows/unit-tests.yaml)
+**File:** [`.github/workflows/unit-tests.yaml`](./unit-tests.yaml)
 
 **Triggers:**
 
@@ -135,7 +135,7 @@ The CI/CD pipeline is designed to:
 
 ### Lint
 
-**File:** [`.github/workflows/lint.yaml`](.github/workflows/lint.yaml)
+**File:** [`.github/workflows/lint.yaml`](./lint.yaml)
 
 **Triggers:**
 
@@ -161,7 +161,7 @@ The CI/CD pipeline is designed to:
 
 ### Lint Packages
 
-**File:** [`.github/workflows/lint-packages.yaml`](.github/workflows/lint-packages.yaml)
+**File:** [`.github/workflows/lint-packages.yaml`](./lint-packages.yaml)
 
 **Triggers:**
 
@@ -184,7 +184,7 @@ The CI/CD pipeline is designed to:
 
 ### Test Specific Versions
 
-**File:** [`.github/workflows/test.yaml`](.github/workflows/test.yaml)
+**File:** [`.github/workflows/test.yaml`](./test.yaml)
 
 **Triggers:**
 
@@ -207,7 +207,7 @@ The CI/CD pipeline is designed to:
 
 ### Auto Release
 
-**File:** [`.github/workflows/cron-auto-release.yaml`](.github/workflows/cron-auto-release.yaml)
+**File:** [`.github/workflows/cron-auto-release.yaml`](./cron-auto-release.yaml)
 
 **Triggers:**
 
@@ -238,7 +238,7 @@ The CI/CD pipeline is designed to:
 
 ### Update Version
 
-**File:** [`.github/workflows/update-version.yaml`](.github/workflows/update-version.yaml)
+**File:** [`.github/workflows/update-version.yaml`](./update-version.yaml)
 
 **Triggers:**
 
@@ -268,7 +268,7 @@ The CI/CD pipeline is designed to:
 
 ### Build Containers
 
-**File:** [`.github/workflows/call-build-containers.yaml`](.github/workflows/call-build-containers.yaml)
+**File:** [`.github/workflows/call-build-containers.yaml`](./call-build-containers.yaml)
 
 **Purpose:** Builds multi-architecture container images with signing.
 
@@ -310,7 +310,7 @@ The CI/CD pipeline is designed to:
 
 ### Build Linux Packages
 
-**File:** [`.github/workflows/call-build-linux-packages.yaml`](.github/workflows/call-build-linux-packages.yaml)
+**File:** [`.github/workflows/call-build-linux-packages.yaml`](./call-build-linux-packages.yaml)
 
 **Purpose:** Builds Linux packages (DEB, RPM) for multiple distributions.
 
@@ -356,7 +356,7 @@ The CI/CD pipeline is designed to:
 
 ### Build Windows Packages
 
-**File:** [`.github/workflows/call-build-windows-packages.yaml`](.github/workflows/call-build-windows-packages.yaml)
+**File:** [`.github/workflows/call-build-windows-packages.yaml`](./call-build-windows-packages.yaml)
 
 **Purpose:** Builds Windows packages (EXE, MSI, ZIP).
 
@@ -388,7 +388,7 @@ The CI/CD pipeline is designed to:
 
 ### Build macOS Packages
 
-**File:** [`.github/workflows/call-build-macos-packages.yaml`](.github/workflows/call-build-macos-packages.yaml)
+**File:** [`.github/workflows/call-build-macos-packages.yaml`](./call-build-macos-packages.yaml)
 
 **Purpose:** Builds macOS packages (PKG) for Intel and Apple Silicon.
 
@@ -424,7 +424,7 @@ The CI/CD pipeline is designed to:
 
 ### Test Containers
 
-**File:** [`.github/workflows/call-test-containers.yaml`](.github/workflows/call-test-containers.yaml)
+**File:** [`.github/workflows/call-test-containers.yaml`](./call-test-containers.yaml)
 
 **Purpose:** Comprehensive container testing including BATS, Kubernetes, and certification.
 
@@ -458,7 +458,7 @@ The CI/CD pipeline is designed to:
 
 ### Test Containers on Kubernetes
 
-**File:** [`.github/workflows/call-test-containers-k8s.yaml`](.github/workflows/call-test-containers-k8s.yaml)
+**File:** [`.github/workflows/call-test-containers-k8s.yaml`](./call-test-containers-k8s.yaml)
 
 **Purpose:** Tests container images on Kubernetes clusters.
 
@@ -488,7 +488,7 @@ The CI/CD pipeline is designed to:
 
 ### Test Packages
 
-**File:** [`.github/workflows/call-test-packages.yaml`](.github/workflows/call-test-packages.yaml)
+**File:** [`.github/workflows/call-test-packages.yaml`](./call-test-packages.yaml)
 
 **Purpose:** Tests Linux packages on target distributions.
 
@@ -527,7 +527,7 @@ The CI/CD pipeline is designed to:
 
 ### Publish Release Images
 
-**File:** [`.github/workflows/call-publish-release-images.yaml`](.github/workflows/call-publish-release-images.yaml)
+**File:** [`.github/workflows/call-publish-release-images.yaml`](./call-publish-release-images.yaml)
 
 **Purpose:** Promotes release images to production registries.
 

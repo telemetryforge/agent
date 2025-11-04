@@ -134,7 +134,7 @@ cmake ..
 make
 ```
 
-[Refer to the CI](./.github/README.md) for full examples of different target builds:
+[Refer to the CI](./.github/workflows/README.md) for full examples of different target builds:
 
 - [Container builds](./.github/workflows/call-build-containers.yaml)
 - [Linux builds](./.github/workflows/call-build-linux-packages.yaml)
