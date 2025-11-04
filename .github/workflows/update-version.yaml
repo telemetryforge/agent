@@ -64,7 +64,7 @@ jobs:
                   echo NEW_TAG="$GENERATED_VERSION"
                   echo NEW_TAG="$GENERATED_VERSION" >> $GITHUB_ENV
 
-                  echo BRANCH="release/${VERSION}-lts"
+                  echo BRANCH="release/${MAJOR}.${MINOR}-lts"
                   echo BASE_BRANCH="$BRANCH"
                   echo BASE_BRANCH="$BRANCH" >> $GITHUB_ENV
               shell: bash
