@@ -10,6 +10,11 @@ on:
                 description: The new tag to apply
                 required: true
                 type: string
+            base-branch:
+                description: The base branch to use for the PR
+                required: false
+                default: main
+                type: string
             dry-run:
                 description: Dry-run the change by doing everything except creating the PR
                 required: false
@@ -33,10 +38,15 @@ jobs:
               run: |
                   echo NEW_TAG=${{ github.event.inputs.new-tag }}
                   echo NEW_TAG=${{ github.event.inputs.new-tag }} >> $GITHUB_ENV
+
+                  echo BASE_BRANCH="${{ github.event.inputs.base-branch }}"
+                  echo BASE_BRANCH="${{ github.event.inputs.base-branch }}" >> $GITHUB_ENV
               shell: bash
 
             - name: Set LTS tag by incrementing current one
               if: github.event_name != 'workflow_dispatch' && startsWith(github.ref_name, 'v25.10')
+              env:
+                  LATEST_TAG: ${{ github.ref_name }}
               run: |
                   # Extract version numbers (remove 'v' prefix)
                   VERSION=${LATEST_TAG#v}
@@ -68,8 +78,6 @@ jobs:
                   echo BASE_BRANCH="$BRANCH"
                   echo BASE_BRANCH="$BRANCH" >> $GITHUB_ENV
               shell: bash
-              env:
-                  LATEST_TAG: ${{ github.ref_name }}
 
             - name: Fallback to set mainline tag based on date
               run: |
@@ -93,7 +101,9 @@ jobs:
                     GENERATED_VERSION="v${year}.${month}.${next_week}"
                     echo NEW_TAG="$GENERATED_VERSION"
                     echo NEW_TAG="$GENERATED_VERSION" >> $GITHUB_ENV
+                  fi
 
+                  if [[ -z "${BASE_BRANCH:-}" ]]; then
                     echo BASE_BRANCH="main"
                     echo BASE_BRANCH="main" >> $GITHUB_ENV
                   fi
