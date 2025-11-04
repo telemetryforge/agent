@@ -35,9 +35,19 @@ jobs:
 
             - name: Set manual tag
               if: github.event_name == 'workflow_dispatch'
+              env:
+                INPUT_TAG: ${{ github.event.inputs.new-tag }}
               run: |
-                  echo NEW_TAG=${{ github.event.inputs.new-tag }}
-                  echo NEW_TAG=${{ github.event.inputs.new-tag }} >> $GITHUB_ENV
+                  VERSION=${INPUT_TAG#v}
+
+                  # Validate version format (basic check for x.y.z)
+                  if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    echo "ERROR: Latest tag '$INPUT_TAG' doesn't match expected format vX.Y.Z"
+                    exit 1
+                  fi
+
+                  echo NEW_TAG="v$VERSION"
+                  echo NEW_TAG="v$VERSION" >> $GITHUB_ENV
 
                   echo BASE_BRANCH="${{ github.event.inputs.base-branch }}"
                   echo BASE_BRANCH="${{ github.event.inputs.base-branch }}" >> $GITHUB_ENV
