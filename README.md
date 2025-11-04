@@ -25,6 +25,9 @@
 | **[25.10](https://github.com/orgs/FluentDo/projects/3)** | Oct 2025 | LTS | Oct 2027 | 🟢 Active | `release/25.10-lts` |
 | 25.07 | Jul 2025 | Regular | Jan 2026 | 🟢 Active ||
 
+Main releases follow a date-based format with `Year.Month.Week` forming the version.
+Once it transitions to an LTS release then we maintain the major and minor versions from then on, only incrementing the patch version.
+
 ### Release Schedule
 
 | Release Type | Frequency | Description |

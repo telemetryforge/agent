@@ -39,27 +39,37 @@ jobs:
               if: github.event_name != 'workflow_dispatch' && startsWith(github.ref_name, 'v25.10')
               run: |
                   # Extract version numbers (remove 'v' prefix)
-                  version=${latest_tag#v}
+                  VERSION=${LATEST_TAG#v}
 
                   # Validate version format (basic check for x.y.z)
-                  if [[ ! $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-                    echo "ERROR: Latest tag '$latest_tag' doesn't match expected format vX.Y.Z"
+                  if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    echo "ERROR: Latest tag '$LATEST_TAG' doesn't match expected format vX.Y.Z"
                     exit 1
                   fi
 
                   # Split version into parts
-                  IFS='.' read -ra version_parts <<<"$version"
-                  major=${version_parts[0]}
-                  minor=${version_parts[1]}
-                  patch=${version_parts[2]}
+                  IFS='.' read -ra VERSION_PARTS <<<"$VERSION"
+                  MAJOR=${VERSION_PARTS[0]}
+                  MINOR=${VERSION_PARTS[1]}
+                  PATCH=${VERSION_PARTS[2]}
+
+                  echo "MAJOR=$MAJOR"
+                  echo "MINOR=$MINOR"
+                  echo "PATCH=$PATCH"
 
                   # Increment patch version
-                  patch=$((patch + 1))
+                  PATCH=$((PATCH + 1))
 
-                  GENERATED_VERSION="v${major}.${minor}.${patch}"
+                  GENERATED_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
                   echo NEW_TAG="$GENERATED_VERSION"
                   echo NEW_TAG="$GENERATED_VERSION" >> $GITHUB_ENV
+
+                  echo BRANCH="release/${version}-lts"
+                  echo BASE_BRANCH="$BRANCH"
+                  echo BASE_BRANCH="$BRANCH" >> $GITHUB_ENV
               shell: bash
+              env:
+                  LATEST_TAG: ${{ github.ref_name }}
 
             - name: Fallback to set mainline tag based on date
               run: |
@@ -83,6 +93,9 @@ jobs:
                     GENERATED_VERSION="v${year}.${month}.${next_week}"
                     echo NEW_TAG="$GENERATED_VERSION"
                     echo NEW_TAG="$GENERATED_VERSION" >> $GITHUB_ENV
+
+                    echo BASE_BRANCH="main"
+                    echo BASE_BRANCH="main" >> $GITHUB_ENV
                   fi
               shell: bash
 
@@ -91,6 +104,9 @@ jobs:
               run: |
                   echo "next_tag=$NEW_TAG"
                   echo "next_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+
+                  echo "base_branch=$BASE_BRANCH"
+                  echo "base_branch=$BASE_BRANCH" >> $GITHUB_OUTPUT
               shell: bash
 
             - name: Update version to next week
@@ -134,6 +150,7 @@ jobs:
                   delete-branch: true
                   title: "ci: update version"
                   token: ${{ steps.get-secrets.outputs.github-pat }}
+                  base: ${{ steps.get-version.outputs.base_branch }}
                   labels: ci,automerge
                   body: |
                       Update version
