@@ -302,7 +302,7 @@ jobs:
 
       - name: Filter out headers and extra packages
         run: |
-          find output/ -type f \( -iname '*-headers.rpm' --o -iname '*-extra.rpm' -o -iname '*-headers.deb' -o -iname '*-extra.deb' -delete -print
+          find output/ -type f \( -iname '*-headers.rpm' --o -iname '*-extra.rpm' -o -iname '*-headers.deb' -o -iname '*-extra.deb' \) -delete -print
         shell: bash
 
       - name: Package into a single tarball so we can have individual distributions

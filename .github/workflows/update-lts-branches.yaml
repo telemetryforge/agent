@@ -42,6 +42,14 @@ jobs:
                   git diff
               shell: bash
 
+            - name: Authenticate with GCP
+              uses: google-github-actions/auth@v3
+              with:
+                  workload_identity_provider: "projects/841522437311/locations/global/workloadIdentityPools/github-actions/providers/github-actions"
+                  service_account: "terraform-infra@infrastructure-464010.iam.gserviceaccount.com"
+                  create_credentials_file: true
+                  export_environment_variables: true
+
             - id: get-secrets
               name: Get secrets from GCP Secret Manager
               # This step retrieves secrets from GCP Secret Manager and sets them as outputs
