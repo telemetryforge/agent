@@ -21,7 +21,7 @@ setup() {
             skip "Skipping test: $PACKAGE_NAME RPM not installed"
         fi
     elif command -v dpkg &>/dev/null; then
-        if dpkg -l | grep -qv "ii.*$PACKAGE_NAME" ; then
+        if ! dpkg -l | grep -q "ii.*fluentdo-agent" ; then
             skip "Skipping test: $PACKAGE_NAME DEB not installed"
         fi
     fi
