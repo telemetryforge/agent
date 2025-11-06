@@ -1572,20 +1572,6 @@ if(FLB_CPACK_SYSVINIT)
   set(CPACK_RPM_PACKAGE_REQUIRES_POST "initscripts")
 endif(FLB_CPACK_SYSVINIT)
 
-# Create symlink from /opt/fluent-bit to CMAKE_INSTALL_PREFIX on Linux only
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-  install(CODE "
-    if(NOT EXISTS \"/opt/fluent-bit\")
-      execute_process(COMMAND \${CMAKE_COMMAND} -E create_symlink
-        \"${CMAKE_INSTALL_PREFIX}\"
-        \"/opt/fluent-bit\")
-      message(STATUS \"Created symlink: /opt/fluent-bit -> ${CMAKE_INSTALL_PREFIX}\")
-    else()
-      message(STATUS \"Symlink /opt/fluent-bit already exists, skipping creation\")
-    endif()
-  " COMPONENT binary)
-endif()
-
 include(CPack)
 
 # Show install destinations
