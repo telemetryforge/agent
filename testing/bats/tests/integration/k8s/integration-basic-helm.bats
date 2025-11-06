@@ -17,6 +17,16 @@ DETIK_CLIENT_NAMESPACE=$NAMESPACE
 # bats file_tags=integration,k8s
 
 function setup() {
+    if ! command -v helm &> /dev/null; then
+        skip 'Skipping test: helm not found'
+    fi
+    if ! command -v kubectl &> /dev/null; then
+        skip 'Skipping test: kubectl not found'
+    fi
+    if ! kubectl get nodes >/dev/null 2>&1; then
+        skip "Skipping test: K8S cluster not accessible"
+    fi
+
     helm repo add fluent https://fluent.github.io/helm-charts --force-update
     helm repo update --fail-on-repo-update-fail
 

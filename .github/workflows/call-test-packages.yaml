@@ -106,8 +106,6 @@ jobs:
     permissions:
       contents: read
       packages: read
-    env:
-      FLUENT_BIT_BINARY: /opt/fluent-bit/bin/fluent-bit
     strategy:
       fail-fast: false
       matrix:
@@ -152,27 +150,12 @@ jobs:
         run: ls -lRh downloads/
         shell: bash
 
-      - name: Build test container
-        uses: docker/build-push-action@v6
-        with:
-          file: testing/Dockerfile.bats
-          # We only build for amd64 as the test image is only used for running BATS tests
-          platforms: linux/amd64
-          target: test
-          build-args: |
-            BASE_BUILDER=${{ matrix.config.image }}
-          provenance: false
-          load: true
-          tags: bats/test/${{ matrix.config.distro }}
-
-      - name: Run functional tests against local container
-        run: |
-          docker run --rm -t \
-            -v $PWD/downloads:/downloads:ro \
-            -e FLUENT_BIT_BINARY="$FLUENT_BIT_BINARY" \
-            -e FLUENTDO_AGENT_VERSION="$FLUENTDO_AGENT_VERSION" \
-            bats/test/${{ matrix.config.distro }}
+      - name: Run package tests for ${{ matrix.config.distro }}
+        run: ./testing/bats/run-package-functional-tests.sh
         shell: bash
+        env:
+          BASE_IMAGE: ${{ matrix.config.image }}
+          DISTRO: ${{ matrix.config.distro }}
 
   # Test packages installed on the actual target OS
   # For now we just use the ephemeral runners
@@ -188,11 +171,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: ubuntu-latest
+          - runner: ubuntu-24.04
             package-type: deb
             package: package-ubuntu-24.04
             name: ubuntu
-            binary: /opt/fluent-bit/bin/fluent-bit
+            binary: /opt/fluentdo-agent/bin/fluent-bit
           # - runner: windows-latest
           #   package-type: msi
           #   package: package-windows
@@ -238,8 +221,8 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          find "downloads/" -name 'fluentdo-agent_*_amd64.deb' -exec sudo apt-get install -y {} \;
-          ls -lRh /opt/
+          find "$PWD/downloads/" -name '*.deb' -exec sh -c 'i="$1";echo "$i";sudo apt-get install -y "$i"' shell {} \;
+          ls -lRh /opt/fluent*
         shell: bash
 
       - name: Install package
@@ -249,7 +232,6 @@ jobs:
           msiexec.exe /i "$($msi.FullName)" /quiet /qn
         shell: pwsh
 
-      # We run both all tests for packages, not containers or K8S
-      - name: Run all tests
-        run: ./testing/bats/run-bats.sh --filter-tags '!container,!k8s' --recursive "$PWD/testing/bats/tests"
+      - name: Run integration tests
+        run: ./testing/bats/run-package-integration-tests.sh
         shell: bash

@@ -1,0 +1,192 @@
+name: Update version on release
+on:
+    push:
+        tags:
+            - v*
+
+    workflow_dispatch:
+        inputs:
+            new-tag:
+                description: The new tag to apply
+                required: true
+                type: string
+            base-branch:
+                description: The base branch to use for the PR
+                required: false
+                default: main
+                type: string
+            dry-run:
+                description: Dry-run the change by doing everything except creating the PR
+                required: false
+                default: true
+                type: boolean
+jobs:
+    update-version:
+        name: Update version
+        permissions:
+            contents: read
+            pull-requests: write
+            id-token: write
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v5
+              with:
+                  fetch-depth: 0 # Fetch all history including tags
+
+            - name: Set manual tag
+              if: github.event_name == 'workflow_dispatch'
+              env:
+                INPUT_TAG: ${{ github.event.inputs.new-tag }}
+              run: |
+                  VERSION=${INPUT_TAG#v}
+
+                  # Validate version format (basic check for x.y.z)
+                  if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    echo "ERROR: Latest tag '$INPUT_TAG' doesn't match expected format vX.Y.Z"
+                    exit 1
+                  fi
+
+                  echo NEW_TAG="v$VERSION"
+                  echo NEW_TAG="v$VERSION" >> $GITHUB_ENV
+
+                  echo BASE_BRANCH="${{ github.event.inputs.base-branch }}"
+                  echo BASE_BRANCH="${{ github.event.inputs.base-branch }}" >> $GITHUB_ENV
+              shell: bash
+
+            - name: Set LTS tag by incrementing current one
+              if: github.event_name != 'workflow_dispatch' && startsWith(github.ref_name, 'v25.10')
+              env:
+                  LATEST_TAG: ${{ github.ref_name }}
+              run: |
+                  # Extract version numbers (remove 'v' prefix)
+                  VERSION=${LATEST_TAG#v}
+
+                  # Validate version format (basic check for x.y.z)
+                  if [[ ! $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                    echo "ERROR: Latest tag '$LATEST_TAG' doesn't match expected format vX.Y.Z"
+                    exit 1
+                  fi
+
+                  # Split version into parts
+                  IFS='.' read -ra VERSION_PARTS <<<"$VERSION"
+                  MAJOR=${VERSION_PARTS[0]}
+                  MINOR=${VERSION_PARTS[1]}
+                  PATCH=${VERSION_PARTS[2]}
+
+                  echo "MAJOR=$MAJOR"
+                  echo "MINOR=$MINOR"
+                  echo "PATCH=$PATCH"
+
+                  # Increment patch version
+                  PATCH=$((PATCH + 1))
+
+                  GENERATED_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+                  echo NEW_TAG="$GENERATED_VERSION"
+                  echo NEW_TAG="$GENERATED_VERSION" >> $GITHUB_ENV
+
+                  echo BRANCH="release/${MAJOR}.${MINOR}-lts"
+                  echo BASE_BRANCH="$BRANCH"
+                  echo BASE_BRANCH="$BRANCH" >> $GITHUB_ENV
+              shell: bash
+
+            - name: Fallback to set mainline tag based on date
+              run: |
+                  if [[ -n "${NEW_TAG:-}" ]]; then
+                    echo "Skipping as already have new tag: $NEW_TAG"
+                  else
+                    year=$(date +%y)
+                    month=$(date +%-m)
+                    week=$((($(date +%-d) - 1) / 7 + 1))
+
+                    next_week=$((week + 1))
+                    # Ignore 5 week months
+                    if [ $next_week -gt 4 ]; then
+                      next_week=1
+                      month=$((month + 1))
+                      if [ $month -gt 12 ]; then
+                        month=1
+                        year=$((year + 1))
+                      fi
+                    fi
+                    GENERATED_VERSION="v${year}.${month}.${next_week}"
+                    echo NEW_TAG="$GENERATED_VERSION"
+                    echo NEW_TAG="$GENERATED_VERSION" >> $GITHUB_ENV
+                  fi
+
+                  if [[ -z "${BASE_BRANCH:-}" ]]; then
+                    echo BASE_BRANCH="main"
+                    echo BASE_BRANCH="main" >> $GITHUB_ENV
+                  fi
+              shell: bash
+
+            - name: Output tag
+              id: get-version
+              run: |
+                  echo "next_tag=$NEW_TAG"
+                  echo "next_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+
+                  echo "base_branch=$BASE_BRANCH"
+                  echo "base_branch=$BASE_BRANCH" >> $GITHUB_OUTPUT
+              shell: bash
+
+            - name: Update version to next week
+              run: ./scripts/update-version.sh
+              shell: bash
+              env:
+                  NEW_FLUENTDO_AGENT_VERSION: ${{ steps.get-version.outputs.next_tag }}
+
+            - name: Debug
+              run: |
+                  git status
+                  git log -n 1
+                  git diff
+              shell: bash
+
+            - name: Authenticate with GCP
+              uses: google-github-actions/auth@v3
+              with:
+                  workload_identity_provider: "projects/841522437311/locations/global/workloadIdentityPools/github-actions/providers/github-actions"
+                  service_account: "terraform-infra@infrastructure-464010.iam.gserviceaccount.com"
+                  create_credentials_file: true
+                  export_environment_variables: true
+
+            - id: get-secrets
+              name: Get secrets from GCP Secret Manager
+              # This step retrieves secrets from GCP Secret Manager and sets them as outputs
+              # The secrets can then be accessed in subsequent steps using ${{ steps.get-secrets.outputs.<secret_name> }}
+              uses: "google-github-actions/get-secretmanager-secrets@v3"
+              with:
+                  secrets: |-
+                      github-pat:projects/626836145334/secrets/GITHUB_CI_PAT
+
+            - name: Create a PR with the update
+              if: ${{ github.event_name != 'workflow_dispatch' || !github.event.inputs.dry-run }}
+              id: cpr
+              uses: peter-evans/create-pull-request@v7
+              with:
+                  commit-message: "ci: update to new version ${{ steps.get-version.outputs.next_tag }}"
+                  signoff: true
+                  branch: ci_update-version-${{ steps.get-version.outputs.next_tag }}
+                  delete-branch: true
+                  title: "ci: update version"
+                  token: ${{ steps.get-secrets.outputs.github-pat }}
+                  base: ${{ steps.get-version.outputs.base_branch }}
+                  labels: ci,automerge
+                  body: |
+                      Update version
+                      - Created by ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                      - Auto-generated by create-pull-request: https://github.com/peter-evans/create-pull-request
+                  draft: false
+
+            - name: Check outputs
+              if: ${{ steps.cpr.outputs.pull-request-number }}
+              run: |
+                  echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+                  echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
+              shell: bash
+
+            - name: Enable Pull Request Automerge
+              if: ${{ steps.cpr.outputs.pull-request-number }}
+              run: gh pr merge --squash --auto "${{ steps.cpr.outputs.pull-request-number }}"
+              env:
+                  GH_TOKEN: ${{ steps.get-secrets.outputs.github-pat }}

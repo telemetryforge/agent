@@ -128,7 +128,7 @@ COPY . ./
 
 WORKDIR /source/fluent-bit/build/
 # CMake configuration variables
-ARG CMAKE_INSTALL_PREFIX=/opt/fluent-bit/
+ARG CMAKE_INSTALL_PREFIX=/opt/fluentdo-agent/
 ARG CMAKE_INSTALL_SYSCONFDIR=/etc/
 
 # No YAML support
