@@ -18,7 +18,7 @@ setup() {
     fi
 
     export PACKAGE_NAME="fluentdo-agent"
-    if dpkg -l | grep -qv "ii.*$PACKAGE_NAME" ; then
+    if ! dpkg -l | grep -q "ii.*$PACKAGE_NAME" ; then
         skip "Skipping test: $PACKAGE_NAME DEB not installed"
     fi
 }
