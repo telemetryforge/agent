@@ -18,7 +18,7 @@ setup() {
     fi
 
     export PACKAGE_NAME="fluentdo-agent"
-    if rpm -qa | grep -qv "$PACKAGE_NAME" ; then
+    if ! rpm -qa | grep -q "$PACKAGE_NAME" ; then
         skip "Skipping test: $PACKAGE_NAME RPM not installed"
     fi
 }
