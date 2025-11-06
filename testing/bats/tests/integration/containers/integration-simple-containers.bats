@@ -11,12 +11,11 @@ CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
 
 # bats file_tags=integration,containers
 
-# All container tests assume Docker is available and can run containers
-@test "integration: verify running containers and skipping if Docker not available" {
-    if ! "$CONTAINER_RUNTIME" version >/dev/null 2>&1; then
-        skip "Skipping test: Docker not available"
+setup() {
+    # All container tests assume Docker is available and can run containers
+    if ! command -v "$CONTAINER_RUNTIME" &>/dev/null; then
+        skip "Skipping test: no $CONTAINER_RUNTIME"
     fi
-    "$CONTAINER_RUNTIME" version
 }
 
 # All container tests use the environment variable FLUENTDO_AGENT_IMAGE to determine which image to test

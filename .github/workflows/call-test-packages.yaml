@@ -221,8 +221,8 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          find "downloads/" -name 'fluentdo-agent_*_amd64.deb' -exec sudo apt-get install -y {} \;
-          ls -lRh /opt/
+          find "$PWD/downloads/" -name '*.deb' -exec sh -c 'i="$1";echo "$i";sudo apt-get install -y "$i"' shell {} \;
+          ls -lRh /opt/fluent*
         shell: bash
 
       - name: Install package
@@ -233,6 +233,10 @@ jobs:
         shell: pwsh
 
       # We run both all tests for packages, not containers or K8S
-      - name: Run all tests
-        run: ./testing/bats/run-bats.sh --filter-tags '!container,!k8s' --recursive "$PWD/testing/bats/tests"
+      - name: Run integration tests
+        run: ./testing/bats/run-package-integration-tests.sh
+        shell: bash
+
+      - name: Run functional tests
+        run: ./testing/bats/run-package-functional-tests.sh
         shell: bash
