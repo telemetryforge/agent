@@ -40,7 +40,7 @@ on:
         description: The label to use for the runner (if not specified then the default ubuntu-latest or equivalent is used).
         required: false
         type: string
-        default: 'namespace-profile-ubuntu-latest-4cpu-16gb'
+        default: "namespace-profile-ubuntu-latest-4cpu-16gb"
     secrets:
       gpg_private_key:
         description: The optional GPG key to use for signing the packages.
@@ -139,17 +139,24 @@ jobs:
           if-no-files-found: error
 
       - name: List packages
-        continue-on-error: false
+        continue-on-error: true
         run: ls -lR source/packaging/packages/${{ matrix.distro }}/agent
         shell: bash
 
+      - name: Debug package structure
+        continue-on-error: true
+        run: |
+          find source/packaging/packages/ -type f -name '*.deb' -exec sh -c 'i="$1";echo "$i";dpkg -c "$i"' shell {} \;
+          find source/packaging/packages/ -type f -name '*.rpm' -exec sh -c 'i="$1";echo "$i";docker run --rm -t -v "$PWD/$i":/test.rpm:ro registry.access.redhat.com/ubi9:9.5 rpm -qlp /test.rpm' shell {} \;
+        shell: bash
+
       - name: List DEB package dependencies
-        continue-on-error: false
+        continue-on-error: true
         run: find source/packaging/packages/ -type f -name '*.deb' -exec sh -c 'i="$1";echo "$i";dpkg -I "$i"' shell {} \;
         shell: bash
 
       - name: List RPM package dependencies
-        continue-on-error: false
+        continue-on-error: true
         run: find source/packaging/packages/ -type f -name '*.rpm' -exec sh -c 'i="$1";echo "$i";docker run --rm -t -v "$PWD/$i":/test.rpm:ro registry.access.redhat.com/ubi9:9.5 yum -q deplist /test.rpm' shell {} \;
         shell: bash
 

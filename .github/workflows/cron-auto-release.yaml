@@ -28,9 +28,6 @@ jobs:
       branch: ${{ steps.detect-branch.outputs.branch || 'main' }}
     steps:
       - uses: actions/checkout@v5
-        with:
-          # check out the entire repo history for SHA verification
-          fetch-depth: 0
 
       - name: 25.10 run
         if: github.event_name == 'schedule' && github.event.schedule=='0 10 * * 1'
@@ -58,18 +55,20 @@ jobs:
         shell: bash
 
       - name: Find matching workflow
-        uses: SamhammerAG/last-successful-build-action@v7
+        run: ./scripts/get-last-good-run.sh
         id: get-commit
-        with:
-          token: "${{ secrets.GITHUB_TOKEN }}"
-          branch: ${{ steps.detect-branch.outputs.branch || 'main' }}
-          workflow: "Build and test"
-          # Ignore other failures in the workflow, only want test output for now
-          # TODO: remove once failures are resolved in package testing
-          # https://github.com/FluentDo/agent/issues/73
-          job: "All tests complete"
-          verify: true
-          fallbackToEarliestSha: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.detect-branch.outputs.branch }}
+          WORKFLOW: "Build and test"
+          JOB: "All tests complete"
+
+      - name: Debug
+        run: |
+          echo "SHA: ${{ steps.get-commit.outputs.sha }}"
+          echo "Run ID: ${{ steps.get-commit.outputs.run-id }}"
+          echo "Run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ steps.get-commit.outputs.run-id }}"
+        shell: bash
 
   create-tag:
     name: Create tag for ${{ needs.find-last-good.outputs.branch }}
@@ -113,7 +112,7 @@ jobs:
           if [[ "$BRANCH" != 'main' ]]; then
             echo "Creating next tag name in sequence"
             # Get last tag for branch
-            LAST_TAG=$(git describe --tags --match="v*" "$BRANCH" --abbrev=0)
+            LAST_TAG=$(git describe --tags --match="v*" origin/"$BRANCH" --abbrev=0)
             echo "Found last tag=$LAST_TAG"
             VNUM1=$(echo "$LAST_TAG" | cut -d"." -f1)
             VNUM2=$(echo "$LAST_TAG" | cut -d"." -f2)
