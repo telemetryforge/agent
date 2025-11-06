@@ -1572,4 +1572,34 @@ if(FLB_CPACK_SYSVINIT)
   set(CPACK_RPM_PACKAGE_REQUIRES_POST "initscripts")
 endif(FLB_CPACK_SYSVINIT)
 
+# Create symlink from /opt/fluent-bit to CMAKE_INSTALL_PREFIX on Linux only
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+  install(CODE "
+    if(NOT EXISTS \"/opt/fluent-bit\")
+      execute_process(COMMAND \${CMAKE_COMMAND} -E create_symlink
+        \"${CMAKE_INSTALL_PREFIX}\"
+        \"/opt/fluent-bit\")
+      message(STATUS \"Created symlink: /opt/fluent-bit -> ${CMAKE_INSTALL_PREFIX}\")
+    else()
+      message(STATUS \"Symlink /opt/fluent-bit already exists, skipping creation\")
+    endif()
+  " COMPONENT binary)
+endif()
+
 include(CPack)
+
+# Show install destinations
+message(STATUS "=== CPack Debug Info ===")
+message(STATUS "CPACK_PACKAGE_NAME: ${CPACK_PACKAGE_NAME}")
+message(STATUS "CPACK_PACKAGE_VERSION: ${CPACK_PACKAGE_VERSION}")
+message(STATUS "CPACK_INSTALL_PREFIX: ${CPACK_INSTALL_PREFIX}")
+message(STATUS "CPACK_PACKAGE_FILE_NAME: ${CPACK_PACKAGE_FILE_NAME}")
+message(STATUS "CPACK_GENERATOR: ${CPACK_GENERATOR}")
+message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "Binaries install to: ${CMAKE_INSTALL_BINDIR}")
+message(STATUS "Libraries install to: ${CMAKE_INSTALL_LIBDIR}")
+
+# Show what files will be packaged
+file(GLOB_RECURSE INSTALL_FILES "${CMAKE_INSTALL_PREFIX}/*")
+message(STATUS "Files to package: ${INSTALL_FILES}")
+

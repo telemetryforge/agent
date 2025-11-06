@@ -66,7 +66,7 @@ jobs:
               with:
                   commit-message: "ci: update workflows on ${{ matrix.branch }} from main"
                   signoff: true
-                  branch: ${{ matrix.branch }}/ci_update_workflows
+                  branch: ci_update_workflows-${{ matrix.branch }}
                   delete-branch: true
                   title: "ci: update workflows on ${{ matrix.branch }}"
                   token: ${{ steps.get-secrets.outputs.github-pat }}
