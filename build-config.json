@@ -1,26 +1,7 @@
 {
   "linux_targets": [
     "almalinux/8",
-    "almalinux/9",
-    "almalinux/10",
-    "amazonlinux/2023",
-    "centos/6",
-    "centos/7",
-    "centos/8",
-    "centos/9",
-    "centos/10",
-    "mariner/2",
-    "rockylinux/8",
-    "rockylinux/9",
-    "rockylinux/10",
-    "debian/buster",
-    "debian/bullseye",
-    "debian/bookworm",
-    "debian/trixie",
-    "ubuntu/20.04",
-    "ubuntu/22.04",
-    "ubuntu/24.04",
-    "suse/15"
+    "ubuntu/24.04"
   ],
   "release": {
     "linux_targets": [
