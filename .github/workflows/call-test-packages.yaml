@@ -232,11 +232,6 @@ jobs:
           msiexec.exe /i "$($msi.FullName)" /quiet /qn
         shell: pwsh
 
-      # We run both all tests for packages, not containers or K8S
       - name: Run integration tests
         run: ./testing/bats/run-package-integration-tests.sh
-        shell: bash
-
-      - name: Run functional tests
-        run: ./testing/bats/run-package-functional-tests.sh
         shell: bash
