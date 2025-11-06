@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eu
+set -euo pipefail
 # This does not work with a symlink to this script
 # SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 # See https://stackoverflow.com/a/246128/24637657

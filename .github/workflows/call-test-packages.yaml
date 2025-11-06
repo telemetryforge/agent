@@ -192,7 +192,7 @@ jobs:
             package-type: deb
             package: package-ubuntu-24.04
             name: ubuntu
-            binary: /opt/fluent-bit/bin/fluent-bit
+            binary: /opt/fluentdo-agent/bin/fluent-bit
           # - runner: windows-latest
           #   package-type: msi
           #   package: package-windows
