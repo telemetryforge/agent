@@ -7,7 +7,7 @@ load "$BATS_SUPPORT_ROOT/load.bash"
 load "$BATS_ASSERT_ROOT/load.bash"
 load "$BATS_FILE_ROOT/load.bash"
 
-# bats file_tags=functional,linux
+# bats file_tags=functional,linux,package
 
 setup() {
     if [[ "$(uname -s)" != "Linux" ]]; then

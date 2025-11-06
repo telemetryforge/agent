@@ -7,13 +7,24 @@ load "$BATS_SUPPORT_ROOT/load.bash"
 load "$BATS_ASSERT_ROOT/load.bash"
 load "$BATS_FILE_ROOT/load.bash"
 
-# bats file_tags=functional,linux
+# bats file_tags=functional,linux,package
 
 setup() {
     if [[ "$(uname -s)" != "Linux" ]]; then
         skip "Skipping test: not running on Linux"
     fi
     export INSTALL_PREFIX="/opt/fluentdo-agent"
+
+    # Ensure we skip tests in the container
+    if command -v rpm &>/dev/null; then
+        if rpm -qa | grep -qv "$PACKAGE_NAME" ; then
+            skip "Skipping test: $PACKAGE_NAME RPM not installed"
+        fi
+    elif command -v dpkg &>/dev/null; then
+        if dpkg -l | grep -qv "ii.*$PACKAGE_NAME" ; then
+            skip "Skipping test: $PACKAGE_NAME DEB not installed"
+        fi
+    fi
 }
 
 teardown() {
