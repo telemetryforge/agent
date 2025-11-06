@@ -20,6 +20,7 @@ rm -rf "${WORKDIR:?}/*"
 mkdir -p "$WORKDIR"
 find "$REPO_ROOT/source/packaging/packages/centos/6/" -type f -name '*x86_64.rpm' -print0 |
 while IFS= read -r -d '' line; do
+	[[ ! -f "$line" ]] && continue
 	echo "Extracting $line"
 	docker run --rm -t \
 		-v "${WORKDIR}:/rpmcontents" \

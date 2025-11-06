@@ -18,7 +18,7 @@ FLUENTDO_AGENT_URL="${FLUENTDO_AGENT_URL:-https://packages.fluent.do}"
 # Any logs from this script
 LOG_FILE="${LOG_FILE:-$PWD/fluentdo-agent-install.log}"
 # The output binary to test
-FLUENTDO_AGENT_BINARY=${FLUENTDO_AGENT_BINARY:-/opt/fluent-bit/bin/fluent-bit}
+FLUENTDO_AGENT_BINARY=${FLUENTDO_AGENT_BINARY:-/opt/fluentdo-agent/bin/fluent-bit}
 # Where to download files
 DOWNLOAD_DIR=${DOWNLOAD_DIR:-$(mktemp -d)}
 

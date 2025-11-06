@@ -2,3 +2,5 @@ targets.txt
 gha-creds*.json
 *.log
 .vagrant/
+.aider*
+downloads/

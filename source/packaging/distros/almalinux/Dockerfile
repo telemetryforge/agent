@@ -141,7 +141,7 @@ WORKDIR /source/fluent-bit/
 COPY . ./
 
 WORKDIR /source/fluent-bit/build/
-ARG CMAKE_INSTALL_PREFIX=/opt/fluent-bit/
+ARG CMAKE_INSTALL_PREFIX=/opt/fluentdo-agent/
 ARG CMAKE_INSTALL_SYSCONFDIR=/etc/
 
 RUN cmake -DCMAKE_INSTALL_PREFIX="$CMAKE_INSTALL_PREFIX" \

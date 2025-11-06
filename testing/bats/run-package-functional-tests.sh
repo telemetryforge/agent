@@ -14,15 +14,50 @@ done
 SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 
 export CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
-export BASE_IMAGE="dokken/almalinux-8"
-export DISTRO="almalinux/8"
-export FLUENT_BIT_BINARY=${FLUENT_BIT_BINARY:-/opt/fluent-bit/bin/fluent-bit}
+export BASE_IMAGE=${BASE_IMAGE:-dokken/almalinux-8}
+export DISTRO=${DISTRO:-almalinux/8}
+export FLUENT_BIT_BINARY=${FLUENT_BIT_BINARY:-/opt/fluentdo-agent/bin/fluent-bit}
 
-DOWNLOADS_DIR=${DOWNLOADS_DIR:-/tmp/downloads}
-mkdir -p "$DOWNLOADS_DIR"
+# Only used if no packages downloaded and running manually (not in CI)
+export FLUENTDO_AGENT_URL=${FLUENTDO_AGENT_URL:-https://staging.fluent.do}
+export FLUENTDO_AGENT_VERSION=${FLUENTDO_AGENT_VERSION:-25.11.2}
 
-echo "INFO: Ensure package to use is present in $DOWNLOADS_DIR"
-echo "INFO: e.g. cd $DOWNLOADS_DIR && curl -sSfLO https://packages.fluent.do/25.10.3/output/package-almalinux-8/fluentdo-agent-25.10.3-1.x86_64.rpm"
+# Location of packages to test
+export DOWNLOAD_DIR=${DOWNLOAD_DIR:-$PWD/downloads}
+mkdir -p "$DOWNLOAD_DIR"
+
+for f in "$DOWNLOAD_DIR"/*.{rpm,deb}; do
+
+    ## Check if the glob gets expanded to existing files.
+    ## If not, f here will be exactly the pattern above
+    ## and the exists test will evaluate to false.
+    if [ -e "$f" ]; then
+		echo "INFO: Found package in $DOWNLOAD_DIR"
+	elif [[ -n "${CI:-}" ]]; then
+		# For CI we want to use local packages so ensure they are present
+		echo "ERROR: Unable to find package in $DOWNLOAD_DIR"
+		exit 1
+	else
+		echo "INFO: Package to use is not present in $DOWNLOAD_DIR so will download now"
+		echo "INFO: e.g. cd $DOWNLOAD_DIR && curl -sSfLO https://${FLUENTDO_AGENT_URL}/${FLUENTDO_AGENT_VERSION}/output/package-almalinux-8/fluentdo-agent-${FLUENTDO_AGENT_VERSION}.x86_64.rpm"
+
+		# Set up overrides for install script
+		# almalinux/8 becomes DISTRO_ID=almalinux, DISTRO_VERSION=8
+		# debian/bookworm becomes DISTRO_ID=debian, DISTRO_VERSION=bookworm
+		# ubuntu/24 becomes DISTRO_ID=ubuntu, DISTRO_VERSION=24
+        DISTRO_ID=$(echo "$DISTRO" | cut -d'/' -f1)
+		export DISTRO_ID
+        DISTRO_VERSION=$(echo "$DISTRO" | cut -d'/' -f2)
+		export DISTRO_VERSION
+
+		# Use the install script to just download the image
+		"$SCRIPT_DIR"/../../install.sh --debug --download
+	fi
+
+    ## This is all we needed to know, so we can break after the first iteration
+    break
+done
+
 
 echo "INFO: building test container 'bats/test/$DISTRO'"
 "${CONTAINER_RUNTIME}" build -t "bats/test/$DISTRO" \
@@ -33,7 +68,7 @@ echo "INFO: building test container 'bats/test/$DISTRO'"
 
 echo "INFO: running test container 'bats/test/$DISTRO'"
 "${CONTAINER_RUNTIME}" run --rm -t \
-	-v "$DOWNLOADS_DIR:/downloads:ro" \
+	-v "$DOWNLOAD_DIR:/downloads:ro" \
 	-e FLUENT_BIT_BINARY="$FLUENT_BIT_BINARY" \
 	"bats/test/$DISTRO"
 
