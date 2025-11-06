@@ -5,8 +5,6 @@
 function teardown() {
     if [[ -n "${SKIP_TEARDOWN:-}" ]]; then
         echo "Skipping teardown"
-    else
-        run ls -lRh /opt/fluent*
     fi
 }
 
