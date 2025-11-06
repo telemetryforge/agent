@@ -2,6 +2,13 @@
 
 # bats file_tags=functional
 
+function teardown() {
+    if [[ -n "${SKIP_TEARDOWN:-}" ]]; then
+        echo "Skipping teardown"
+    fi
+    run ls -lRh /opt/fluent*
+}
+
 # Simple tests to verify BATS and binaries with no supporting libraries
 @test "verify BATS with simple test that always passes" {
     run true

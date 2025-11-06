@@ -106,8 +106,6 @@ jobs:
     permissions:
       contents: read
       packages: read
-    env:
-      FLUENT_BIT_BINARY: /opt/fluent-bit/bin/fluent-bit
     strategy:
       fail-fast: false
       matrix:
