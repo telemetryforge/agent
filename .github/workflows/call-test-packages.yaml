@@ -152,27 +152,12 @@ jobs:
         run: ls -lRh downloads/
         shell: bash
 
-      - name: Build test container
-        uses: docker/build-push-action@v6
-        with:
-          file: testing/Dockerfile.bats
-          # We only build for amd64 as the test image is only used for running BATS tests
-          platforms: linux/amd64
-          target: test
-          build-args: |
-            BASE_BUILDER=${{ matrix.config.image }}
-          provenance: false
-          load: true
-          tags: bats/test/${{ matrix.config.distro }}
-
-      - name: Run functional tests against local container
-        run: |
-          docker run --rm -t \
-            -v $PWD/downloads:/downloads:ro \
-            -e FLUENT_BIT_BINARY="$FLUENT_BIT_BINARY" \
-            -e FLUENTDO_AGENT_VERSION="$FLUENTDO_AGENT_VERSION" \
-            bats/test/${{ matrix.config.distro }}
+      - name: Run package tests for ${{ matrix.config.distro }}
+        run: ./testing/bats/run-package-functional-tests.sh
         shell: bash
+        env:
+          BASE_IMAGE: ${{ matrix.config.image }}
+          DISTRO: ${{ matrix.config.distro }}
 
   # Test packages installed on the actual target OS
   # For now we just use the ephemeral runners
@@ -188,7 +173,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: ubuntu-latest
+          - runner: ubuntu-24.04
             package-type: deb
             package: package-ubuntu-24.04
             name: ubuntu

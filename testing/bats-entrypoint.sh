@@ -13,15 +13,15 @@ done
 SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 
 # Mount package to install here
-DOWNLOADS_DIR=${DOWNLOADS_DIR:-/downloads}
+DOWNLOAD_DIR=${DOWNLOAD_DIR:-/downloads}
 
 # Attempt to install any packages found in the downloads directory
-if [[ -d "$DOWNLOADS_DIR" ]]; then
+if [[ -d "$DOWNLOAD_DIR" ]]; then
 	if command -v yum &>/dev/null; then
-		find "$DOWNLOADS_DIR" -name '*.rpm' -exec yum install -y {} \;
+		find "$DOWNLOAD_DIR" -name '*.rpm' -exec yum install -y {} \;
 	elif command -v apt-get &>/dev/null; then
 		apt-get update
-		find "$DOWNLOADS_DIR" -name '*.deb' -exec apt-get install -y {} \;
+		find "$DOWNLOAD_DIR" -name '*.deb' -exec apt-get install -y {} \;
 	else
 		echo "ERROR: unable to install packages"
 		exit 1
