@@ -17,51 +17,25 @@ ARG CACHE_ID=main
 # Multiarch support
 FROM multiarch/qemu-user-static:x86_64-aarch64 as multiarch-aarch64
 
-# suse/12 base image
-# Based on Google ops agent to use OpenSUSE Leap 42.3 to emulate SLES 12:
-# https://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto#Detect_a_distribution_flavor_for_special_code
-FROM opensuse/archive:42.3 AS suse-12-base
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
-ARG CACHE_ID
-# zypper/libcurl has a use-after-free bug that causes segfaults for particular download sequences.
-# If this bug happens to trigger in the future, adding a "zypper -n download" of a subset of the packages can avoid the segfault.
-# hadolint ignore=DL3036,DL3037
-RUN --mount=type=cache,target=/var/cache/zypp,sharing=locked,id=suse-12-${CACHE_ID} \
-    set -x; \
-    # The repo signatures are no longer valid
-    # TODO: use checksum verification on updates
-    zypper --no-gpg-check refresh 'OSS Update' && \
-    zypper --no-gpg-check refresh 'NON OSS Update' && \
-    zypper -n install curl tar git systemd autoconf automake flex libtool libcurl-devel libopenssl-devel libyajl-devel \
-    gcc gcc-c++ glibc-devel zlib-devel rpm-build expect systemd-devel systemd-rpm-macros libgit2-devel && \
-    # Remove expired root certificate.
-    mv /var/lib/ca-certificates/pem/DST_Root_CA_X3.pem /etc/pki/trust/blacklist/ && \
-    update-ca-certificates && \
-    # Allow fluent-bit to find systemd
-    ln -fs /usr/lib/systemd /lib/systemd
-
-# Unfortunately this currently fails with missing dependencies and the requirement for C++17.
-ARG FLB_PROCESSOR_DEDUP=Off
-ENV FLB_PROCESSOR_DEDUP=$FLB_PROCESSOR_DEDUP
-
-ARG FLB_JEMALLOC_OPTIONS
-ENV FLB_JEMALLOC_OPTIONS=${FLB_JEMALLOC_OPTIONS}
-
 # suse/15 base image
-FROM opensuse/leap:15.3 AS suse-15-base
+FROM opensuse/leap:15.6 AS suse-15-base
 
 ARG CACHE_ID
 # hadolint ignore=DL3036,DL3037
 RUN --mount=type=cache,target=/var/cache/zypp,sharing=locked,id=suse-15-${CACHE_ID} \
-    set -x; \
-    zypper -n install curl tar git systemd autoconf automake flex libtool libcurl-devel libopenssl-devel libyajl-devel \
-    gcc gcc-c++ zlib-devel rpm-build expect systemd-devel systemd-rpm-macros libgit2-devel && \
-    # Allow fluent-bit to find systemd
-    ln -fs /usr/lib/systemd /lib/systemd
-
-ARG FLB_PROCESSOR_DEDUP=On
-ENV FLB_PROCESSOR_DEDUP=$FLB_PROCESSOR_DEDUP
+    zypper up -y && \
+    zypper install -y --no-recommends \
+        rpm-build \
+        curl ca-certificates wget unzip flex bison \
+        gcc gcc-c++ \
+        cmake-full \
+        make \
+        bash \
+        systemd-devel \
+        libgit2-devel \
+        cyrus-sasl cyrus-sasl-devel \
+        libopenssl3 libopenssl-devel \
+        libyaml-devel
 
 # suse/15.arm64v8 base image
 # hadolint ignore=DL3029
@@ -70,18 +44,23 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 
 ARG CACHE_ID
 # hadolint ignore=DL3036,DL3037
-RUN --mount=type=cache,target=/var/cache/zypp,sharing=locked,id=suse-15-arm64-${CACHE_ID} \
-    set -x; \
-    zypper -n install curl tar git systemd autoconf automake flex libtool libcurl-devel libopenssl-devel libyajl-devel \
-    gcc gcc-c++ zlib-devel rpm-build expect systemd-devel systemd-rpm-macros libgit2-devel && \
-    # Allow fluent-bit to find systemd
-    ln -fs /usr/lib/systemd /lib/systemd
+RUN --mount=type=cache,target=/var/cache/zypp,sharing=locked,id=suse-15-${CACHE_ID} \
+    zypper up -y && \
+    zypper install -y --no-recommends \
+        rpm-build \
+        curl ca-certificates wget unzip flex bison \
+        gcc gcc-c++ \
+        cmake-full \
+        make \
+        bash \
+        systemd-devel \
+        libgit2-devel \
+        cyrus-sasl cyrus-sasl-devel \
+        libopenssl3 libopenssl-devel \
+        libyaml-devel
 
-ARG FLB_PROCESSOR_DEDUP=On
-ENV FLB_PROCESSOR_DEDUP=$FLB_PROCESSOR_DEDUP
-
-ARG FLB_JEMALLOC_OPTIONS
-ENV FLB_JEMALLOC_OPTIONS=${FLB_JEMALLOC_OPTIONS}
+ARG FLB_JEMALLOC_OPTIONS="--with-lg-page=16 --with-lg-quantum=3"
+ENV FLB_JEMALLOC_OPTIONS=$FLB_JEMALLOC_OPTIONS
 
 # Common build for all distributions now
 # hadolint ignore=DL3006
@@ -94,27 +73,6 @@ RUN CMAKE_ARCH=$(uname -m); \
     /bin/sh /tmp/cmake.sh --skip-license --prefix=/opt/cmake --include_subdir && \
     ln -sf /opt/cmake/bin/cmake /usr/local/bin/cmake && \
     ln -sf /opt/cmake/bin/cpack /usr/local/bin/cpack
-
-# Bison needs to be built from source unfortunately as at least one target does not provide it so we want to be common for all
-ARG BISON_VER=3.8.2
-ARG BISON_URL=https://www.mirrorservice.org/sites/ftp.gnu.org/gnu/bison/
-ARG FLEX_VER=2.6.4
-ARG FLEX_URL=https://github.com/westes/flex/files/981163
-ADD ${BISON_URL}/bison-${BISON_VER}.tar.gz /bison/
-ADD ${FLEX_URL}/flex-${FLEX_VER}.tar.gz /flex/
-RUN tar -xzvf /bison/bison-${BISON_VER}.tar.gz -C /bison/ && tar -xzvf /flex/flex-${FLEX_VER}.tar.gz -C /flex/
-
-# Flex needs Bison so do first
-WORKDIR /bison/bison-${BISON_VER}/
-RUN ./configure && make -j "$(getconf _NPROCESSORS_ONLN)" && make install
-WORKDIR /flex/flex-${FLEX_VER}/
-RUN ./configure && make -j "$(getconf _NPROCESSORS_ONLN)" && make install
-
-# We need a more recent OpenSSL as well so build from source
-ADD https://github.com/openssl/openssl/releases/download/openssl-3.5.2/openssl-3.5.2.tar.gz /openssl/
-RUN tar -xzvf /openssl/openssl-3.5.2.tar.gz -C /openssl
-WORKDIR /openssl/openssl-3.5.2
-RUN ./Configure && make -j "$(getconf _NPROCESSORS_ONLN)" && make install
 
 ARG FLB_NIGHTLY_BUILD
 ENV FLB_NIGHTLY_BUILD=$FLB_NIGHTLY_BUILD
@@ -131,21 +89,11 @@ WORKDIR /source/fluent-bit/build/
 ARG CMAKE_INSTALL_PREFIX=/opt/fluentdo-agent/
 ARG CMAKE_INSTALL_SYSCONFDIR=/etc/
 
-# No YAML support
-ARG FLB_CONFIG_YAML=Off
-# Triggers errors on librdkafka if enabled
-ARG WITH_CURL=Off
-
 RUN cmake -DCMAKE_INSTALL_PREFIX="$CMAKE_INSTALL_PREFIX" \
     -DCMAKE_RULE_MESSAGES:BOOL=OFF -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \
     -DCMAKE_INSTALL_SYSCONFDIR="$CMAKE_INSTALL_SYSCONFDIR" \
     -DFLB_NIGHTLY_BUILD="$FLB_NIGHTLY_BUILD" \
     -DFLB_JEMALLOC_OPTIONS="$FLB_JEMALLOC_OPTIONS" \
-    -DFLB_CONFIG_YAML="${FLB_CONFIG_YAML}" \
-    -DWITH_CURL="${WITH_CURL}" \
-    -DFLB_PROCESSOR_DEDUP="${FLB_PROCESSOR_DEDUP}" \
-    -DOPENSSL_ROOT_DIR=/openssl/openssl-3.5.2 \
-    -DOPENSSL_USE_STATIC_LIBS=On \
     ../
 
 VOLUME [ "/output" ]
