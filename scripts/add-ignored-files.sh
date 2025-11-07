@@ -15,7 +15,9 @@ while [ -L "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 SOURCE_DIR=${SOURCE_DIR:-$SCRIPT_DIR/../source}
-export FLUENT_BIT_VERSION=${FLUENT_BIT_VERSION:-v4.0.5}
+
+# Retrieve the version to use if not specified
+export FLUENT_BIT_VERSION=${FLUENT_BIT_VERSION:-$(cat "${SOURCE_DIR}"/oss_version.txt)}
 
 while IFS= read -r ignoredFile
 do

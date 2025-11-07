@@ -1,13 +1,22 @@
 #!/bin/bash
 # Build a specific Linux target using the local source code via a container image
-set -eux
+set -euo pipefail
 
-# Never rely on PWD so we can invoke from anywhere
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+# This does not work with a symlink to this script
+# SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+# See https://stackoverflow.com/a/246128/24637657
+SOURCE=${BASH_SOURCE[0]}
+while [ -L "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
+  SOURCE=$(readlink "$SOURCE")
+  # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+  [[ $SOURCE != /* ]] && SOURCE=$SCRIPT_DIR/$SOURCE
+done
+SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 
 # Allow us to specify in the caller or pass variables
 FLB_DISTRO=${FLB_DISTRO:-}
-FLB_OUT_DIR=${FLB_OUT_DIR:-}
+FLB_OUT_DIR=${FLB_OUT_DIR:-agent}
 FLB_NIGHTLY_BUILD=${FLB_NIGHTLY_BUILD:-}
 DOCKER=${FLB_DOCKER_CLI:-docker}
 CACHE_ID=${CACHE_ID:-main}
