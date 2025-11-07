@@ -779,6 +779,9 @@ if(FLB_AWS AND FLB_KAFKA)
     set(FLB_HAVE_AWS_MSK_IAM ON)  # Set CMake variable
     FLB_DEFINITION(FLB_HAVE_AWS_MSK_IAM)  # Set preprocessor definition
     message(STATUS "AWS MSK IAM authentication: ENABLED")
+  elseif(FLB_SYSTEM_WINDOWS)
+    # Windows has an issue with providing a static build of cyrus-sasl
+    message(STATUS "AWS MSK IAM authentication: DISABLED (requires Kafka with libsasl2)")
   else()
     message(FATAL_ERROR "AWS MSK IAM authentication: DISABLED (requires Kafka with libsasl2)")
   endif()
@@ -1592,4 +1595,4 @@ file(GLOB_RECURSE INSTALL_FILES "${CMAKE_INSTALL_PREFIX}/*")
 message(STATUS "Files to package: ${INSTALL_FILES}")
 
 # Verify all required options are set
-validate_required_options(FLB_HAVE_AWS_MSK_IAM FLB_HAVE_LIBYAML)
+validate_required_options(FLB_HAVE_LIBYAML)

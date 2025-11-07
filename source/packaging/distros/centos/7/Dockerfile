@@ -1,4 +1,4 @@
-ARG BASE_BUILDER=centos-6-base
+ARG BASE_BUILDER=centos-7-base
 ARG CMAKE_VERSION=3.31.6
 # Used to differentiate in CI from main/PR builds
 ARG CACHE_ID=main

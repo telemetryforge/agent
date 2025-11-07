@@ -115,10 +115,11 @@ jobs:
           C:\vcpkg\vcpkg install --recurse libgit2 --triplet ${{ matrix.config.vcpkg_triplet }}
         shell: cmd
 
-      - name: Build libsasl with vcpkg
-        run: |
-          C:\vcpkg\vcpkg install --recurse cyrus-sasl --allow-unsupported --triplet ${{ matrix.config.vcpkg_triplet }}
-        shell: cmd
+      # Unfortunately static builds are not supported and trigger link errors
+      # - name: Build libsasl with vcpkg
+      #   run: |
+      #     C:\vcpkg\vcpkg install --recurse cyrus-sasl --allow-unsupported --triplet ${{ matrix.config.vcpkg_triplet }}
+      #   shell: cmd
 
       - name: Upgrade any outdated vcpkg packages
         run: |
