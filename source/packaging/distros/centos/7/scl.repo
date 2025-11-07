@@ -1,0 +1,12 @@
+# Used for devtoolset installation
+[centos-sclo-rh]
+name=CentOS-7 - SCLo rh
+baseurl=http://vault.centos.org/centos/7/sclo/$basearch/rh/
+gpgcheck=0
+enabled=1
+
+[centos-sclo-sclo]
+name=CentOS-7 - SCLo sclo
+baseurl=http://vault.centos.org/centos/7/sclo/$basearch/sclo/
+gpgcheck=0
+enabled=1
