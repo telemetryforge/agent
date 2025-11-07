@@ -117,7 +117,7 @@ jobs:
 
       - name: Build libsasl with vcpkg
         run: |
-          C:\vcpkg\vcpkg install --recurse cyrus-sasl --triplet ${{ matrix.config.vcpkg_triplet }}
+          C:\vcpkg\vcpkg install --recurse cyrus-sasl --allow-unsupported --triplet ${{ matrix.config.vcpkg_triplet }}
         shell: cmd
 
       - name: Upgrade any outdated vcpkg packages
