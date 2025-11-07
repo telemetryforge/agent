@@ -30,7 +30,7 @@ RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=centos-7-${CACHE_
     yum install -y epel-release && \
     yum install -y cmake3 && \
     yum install -y scl-utils-build devtoolset-9 && \
-    yum install -y perl-IPC-Cmd
+    yum install -y perl-IPC-Cmd perl-Data-Dumper
 # Split into separate layer to allow us to cache above
 RUN yum clean all && scl enable devtoolset-9 bash && echo "source /opt/rh/devtoolset-9/enable" >> /etc/bashrc
 SHELL ["/bin/bash", "--login", "-c"]
@@ -70,7 +70,7 @@ RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=centos-7-arm64-${
     yum install -y epel-release && \
     yum install -y cmake3 && \
     yum install -y scl-utils-build devtoolset-9 && \
-    yum install -y perl-IPC-Cmd
+    yum install -y perl-IPC-Cmd perl-Data-Dumper
 # Split into separate layer to allow us to cache above
 RUN yum clean all && scl enable devtoolset-9 bash && echo "source /opt/rh/devtoolset-9/enable" >> /etc/bashrc
 SHELL ["/bin/bash", "--login", "-c"]
