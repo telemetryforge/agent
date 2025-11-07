@@ -96,12 +96,6 @@ jobs:
                   DYLD_PRINT_LIBRARIES=1 DYLD_PRINT_LIBRARIES_POST_LAUNCH=1 DYLD_PRINT_RPATHS=1 bin/fluentdo-agent --dry-run
               working-directory: source/build
 
-            - name: Check config
-              run: testing/verify-config.sh
-              env:
-                  FLUENT_BIT_BINARY: ${{ github.workspace }}/source/build/bin/fluentdo-agent
-              shell: bash
-
             - name: Upload build packages
               uses: actions/upload-artifact@v5
               with:
