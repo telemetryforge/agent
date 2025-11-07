@@ -23,7 +23,7 @@ ARG CACHE_ID
 RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=almalinux-8-${CACHE_ID} yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+    cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
 
 # Split into separate layer to allow us to cache above
 RUN yum clean all
@@ -42,7 +42,7 @@ ARG CACHE_ID
 RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=almalinux-8-arm64-${CACHE_ID} yum -y update && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+    cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
 
 # Split into separate layer to allow us to cache above
 RUN yum clean all
@@ -62,7 +62,7 @@ RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=almalinux-9-${CAC
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+    cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
 
 # Split into separate layer to allow us to cache above
 RUN yum clean all
@@ -81,7 +81,7 @@ RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=almalinux-9-arm64
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+    cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
 
 # Split into separate layer to allow us to cache above
 RUN yum clean all
@@ -101,7 +101,7 @@ RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=almalinux-10-${CA
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+    cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
 
 # Split into separate layer to allow us to cache above
 RUN yum clean all
@@ -120,7 +120,7 @@ RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=almalinux-10-arm6
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+    cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
 
 # Split into separate layer to allow us to cache above
 RUN yum clean all

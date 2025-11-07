@@ -193,6 +193,8 @@ option(FLB_CONFIG_YAML         "Enable YAML config format"    Yes)
 # List of plugins available and defaults for each option
 include(cmake/plugins_options.cmake)
 
+# Add any special Enterprise support
+include(cmake/enterprise.cmake)
 
 # Event loop backend (advanced users only)
 # ----------------------------------------
@@ -778,11 +780,11 @@ if(FLB_AWS AND FLB_KAFKA)
     FLB_DEFINITION(FLB_HAVE_AWS_MSK_IAM)  # Set preprocessor definition
     message(STATUS "AWS MSK IAM authentication: ENABLED")
   else()
-    message(STATUS "AWS MSK IAM authentication: DISABLED (requires Kafka with libsasl2)")
+    message(FATAL_ERROR "AWS MSK IAM authentication: DISABLED (requires Kafka with libsasl2)")
   endif()
 else()
   if(FLB_AWS AND NOT FLB_KAFKA)
-    message(STATUS "AWS MSK IAM authentication: DISABLED (requires FLB_KAFKA=ON)")
+    message(FATAL_ERROR "AWS MSK IAM authentication: DISABLED (requires FLB_KAFKA=ON)")
   endif()
 endif()
 
@@ -1589,3 +1591,5 @@ message(STATUS "Libraries install to: ${CMAKE_INSTALL_LIBDIR}")
 file(GLOB_RECURSE INSTALL_FILES "${CMAKE_INSTALL_PREFIX}/*")
 message(STATUS "Files to package: ${INSTALL_FILES}")
 
+# Verify all required options are set
+validate_required_options(FLB_HAVE_AWS_MSK_IAM FLB_HAVE_LIBYAML)

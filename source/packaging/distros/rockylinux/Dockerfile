@@ -24,7 +24,7 @@ RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-8-${CA
     yum install -y epel-release && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+    cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
 # Split into a separate layer to cache above
 RUN yum clean all
 
@@ -43,7 +43,7 @@ RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-8-arm6
     yum install -y epel-release && \
     yum install -y rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+    cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
 # Split into a separate layer to cache above
 RUN yum clean all
 
@@ -62,7 +62,7 @@ RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-9-${CA
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+    cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
 # Split into a separate layer to cache above
 RUN yum clean all
 
@@ -80,7 +80,7 @@ RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-9-arm6
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+    cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
 # Split into a separate layer to cache above
 RUN yum clean all
 
@@ -99,7 +99,7 @@ RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-10-${C
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+    cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
 # Split into a separate layer to cache above
 RUN yum clean all
 
@@ -117,7 +117,7 @@ RUN --mount=type=cache,target=/var/cache/yum,sharing=locked,id=rockylinux-10-arm
     yum install -y epel-release && \
     yum install -y --allowerasing rpm-build curl ca-certificates gcc gcc-c++ cmake make bash \
     wget unzip systemd-devel wget flex bison \
-    cyrus-sasl-lib openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
+    cyrus-sasl-lib cyrus-sasl-devel openssl openssl-libs openssl-devel libyaml-devel libgit2-devel pkgconf-pkg-config
 # Split into a separate layer to cache above
 RUN yum clean all
 
