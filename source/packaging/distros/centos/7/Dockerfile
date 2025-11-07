@@ -89,6 +89,12 @@ ENV FLB_JEMALLOC_OPTIONS=$FLB_JEMALLOC_OPTIONS
 # hadolint ignore=DL3006
 FROM $BASE_BUILDER AS builder
 
+# We need a more recent OpenSSL as well so build from source
+ADD https://github.com/openssl/openssl/releases/download/openssl-3.5.2/openssl-3.5.2.tar.gz /openssl/
+RUN tar -xzvf /openssl/openssl-3.5.2.tar.gz -C /openssl
+WORKDIR /openssl/openssl-3.5.2
+RUN ./Configure && make -j "$(getconf _NPROCESSORS_ONLN)" && make install
+
 ARG FLB_NIGHTLY_BUILD
 ENV FLB_NIGHTLY_BUILD=$FLB_NIGHTLY_BUILD
 
@@ -106,6 +112,8 @@ RUN PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig:/usr/local/lib/pkgconfig:$PKG_CON
     -DCMAKE_INSTALL_SYSCONFDIR="$CMAKE_INSTALL_SYSCONFDIR" \
     -DFLB_NIGHTLY_BUILD="$FLB_NIGHTLY_BUILD" \
     -DFLB_JEMALLOC_OPTIONS="$FLB_JEMALLOC_OPTIONS" \
+    -DOPENSSL_ROOT_DIR=/openssl/openssl-3.5.2 \
+    -DOPENSSL_USE_STATIC_LIBS=On \
     ../
 
 VOLUME [ "/output" ]
