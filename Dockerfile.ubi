@@ -158,7 +158,7 @@ RUN useradd -u 9876 -m -s /bin/false fluentdo-agent
 USER 9876
 
 # Support running integration tests directly in the production image
-FROM bats/bats:1.12.0 AS bats
+FROM bats/bats:1.13.0 AS bats
 FROM production AS test
 
 # Switch to root to install findutils and BATS
