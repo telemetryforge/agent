@@ -84,8 +84,10 @@ WORKDIR /tmp/libssh2-${LIBSSH2_VER}
 RUN CFLAGS="-fPIC" \
     LDFLAGS="-L/openssl/openssl-3.5.2 -L/usr/local/lib64" \
     CPPFLAGS="-I/openssl/openssl-3.5.2/include" \
-    ./configure --with-openssl --prefix=/usr/local --enable-static --disable-shared --disable-examples-build && \
-    make -j "$(getconf _NPROCESSORS_ONLN)" && make install
+    ./configure --prefix=/usr/local --enable-static --disable-shared --disable-examples-build \
+        --with-openssl --with-libssl-prefix=/openssl/openssl-3.5.2 && \
+    make -j "$(getconf _NPROCESSORS_ONLN)" && \
+    make install
 
 # Build libgit2 from source (required for git_config plugin)
 ARG LIBGIT2_VER=1.9.1
@@ -93,9 +95,13 @@ WORKDIR /tmp
 RUN curl -LO https://github.com/libgit2/libgit2/archive/refs/tags/v${LIBGIT2_VER}.tar.gz && \
     tar xf v${LIBGIT2_VER}.tar.gz
 WORKDIR /tmp/libgit2-${LIBGIT2_VER}
-RUN cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON \
-          -DUSE_SSH=ON -DBUILD_TESTS=OFF -DBUILD_CLI=OFF \
-          -DOPENSSL_ROOT_DIR=/openssl/openssl-3.5.2 && \
+RUN cmake -B build -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DLINK_WITH_STATIC_LIBRARIES=ON \
+        -DUSE_SSH=ON \
+        -DBUILD_TESTS=OFF \
+        -DBUILD_CLI=OFF \
+        -DOPENSSL_ROOT_DIR=/openssl/openssl-3.5.2 && \
     cmake --build build --target install -- -j "$(getconf _NPROCESSORS_ONLN)" && \
     echo "/usr/local/lib64" > /etc/ld.so.conf.d/libgit2.conf && \
     ldconfig
@@ -129,17 +135,19 @@ ENV FLB_PROCESSOR_DEDUP=$FLB_PROCESSOR_DEDUP
 
 RUN PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig:/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH \
     cmake -DCMAKE_INSTALL_PREFIX="$CMAKE_INSTALL_PREFIX" \
-    -DCMAKE_RULE_MESSAGES:BOOL=OFF -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \
-    -DCMAKE_INSTALL_SYSCONFDIR="$CMAKE_INSTALL_SYSCONFDIR" \
-    -DCMAKE_CXX_LINK_EXECUTABLE="<CMAKE_CXX_COMPILER> <FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>" \
-    -DFLB_NIGHTLY_BUILD="$FLB_NIGHTLY_BUILD" \
-    -DFLB_CPACK_SYSVINIT="${FLB_CPACK_SYSVINIT}" \
-    -DFLB_UNICODE_ENCODER="${FLB_UNICODE_ENCODER}" \
-    -DFLB_PROCESSOR_DEDUP="${FLB_PROCESSOR_DEDUP}" \
-    -DOPENSSL_ROOT_DIR=/openssl/openssl-3.5.2 \
-    -DOPENSSL_USE_STATIC_LIBS=On \
+        -DCMAKE_RULE_MESSAGES:BOOL=OFF -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \
+        -DCMAKE_INSTALL_SYSCONFDIR="$CMAKE_INSTALL_SYSCONFDIR" \
+        -DCMAKE_CXX_LINK_EXECUTABLE="<CMAKE_CXX_COMPILER> <FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>" \
+        -DFLB_NIGHTLY_BUILD="$FLB_NIGHTLY_BUILD" \
+        -DFLB_CPACK_SYSVINIT="${FLB_CPACK_SYSVINIT}" \
+        -DFLB_UNICODE_ENCODER="${FLB_UNICODE_ENCODER}" \
+        -DFLB_PROCESSOR_DEDUP="${FLB_PROCESSOR_DEDUP}" \
+        -DOPENSSL_ROOT_DIR=/openssl/openssl-3.5.2 \
+        -DOPENSSL_USE_STATIC_LIBS=On \
+        -DLIBSSH2_USE_STATIC_LIBS=On \
+        -DLIBSSH2_LIBRARY_PATH=/usr/local/lib/libssh2.a \
     ../
 
 VOLUME [ "/output" ]
-# Ensure we run a login shell to trigger the devtoolset enabling
+# Ensure we run a login shell to enable devtoolset-9
 CMD [ "/bin/bash", "-l", "-c", "scl enable devtoolset-9 bash && make --no-print-directory -j 16 && cpack -G RPM && cp *.rpm /output/" ]

@@ -647,23 +647,7 @@ else()
 endif()
 
 # libgit2 (Git library) - REQUIRED for git_config plugin
-if(FLB_SYSTEM_WINDOWS)
-  # On Windows, use paths provided via CMake flags from Dockerfile
-  if(NOT LIBGIT2_INCLUDE_DIR OR NOT LIBGIT2_LIBRARY)
-    message(FATAL_ERROR "libgit2 is required but not found. Please install libgit2 and set LIBGIT2_INCLUDE_DIR and LIBGIT2_LIBRARY.")
-  endif()
-  set(LIBGIT2_FOUND TRUE)
-  set(LIBGIT2_INCLUDE_DIRS ${LIBGIT2_INCLUDE_DIR})
-  set(LIBGIT2_LIBRARIES ${LIBGIT2_LIBRARY})
-  include_directories(${LIBGIT2_INCLUDE_DIRS})
-else()
-  # On Unix-like systems, use pkg-config
-  find_package(PkgConfig REQUIRED)
-  pkg_check_modules(LIBGIT2 REQUIRED libgit2)
-  include_directories(${LIBGIT2_INCLUDE_DIRS})
-  link_directories(${LIBGIT2_LIBRARY_DIRS})
-endif()
-set(LIBGIT2_FOUND TRUE)
+include(cmake/libgit2.cmake)
 
 # Chunk I/O
 FLB_OPTION(CIO_LIB_STATIC  ON)
@@ -1450,8 +1434,6 @@ set(CPACK_COMPONENT_LIBRARY_GROUP "RUNTIME")
 set(CPACK_STRIP_FILES ON)
 
 # Debian package setup and name sanitizer
-set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-
 find_program(DPKG_PROGRAM dpkg DOC "dpkg program of Debian-based systems")
 if(DPKG_PROGRAM)
   execute_process(
@@ -1510,9 +1492,6 @@ set(CPACK_RPM_RUNTIME_PACKAGE_NAME "${CPACK_PACKAGE_NAME}")
 set(CPACK_RPM_HEADERS_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}-headers.rpm")
 set(CPACK_RPM_HEADERS_EXTRA_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}-headers-extra.rpm")
 set(CPACK_RPM_RUNTIME_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}.rpm")
-
-# CPack: DEB
-set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
 # CPack: Windows System
 if(CPACK_GENERATOR MATCHES "NSIS")
@@ -1576,6 +1555,10 @@ if(FLB_CPACK_SYSVINIT)
   set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE ${CMAKE_SOURCE_DIR}/cpack/scripts/sysv-init-install.sh)
   set(CPACK_RPM_PACKAGE_REQUIRES_POST "initscripts")
 endif(FLB_CPACK_SYSVINIT)
+
+# Autogenerate deps, but prefer private libs you ship
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+set(CPACK_RPM_PACKAGE_AUTOREQPROV ON)
 
 include(CPack)
 
