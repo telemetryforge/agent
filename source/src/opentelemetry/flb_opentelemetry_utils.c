@@ -414,6 +414,9 @@ int flb_otel_utils_json_payload_append_converted_array(struct flb_log_event_enco
                                                        msgpack_object *object)
 {
     int                   result;
+    int                   pack_null_value = FLB_FALSE;
+    int                   pack_string_value = FLB_FALSE;
+    int                   pack_value = FLB_FALSE;
     size_t                index;
     msgpack_object_array *array;
 
