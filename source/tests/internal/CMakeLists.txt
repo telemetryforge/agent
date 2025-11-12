@@ -63,6 +63,22 @@ if(FLB_TLS)
     )
 endif()
 
+# TLS helpers
+if(FLB_TLS)
+  set(UNIT_TESTS_FILES
+    ${UNIT_TESTS_FILES}
+    upstream_tls.c
+    )
+endif()
+
+# TLS helpers
+if(FLB_TLS)
+  set(UNIT_TESTS_FILES
+    ${UNIT_TESTS_FILES}
+    upstream_tls.c
+    )
+endif()
+
 # Config format
 set(UNIT_TESTS_FILES
     ${UNIT_TESTS_FILES}
