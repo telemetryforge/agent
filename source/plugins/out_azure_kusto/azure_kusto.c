@@ -1422,7 +1422,7 @@ static void cb_azure_kusto_flush(struct flb_event_chunk *event_chunk,
     /* Cleanup resources */
     if (json) {
         flb_sds_destroy(json);
-    }
+    } 
     if (is_compressed && final_payload) {
         flb_free(final_payload);
     }
