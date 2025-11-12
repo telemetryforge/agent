@@ -936,7 +936,7 @@ int flb_http_buffer_increase(struct flb_http_client *c, size_t size,
     tmp = flb_realloc(c->resp.data, new_size);
     if (!tmp) {
         flb_errno();
-        return -1;
+        return FLB_HTTP_ERROR;
     }
     else {
         allocated = new_size - c->resp.data_size;
@@ -1288,7 +1288,7 @@ int flb_http_add_auth_header(struct flb_http_client *c,
     p = flb_malloc(len_u + len_p + 2);
     if (!p) {
         flb_errno();
-        return -1;
+        return FLB_HTTP_ERROR;
     }
 
     memcpy(p, user, len_u);
@@ -2290,6 +2290,9 @@ static int flb_http_encode_basic_auth_value(cfl_sds_t *output_buffer,
     if (raw_value == NULL) {
         return -1;
     }
+    else if (ret == FLB_HTTP_NOT_FOUND) {
+        /* Connection header not found, continue normally */
+    }
 
     sds_result = cfl_sds_printf(&raw_value,
                                 "%s:%s",
@@ -2642,6 +2645,9 @@ int flb_http_request_set_parameters_internal(
 
     if (failure_detected) {
         return -1;
+    }
+    else if (ret == FLB_HTTP_NOT_FOUND) {
+        /* Connection header not found, continue normally */
     }
 
     return 0;
