@@ -654,6 +654,30 @@ static int we_perflib_process_counter(
                sizeof(union we_perflib_value));
     }
 
+    if (counter_type == PERF_AVERAGE_BULK ||
+        counter_type == PERF_RAW_FRACTION ||
+        counter_type == PERF_100NSEC_TIMER_INV ||
+        counter_type == PERF_COUNTER_TIMER_INV ||
+        counter_type == PERF_100NSEC_MULTI_TIMER_INV ||
+        counter_type == PERF_COUNTER_MULTI_TIMER_INV) {
+
+        memcpy(&perflib_instance_counter->secondary_value,
+               &input_data_block[counter_definition->offset + counter_definition->size],
+               sizeof(union we_perflib_value));
+    }
+
+    if (counter_type == PERF_AVERAGE_BULK ||
+        counter_type == PERF_RAW_FRACTION ||
+        counter_type == PERF_100NSEC_TIMER_INV ||
+        counter_type == PERF_COUNTER_TIMER_INV ||
+        counter_type == PERF_100NSEC_MULTI_TIMER_INV ||
+        counter_type == PERF_COUNTER_MULTI_TIMER_INV) {
+
+        memcpy(&perflib_instance_counter->secondary_value,
+               &input_data_block[counter_definition->offset + counter_definition->size],
+               sizeof(union we_perflib_value));
+    }
+
     if (counter_definition->size > sizeof(union we_perflib_value)) {
         we_perflib_destroy_counter(perflib_instance_counter);
 

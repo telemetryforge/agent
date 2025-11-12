@@ -274,6 +274,40 @@ int we_initialize_perflib_metric_sources(
             *flag_ptr = '\0'; /* This now modifies the heap copy, not read-only memory */
         }
 
+        source_entry->name = flb_strdup(source_entry->name);
+        if (source_entry->name == NULL) {
+            /* Handle memory allocation failure */
+            we_deinitialize_perflib_metric_sources(source_array_copy);
+            flb_free(source_array_copy);
+            return -1; /* Or appropriate error code */
+        }
+
+        /* Now it is safe to search and modify the writable copy */
+        source_entry->use_secondary_value = FLB_FALSE;
+        flag_ptr = strstr(source_entry->name, ",secondvalue");
+
+        if (flag_ptr != NULL) {
+            source_entry->use_secondary_value = FLB_TRUE;
+            *flag_ptr = '\0'; /* This now modifies the heap copy, not read-only memory */
+        }
+
+        source_entry->name = flb_strdup(source_entry->name);
+        if (source_entry->name == NULL) {
+            /* Handle memory allocation failure */
+            we_deinitialize_perflib_metric_sources(source_array_copy);
+            flb_free(source_array_copy);
+            return -1; /* Or appropriate error code */
+        }
+
+        /* Now it is safe to search and modify the writable copy */
+        source_entry->use_secondary_value = FLB_FALSE;
+        flag_ptr = strstr(source_entry->name, ",secondvalue");
+
+        if (flag_ptr != NULL) {
+            source_entry->use_secondary_value = FLB_TRUE;
+            *flag_ptr = '\0'; /* This now modifies the heap copy, not read-only memory */
+        }
+
         result = we_expand_perflib_metric_source_labels(source_entry);
 
         if (result != 0) {
