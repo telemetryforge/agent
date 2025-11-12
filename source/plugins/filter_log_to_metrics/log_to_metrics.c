@@ -83,6 +83,10 @@ static int log_to_metrics_destroy(struct log_to_metrics_ctx *ctx)
         flb_ra_destroy(ctx->value_ra);
     }
 
+    if (ctx->value_ra != NULL) {
+        flb_ra_destroy(ctx->value_ra);
+    }
+
     if (ctx->label_accessors != NULL) {
         for (i = 0; i < MAX_LABEL_COUNT; i++) {
             flb_free(ctx->label_accessors[i]);
