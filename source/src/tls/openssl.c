@@ -791,10 +791,46 @@ static int tls_set_ciphers(struct flb_tls *tls, const char *ciphers)
         return -1;
     }
 
+#if defined(FLB_SYSTEM_WINDOWS)
+    if (ctx->certstore_name != NULL) {
+        flb_free(ctx->certstore_name);
+
+        ctx->certstore_name = NULL;
+    }
+#endif
+
     pthread_mutex_unlock(&ctx->mutex);
 
     return 0;
 }
+
+#if defined(FLB_SYSTEM_WINDOWS)
+static int tls_set_certstore_name(struct flb_tls *tls, const char *certstore_name)
+{
+    struct tls_context *ctx = tls->ctx;
+
+    pthread_mutex_lock(&ctx->mutex);
+
+    ctx->certstore_name = flb_strdup(certstore_name);
+
+    pthread_mutex_unlock(&ctx->mutex);
+
+    return 0;
+}
+
+static int tls_set_use_enterprise_store(struct flb_tls *tls, int use_enterprise)
+{
+    struct tls_context *ctx = tls->ctx;
+
+    pthread_mutex_lock(&ctx->mutex);
+
+    ctx->use_enterprise_store = !!use_enterprise;
+
+    pthread_mutex_unlock(&ctx->mutex);
+
+    return 0;
+}
+#endif
 
 #if defined(FLB_SYSTEM_WINDOWS)
 static int tls_set_certstore_name(struct flb_tls *tls, const char *certstore_name)
@@ -1085,6 +1121,14 @@ static int tls_net_write(struct flb_tls_session *session,
         }
     }
 
+#if defined(FLB_SYSTEM_WINDOWS)
+    if (ctx->certstore_name != NULL) {
+        flb_free(ctx->certstore_name);
+
+        ctx->certstore_name = NULL;
+    }
+#endif
+
     pthread_mutex_unlock(&ctx->mutex);
 
     /* Update counter and check if we need to continue writing */
@@ -1250,6 +1294,14 @@ static struct flb_tls_backend tls_openssl = {
     .net_read             = tls_net_read,
     .net_write            = tls_net_write,
     .net_handshake        = tls_net_handshake,
+#if defined(FLB_SYSTEM_WINDOWS)
+    .set_certstore_name   = tls_set_certstore_name,
+    .set_use_enterprise_store = tls_set_use_enterprise_store,
+#endif
+#if defined(FLB_SYSTEM_WINDOWS)
+    .set_certstore_name   = tls_set_certstore_name,
+    .set_use_enterprise_store = tls_set_use_enterprise_store,
+#endif
 #if defined(FLB_SYSTEM_WINDOWS)
     .set_certstore_name   = tls_set_certstore_name,
     .set_use_enterprise_store = tls_set_use_enterprise_store,
