@@ -771,6 +771,30 @@ static int get_ec2_metadata_az(struct flb_filter_aws *ctx)
         }
     }
 
+    if (ctx->enable_entity) {
+        if (!ctx->account_id) {
+            ret = flb_aws_imds_request_by_key(ctx->client_imds, FLB_AWS_IMDS_ACCOUNT_ID_PATH,
+                                  &ctx->account_id, &ctx->account_id_len,
+                                  "accountId");
+
+            if (ret < 0) {
+                flb_plg_error(ctx->ins, "Failed to get Account ID");
+                return -1;
+            }
+        }
+
+        if (!ctx->instance_id) {
+            ret = flb_aws_imds_request(ctx->client_imds, FLB_AWS_IMDS_INSTANCE_ID_PATH,
+                                       &ctx->instance_id,
+                                       &ctx->instance_id_len);
+            if (ret < 0) {
+                flb_plg_error(ctx->ins, "Failed to get instance ID");
+                return -1;
+            }
+        }
+    }
+
+    ctx->metadata_retrieved = FLB_TRUE;
     return 0;
 }
 
@@ -787,6 +811,30 @@ static int get_ec2_metadata_tags(struct flb_filter_aws *ctx)
         }
     }
 
+    if (ctx->enable_entity) {
+        if (!ctx->account_id) {
+            ret = flb_aws_imds_request_by_key(ctx->client_imds, FLB_AWS_IMDS_ACCOUNT_ID_PATH,
+                                  &ctx->account_id, &ctx->account_id_len,
+                                  "accountId");
+
+            if (ret < 0) {
+                flb_plg_error(ctx->ins, "Failed to get Account ID");
+                return -1;
+            }
+        }
+
+        if (!ctx->instance_id) {
+            ret = flb_aws_imds_request(ctx->client_imds, FLB_AWS_IMDS_INSTANCE_ID_PATH,
+                                       &ctx->instance_id,
+                                       &ctx->instance_id_len);
+            if (ret < 0) {
+                flb_plg_error(ctx->ins, "Failed to get instance ID");
+                return -1;
+            }
+        }
+    }
+
+    ctx->metadata_retrieved = FLB_TRUE;
     return 0;
 }
 
@@ -1011,6 +1059,40 @@ static int cb_aws_filter(const void *data, size_t bytes,
         obj = log_event.body;
 
         ret = flb_log_event_encoder_begin_record(&log_encoder);
+
+        if (ctx->enable_entity &&
+            ctx->instance_id &&
+            ctx->account_id &&
+            ret == FLB_EVENT_ENCODER_SUCCESS) {
+            ret = flb_log_event_encoder_append_body_values(
+                    &log_encoder,
+                    FLB_LOG_EVENT_CSTRING_VALUE(FLB_FILTER_AWS_ENTITY_INSTANCE_ID_KEY),
+                    FLB_LOG_EVENT_STRING_VALUE(ctx->instance_id,
+                                               ctx->instance_id_len));
+            ret = flb_log_event_encoder_append_body_values(
+                    &log_encoder,
+                    FLB_LOG_EVENT_CSTRING_VALUE(FLB_FILTER_AWS_ENTITY_ACCOUNT_ID_KEY),
+                    FLB_LOG_EVENT_STRING_VALUE(ctx->account_id,
+                                               ctx->account_id_len));
+        }
+
+
+        if (ctx->enable_entity &&
+            ctx->instance_id &&
+            ctx->account_id &&
+            ret == FLB_EVENT_ENCODER_SUCCESS) {
+            ret = flb_log_event_encoder_append_body_values(
+                    &log_encoder,
+                    FLB_LOG_EVENT_CSTRING_VALUE(FLB_FILTER_AWS_ENTITY_INSTANCE_ID_KEY),
+                    FLB_LOG_EVENT_STRING_VALUE(ctx->instance_id,
+                                               ctx->instance_id_len));
+            ret = flb_log_event_encoder_append_body_values(
+                    &log_encoder,
+                    FLB_LOG_EVENT_CSTRING_VALUE(FLB_FILTER_AWS_ENTITY_ACCOUNT_ID_KEY),
+                    FLB_LOG_EVENT_STRING_VALUE(ctx->account_id,
+                                               ctx->account_id_len));
+        }
+
 
         if (ret == FLB_EVENT_ENCODER_SUCCESS) {
             ret = flb_log_event_encoder_set_timestamp(
@@ -1313,6 +1395,18 @@ static struct flb_config_map config_map[] = {
      FLB_CONFIG_MAP_INT, "retry_interval_s", "300",
      0, FLB_TRUE, offsetof(struct flb_filter_aws, retry_required_interval),
      "Defines minimum duration between retries for fetching metadata groups"
+    },
+    {
+    FLB_CONFIG_MAP_BOOL, "enable_entity", "false",
+    0, FLB_TRUE, offsetof(struct flb_filter_aws, enable_entity),
+    "Enable entity prefix for fields used for constructing entity."
+    "This currently only affects instance ID"
+    },
+    {
+    FLB_CONFIG_MAP_BOOL, "enable_entity", "false",
+    0, FLB_TRUE, offsetof(struct flb_filter_aws, enable_entity),
+    "Enable entity prefix for fields used for constructing entity."
+    "This currently only affects instance ID"
     },
     {
     FLB_CONFIG_MAP_BOOL, "enable_entity", "false",
