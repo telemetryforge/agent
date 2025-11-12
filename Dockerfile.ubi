@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9:9.5 AS base-builder
+FROM registry.access.redhat.com/ubi9:9.7 AS base-builder
 
 # hadolint ignore=DL3041
 RUN dnf update -y && \
