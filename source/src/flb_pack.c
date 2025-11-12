@@ -155,6 +155,43 @@ static inline void pack_numeric_token(msgpack_packer *pck, const char *p, int fl
     }
 }
 
+static inline void pack_numeric_token(msgpack_packer *pck, const char *p, int flen)
+{
+    long long val;
+    unsigned long long u_val;
+
+    if (is_float(p, flen)) {
+        msgpack_pack_double(pck, strtod(p, NULL));
+        return;
+    }
+
+    errno = 0;
+
+    if (*p == '-') {
+        val = strtoll(p, NULL, 10);
+
+        if (errno == ERANGE) {
+            msgpack_pack_double(pck, strtod(p, NULL));
+        }
+        else {
+            msgpack_pack_int64(pck, val);
+        }
+    }
+    else {
+        u_val = strtoull(p, NULL, 10);
+
+        if (errno == ERANGE) {
+            msgpack_pack_double(pck, strtod(p, NULL));
+        }
+        else if (u_val <= LLONG_MAX) {
+            msgpack_pack_int64(pck, (long long)u_val);
+        }
+        else {
+            msgpack_pack_uint64(pck, u_val);
+        }
+    }
+}
+
 /* Sanitize incoming JSON string */
 static inline int pack_string_token(struct flb_pack_state *state,
                                     const char *str, int len,
