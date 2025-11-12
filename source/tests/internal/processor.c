@@ -143,6 +143,18 @@ static void processor_private_inputs_use_main_loop()
     TEST_CHECK(wret == 0);
 #endif
 
+#ifdef _WIN32
+    WSADATA wsa;
+    int wret = WSAStartup(MAKEWORD(2,2), &wsa);
+    TEST_CHECK(wret == 0);
+#endif
+
+#ifdef _WIN32
+    WSADATA wsa;
+    int wret = WSAStartup(MAKEWORD(2,2), &wsa);
+    TEST_CHECK(wret == 0);
+#endif
+
     config = flb_config_init();
     TEST_CHECK(config != NULL);
 
