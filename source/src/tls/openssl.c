@@ -945,6 +945,58 @@ static void tls_session_invalidate(void *session)
     pthread_mutex_unlock(&ctx->mutex);
 }
 
+static void tls_session_invalidate(void *session)
+{
+    struct tls_session *ptr = session;
+    struct tls_context *ctx;
+
+    if (ptr == NULL) {
+        return;
+    }
+
+    ctx = ptr->parent;
+    if (ctx == NULL) {
+        ptr->fd = -1;
+        return;
+    }
+
+    pthread_mutex_lock(&ctx->mutex);
+
+    if (ptr->fd >= 0 && flb_socket_error(ptr->fd) == 0) {
+        SSL_shutdown(ptr->ssl);
+    }
+
+    ptr->fd = -1;
+
+    pthread_mutex_unlock(&ctx->mutex);
+}
+
+static void tls_session_invalidate(void *session)
+{
+    struct tls_session *ptr = session;
+    struct tls_context *ctx;
+
+    if (ptr == NULL) {
+        return;
+    }
+
+    ctx = ptr->parent;
+    if (ctx == NULL) {
+        ptr->fd = -1;
+        return;
+    }
+
+    pthread_mutex_lock(&ctx->mutex);
+
+    if (ptr->fd >= 0 && flb_socket_error(ptr->fd) == 0) {
+        SSL_shutdown(ptr->ssl);
+    }
+
+    ptr->fd = -1;
+
+    pthread_mutex_unlock(&ctx->mutex);
+}
+
 static const char *tls_session_alpn_get(void *session_)
 {
     const unsigned char    *backend_alpn_buffer;
