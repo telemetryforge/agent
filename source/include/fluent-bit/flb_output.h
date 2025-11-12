@@ -898,6 +898,26 @@ struct flb_output_flush *flb_output_flush_create(struct flb_task *task,
                     flb_free(p_buf);
                     return NULL;
                 }
+                else {
+                    cmt_destroy(metrics_context);
+                    if (cmt_out_context != NULL && cmt_out_context != metrics_context) {
+                        cmt_destroy(cmt_out_context);
+                    }
+                    flb_coro_destroy(coro);
+                    flb_free(out_flush);
+                    flb_free(p_buf);
+                    return NULL;
+                }
+                else {
+                    cmt_destroy(metrics_context);
+                    if (cmt_out_context != NULL && cmt_out_context != metrics_context) {
+                        cmt_destroy(cmt_out_context);
+                    }
+                    flb_coro_destroy(coro);
+                    flb_free(out_flush);
+                    flb_free(p_buf);
+                    return NULL;
+                }
             }
 
             if (serialization_buffer_offset == 0) {
