@@ -121,8 +121,74 @@ void test_prometheus_metric_no_subsystem()
 
 #endif
 
+#ifdef CMT_HAVE_PROMETHEUS_TEXT_DECODER
+
+/* issue: https://github.com/fluent/fluent-bit/issues/10761 */
+void test_prometheus_metric_no_subsystem()
+{
+    const char text[] =
+        "# HELP up A simple example metric no subsystem\n"
+        "# TYPE up gauge\n"
+        "up{job=\"42\"} 1\n";
+    struct cmt *cmt;
+    cfl_sds_t result;
+    int ret;
+
+    cmt_initialize();
+
+    ret = cmt_decode_prometheus_create(&cmt, text, strlen(text), NULL);
+    TEST_CHECK(ret == CMT_DECODE_PROMETHEUS_SUCCESS);
+    if (ret == CMT_DECODE_PROMETHEUS_SUCCESS) {
+        result = cmt_encode_prometheus_create(cmt, CMT_TRUE);
+        TEST_CHECK(result != NULL);
+        if (result) {
+            TEST_CHECK(strstr(result, "up{job=\"42\"} 1") != NULL);
+            cmt_encode_prometheus_destroy(result);
+        }
+        cmt_decode_prometheus_destroy(cmt);
+    }
+}
+
+#endif
+
+#ifdef CMT_HAVE_PROMETHEUS_TEXT_DECODER
+
+/* issue: https://github.com/fluent/fluent-bit/issues/10761 */
+void test_prometheus_metric_no_subsystem()
+{
+    const char text[] =
+        "# HELP up A simple example metric no subsystem\n"
+        "# TYPE up gauge\n"
+        "up{job=\"42\"} 1\n";
+    struct cmt *cmt;
+    cfl_sds_t result;
+    int ret;
+
+    cmt_initialize();
+
+    ret = cmt_decode_prometheus_create(&cmt, text, strlen(text), NULL);
+    TEST_CHECK(ret == CMT_DECODE_PROMETHEUS_SUCCESS);
+    if (ret == CMT_DECODE_PROMETHEUS_SUCCESS) {
+        result = cmt_encode_prometheus_create(cmt, CMT_TRUE);
+        TEST_CHECK(result != NULL);
+        if (result) {
+            TEST_CHECK(strstr(result, "up{job=\"42\"} 1") != NULL);
+            cmt_encode_prometheus_destroy(result);
+        }
+        cmt_decode_prometheus_destroy(cmt);
+    }
+}
+
+#endif
+
 TEST_LIST = {
     {"issue_54", test_issue_54},
+#ifdef CMT_HAVE_PROMETHEUS_TEXT_DECODER
+    {"prometheus_metric_no_subsystem", test_prometheus_metric_no_subsystem},
+#endif
+#ifdef CMT_HAVE_PROMETHEUS_TEXT_DECODER
+    {"prometheus_metric_no_subsystem", test_prometheus_metric_no_subsystem},
+#endif
 #ifdef CMT_HAVE_PROMETHEUS_TEXT_DECODER
     {"prometheus_metric_no_subsystem", test_prometheus_metric_no_subsystem},
 #endif
