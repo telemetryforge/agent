@@ -1237,6 +1237,32 @@
       "log_body": {"empty_map_key": null, "normal_key": "normal_value", "missing_value_key": ""}
     }
   },
+  "issue_10672_empty_map_as_null": {
+    "input": {
+      "resourceLogs": [{
+        "scopeLogs": [{
+          "logRecords": [{
+            "timeUnixNano": "1722904465173450100",
+            "body": {
+              "kvlistValue": {
+                "values": [
+                  {"key": "empty_map_key", "value": {}},
+                  {"key": "normal_key", "value": {"stringValue": "normal_value"}},
+                  {"key": "missing_value_key"}
+                ]
+              }
+            }
+          }]
+        }]
+      }]
+    },
+    "expected": {
+      "group_metadata": {"schema":"otlp","resource_id":0,"scope_id":0},
+      "group_body": {"resource":{}},
+      "log_metadata": {"otlp":{}},
+      "log_body": {"empty_map_key": null, "normal_key": "normal_value", "missing_value_key": ""}
+    }
+  },
   "arrayvalue_wrapped_map": {
     "input": {
       "resourceLogs": [{
