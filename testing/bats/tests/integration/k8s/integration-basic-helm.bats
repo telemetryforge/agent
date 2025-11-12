@@ -28,7 +28,7 @@ function setup() {
     fi
 
     helm repo add fluent https://fluent.github.io/helm-charts --force-update
-    helm repo update --fail-on-repo-update-fail
+    helm repo update
 
     # Always clean up
     helm uninstall --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" 2>/dev/null || true

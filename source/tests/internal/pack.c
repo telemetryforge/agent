@@ -989,6 +989,7 @@ void test_json_pack_bug5336()
     int i;
 
     msgpack_unpacked result;
+    msgpack_object obj;
 
     size_t off = 0;
 
@@ -1265,93 +1266,6 @@ void test_json_pack_token_count_overflow()
     flb_pack_state_reset(&state);
 }
 
-void test_json_pack_token_count_overflow()
-{
-    int i;
-    flb_sds_t json = NULL;
-    struct flb_pack_state state;
-    int ret;
-
-    flb_pack_state_init(&state);
-
-    /* Create a JSON array big enough to trigger realloc in flb_json_tokenise */
-    json = flb_sds_create("[");
-    for (i = 0; i < 300; i++) {
-        if (i > 0) {
-            flb_sds_cat_safe(&json, ",", 1);
-        }
-        json = flb_sds_printf(&json, "%d", i);
-    }
-    flb_sds_cat_safe(&json, "]", 1);
-
-    if (!TEST_CHECK(json != NULL)) {
-        TEST_MSG("Failed to allocate JSON string");
-        exit(1);
-    }
-
-    /* First parse: forces realloc at least once (because by default we have space for 256 tokens) */
-    ret = flb_json_tokenise(json, flb_sds_len(json), &state);
-    TEST_CHECK(ret == 0);
-    printf("\nFirst parse: tokens_count=%d\n", state.tokens_count);
-
-    /* Second parse with the same JSON and same state — should be ~301, but will be doubled if bug exists */
-    ret = flb_json_tokenise(json, flb_sds_len(json), &state);
-    TEST_CHECK(ret == 0);
-    printf("Second parse: tokens_count=%d (BUG if > ~301)\n", state.tokens_count);
-
-    TEST_CHECK(state.tokens_count == 301);
-    if (state.tokens_count != 301) {
-        TEST_MSG("tokens_count=%d (BUG if > ~301)\n", state.tokens_count);
-        exit(1);
-    }
-
-    flb_sds_destroy(json);
-    flb_pack_state_reset(&state);
-}
-
-void test_json_pack_token_count_overflow()
-{
-    int i;
-    flb_sds_t json = NULL;
-    struct flb_pack_state state;
-    int ret;
-
-    flb_pack_state_init(&state);
-
-    /* Create a JSON array big enough to trigger realloc in flb_json_tokenise */
-    json = flb_sds_create("[");
-    for (i = 0; i < 300; i++) {
-        if (i > 0) {
-            flb_sds_cat_safe(&json, ",", 1);
-        }
-        json = flb_sds_printf(&json, "%d", i);
-    }
-    flb_sds_cat_safe(&json, "]", 1);
-
-    if (!TEST_CHECK(json != NULL)) {
-        TEST_MSG("Failed to allocate JSON string");
-        exit(1);
-    }
-
-    /* First parse: forces realloc at least once (because by default we have space for 256 tokens) */
-    ret = flb_json_tokenise(json, flb_sds_len(json), &state);
-    TEST_CHECK(ret == 0);
-    printf("\nFirst parse: tokens_count=%d\n", state.tokens_count);
-
-    /* Second parse with the same JSON and same state — should be ~301, but will be doubled if bug exists */
-    ret = flb_json_tokenise(json, flb_sds_len(json), &state);
-    TEST_CHECK(ret == 0);
-    printf("Second parse: tokens_count=%d (BUG if > ~301)\n", state.tokens_count);
-
-    TEST_CHECK(state.tokens_count == 301);
-    if (state.tokens_count != 301) {
-        TEST_MSG("tokens_count=%d (BUG if > ~301)\n", state.tokens_count);
-        exit(1);
-    }
-
-    flb_sds_destroy(json);
-    flb_pack_state_reset(&state);
-}
 
 TEST_LIST = {
     /* JSON maps iteration */
