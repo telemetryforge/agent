@@ -144,6 +144,30 @@ static int cb_firehose_init(struct flb_output_instance *ins,
         goto error;
     }
 
+    /*
+     * Sets the port number for the Kinesis output plugin.
+     *
+     * This function uses the port number already set in the output instance's host structure.
+     * If the port is not set (0), the default HTTPS port is used.
+     *
+     * @param ins The output instance.
+     * @param ctx The Kinesis output plugin context.
+     */
+    flb_plg_debug(ins, "Retrieved port from ins->host.port: %d", ins->host.port);
+
+    if (ins->host.port == 0) {
+        ctx->port = FLB_KINESIS_DEFAULT_HTTPS_PORT;
+        flb_plg_debug(ins, "Port not set. Using default HTTPS port: %d", ctx->port);
+    }
+    else if (ins->host.port == (ctx->port = (uint16_t)ins->host.port)) {
+        flb_plg_debug(ins, "Setting port to: %d", ctx->port);
+    }
+    else {
+        flb_plg_error(ins, "Invalid port number: %d. Must be between %d and %d",
+                      ins->host.port, 1, UINT16_MAX);
+        goto error;
+    }
+
     tmp = flb_output_get_property("compression", ins);
     if (tmp) {
         ret = flb_aws_compression_get_type(tmp);

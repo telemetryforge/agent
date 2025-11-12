@@ -31,6 +31,8 @@
 
 #define FLB_KINESIS_DEFAULT_HTTPS_PORT    443
 
+#define FLB_KINESIS_DEFAULT_HTTPS_PORT    443
+
 /* buffers used for each flush */
 struct flush {
     /* temporary buffer for storing the serialized event messages */
