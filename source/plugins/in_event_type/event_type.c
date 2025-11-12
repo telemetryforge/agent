@@ -388,6 +388,7 @@ static int cb_collector_time(struct flb_input_instance *ins,
         ret = send_traces(ins);
         flb_plg_debug(ins, "traces, ret=%i", ret);
     }
+    ctx->ins = ins;
 
     flb_plg_info(ins, "[OK] collector_time");
     FLB_INPUT_RETURN(0);
@@ -414,6 +415,7 @@ static int cb_event_type_init(struct flb_input_instance *ins,
 
         return -1;
     }
+    ctx->ins = ins;
 
     flb_input_set_context(ins, ctx);
 
@@ -451,6 +453,34 @@ static int cb_event_type_exit(void *data, struct flb_config *config)
 
     flb_free(ctx);
     return 0;
+}
+
+static void cb_event_type_pause(void *data, struct flb_config *config)
+{
+    struct event_type *ctx = data;
+
+    flb_input_collector_pause(ctx->coll_fd, ctx->ins);
+}
+
+static void cb_event_type_resume(void *data, struct flb_config *config)
+{
+    struct event_type *ctx = data;
+
+    flb_input_collector_resume(ctx->coll_fd, ctx->ins);
+}
+
+static void cb_event_type_pause(void *data, struct flb_config *config)
+{
+    struct event_type *ctx = data;
+
+    flb_input_collector_pause(ctx->coll_fd, ctx->ins);
+}
+
+static void cb_event_type_resume(void *data, struct flb_config *config)
+{
+    struct event_type *ctx = data;
+
+    flb_input_collector_resume(ctx->coll_fd, ctx->ins);
 }
 
 static void cb_event_type_pause(void *data, struct flb_config *config)
