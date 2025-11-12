@@ -521,6 +521,7 @@ int flb_http1_server_session_ingest(struct flb_http1_server_session *session,
          */
     }
 
+    memset(&session->inner_request, 0, sizeof(struct mk_http_request));
     dummy_mk_http_request_init(&session->inner_session, &session->inner_request);
     mk_http_parser_init(&session->inner_parser);
 
