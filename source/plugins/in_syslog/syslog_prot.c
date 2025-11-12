@@ -218,6 +218,10 @@ int syslog_prot_process(struct syslog_conn *conn)
 
     flb_log_event_encoder_reset(ctx->log_encoder);
 
+    flb_log_event_encoder_reset(ctx->log_encoder);
+
+    flb_log_event_encoder_reset(ctx->log_encoder);
+
     /* Always parse while some remaining bytes exists */
     while (eof < end) {
         /* Lookup the ending byte */
@@ -284,6 +288,18 @@ int syslog_prot_process(struct syslog_conn *conn)
                              ctx->log_encoder->output_length);
     }
 
+    if (ctx->log_encoder->output_length > 0) {
+        flb_input_log_append(ctx->ins, NULL, 0,
+                             ctx->log_encoder->output_buffer,
+                             ctx->log_encoder->output_length);
+    }
+
+    if (ctx->log_encoder->output_length > 0) {
+        flb_input_log_append(ctx->ins, NULL, 0,
+                             ctx->log_encoder->output_buffer,
+                             ctx->log_encoder->output_length);
+    }
+
     return 0;
 }
 
@@ -305,6 +321,10 @@ int syslog_prot_process_udp(struct syslog_conn *conn)
 
     flb_log_event_encoder_reset(ctx->log_encoder);
 
+    flb_log_event_encoder_reset(ctx->log_encoder);
+
+    flb_log_event_encoder_reset(ctx->log_encoder);
+
     ret = flb_parser_do(ctx->parser, buf, size,
                         &out_buf, &out_size, &out_time);
     if (ret >= 0) {
@@ -323,6 +343,18 @@ int syslog_prot_process_udp(struct syslog_conn *conn)
         flb_plg_debug(ctx->ins, "unparsed log message: %.*s",
                       (int) size, buf);
         return -1;
+    }
+
+    if (ctx->log_encoder->output_length > 0) {
+        flb_input_log_append(ctx->ins, NULL, 0,
+                             ctx->log_encoder->output_buffer,
+                             ctx->log_encoder->output_length);
+    }
+
+    if (ctx->log_encoder->output_length > 0) {
+        flb_input_log_append(ctx->ins, NULL, 0,
+                             ctx->log_encoder->output_buffer,
+                             ctx->log_encoder->output_length);
     }
 
     if (ctx->log_encoder->output_length > 0) {
