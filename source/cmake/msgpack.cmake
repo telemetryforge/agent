@@ -10,5 +10,9 @@ include_directories(
 # define preprocessor MSGPACK_EMBED_STACK_SIZE to 1024
 add_compile_definitions(MSGPACK_EMBED_STACK_SIZE=64)
 
+
+# define preprocessor MSGPACK_EMBED_STACK_SIZE to 1024
+add_compile_definitions(MSGPACK_EMBED_STACK_SIZE=64)
+
 add_subdirectory(${FLB_PATH_LIB_MSGPACK} EXCLUDE_FROM_ALL)
 set(MSGPACK_LIBRARIES "msgpack-c-static")
