@@ -869,6 +869,23 @@ static void cb_es_flush(struct flb_event_chunk *event_chunk,
         pack = (char *) out_buf;
         pack_size = out_size;
     }
+    else if (ctx->http_api_key) {
+        header_line = flb_sds_printf(NULL, "ApiKey %s", ctx->http_api_key);
+        if (header_line == NULL) {
+            flb_plg_error(ctx->ins, "failed to format API key auth header");
+            goto retry;
+        }
+
+        if (flb_http_add_header(c,
+                                FLB_HTTP_HEADER_AUTH, strlen(FLB_HTTP_HEADER_AUTH),
+                                header_line, flb_sds_len(header_line)) != 0) {
+            flb_plg_error(ctx->ins, "failed to add API key auth header");
+            flb_sds_destroy(header_line);
+            goto retry;
+        }
+
+        flb_sds_destroy(header_line);
+    }
 
     /* Compose HTTP Client request */
     c = flb_http_client(u_conn, FLB_HTTP_POST, ctx->uri,
@@ -1106,6 +1123,11 @@ static struct flb_config_map config_map[] = {
      FLB_CONFIG_MAP_BOOL, "suppress_type_name", "false",
      0, FLB_TRUE, offsetof(struct flb_elasticsearch, suppress_type_name),
      "If true, mapping types is removed. (for v7.0.0 or later)"
+    },
+    {
+    FLB_CONFIG_MAP_STR, "http_api_key", NULL,
+    0, FLB_TRUE, offsetof(struct flb_elasticsearch, http_api_key),
+    "Base-64 encoded API key credential for Elasticsearch"
     },
 
     /* HTTP Authentication */
