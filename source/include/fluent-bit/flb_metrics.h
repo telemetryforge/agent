@@ -49,6 +49,13 @@
  * to ship internal metrics which is part of the v1 HTTP endpoint.
  */
 
+/*
+ * v1 HTTP endpoint metrics
+ * ------------------------
+ * These are functions that are not part of the CMetrics library, its' the old interface
+ * to ship internal metrics which is part of the v1 HTTP endpoint.
+ */
+
 /* Metrics IDs for general purpose (used by core and Plugins */
 #define FLB_METRIC_N_RECORDS       0
 #define FLB_METRIC_N_BYTES         1
