@@ -204,6 +204,10 @@ struct flb_service_config service_configs[] = {
      FLB_CONF_TYPE_INT,
      offsetof(struct flb_config, hot_reload_watchdog_timeout_seconds)},
 
+    {FLB_CONF_STR_HOT_RELOAD_TIMEOUT,
+     FLB_CONF_TYPE_INT,
+     offsetof(struct flb_config, hot_reload_watchdog_timeout_seconds)},
+
     {NULL, FLB_CONF_TYPE_OTHER, 0} /* end of array */
 };
 
