@@ -190,6 +190,7 @@ static ssize_t parse_payload_none(struct tcp_conn *conn)
     char *s;
     char *separator;
     struct flb_in_tcp_config *ctx;
+    int ret = 0;
 
     ctx = conn->ctx;
 
@@ -269,6 +270,8 @@ int tcp_conn_event(void *data)
     ctx = conn->ctx;
 
     event = &connection->event;
+
+    conn->busy = FLB_TRUE;
 
     conn->busy = FLB_TRUE;
 
@@ -456,12 +459,16 @@ struct tcp_conn *tcp_conn_add(struct flb_connection *connection,
     conn->busy = FLB_FALSE;
     conn->pending_close = FLB_FALSE;
 
+    conn->busy = FLB_FALSE;
+    conn->pending_close = FLB_FALSE;
+
     return conn;
 }
 
 int tcp_conn_del(struct tcp_conn *conn)
 {
     struct flb_in_tcp_config *ctx;
+    int ret = 0;
 
     ctx = conn->ctx;
 

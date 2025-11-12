@@ -175,6 +175,68 @@ static void in_tcp_resume(void *data, struct flb_config *config)
     flb_downstream_resume(ctx->downstream);
 }
 
+static void in_tcp_pause(void *data, struct flb_config *config)
+{
+    struct flb_in_tcp_config *ctx = data;
+    struct mk_list *head;
+    struct mk_list *tmp;
+    struct tcp_conn *conn;
+
+    (void) config;
+
+    flb_downstream_pause(ctx->downstream);
+
+    mk_list_foreach_safe(head, tmp, &ctx->connections) {
+        conn = mk_list_entry(head, struct tcp_conn, _head);
+        if (conn->busy) {
+            conn->pending_close = FLB_TRUE;
+            continue;
+        }
+
+        tcp_conn_del(conn);
+    }
+}
+
+static void in_tcp_resume(void *data, struct flb_config *config)
+{
+    struct flb_in_tcp_config *ctx = data;
+
+    (void) config;
+
+    flb_downstream_resume(ctx->downstream);
+}
+
+static void in_tcp_pause(void *data, struct flb_config *config)
+{
+    struct flb_in_tcp_config *ctx = data;
+    struct mk_list *head;
+    struct mk_list *tmp;
+    struct tcp_conn *conn;
+
+    (void) config;
+
+    flb_downstream_pause(ctx->downstream);
+
+    mk_list_foreach_safe(head, tmp, &ctx->connections) {
+        conn = mk_list_entry(head, struct tcp_conn, _head);
+        if (conn->busy) {
+            conn->pending_close = FLB_TRUE;
+            continue;
+        }
+
+        tcp_conn_del(conn);
+    }
+}
+
+static void in_tcp_resume(void *data, struct flb_config *config)
+{
+    struct flb_in_tcp_config *ctx = data;
+
+    (void) config;
+
+    flb_downstream_resume(ctx->downstream);
+}
+
 static struct flb_config_map config_map[] = {
     {
      FLB_CONFIG_MAP_STR, "format", (char *)NULL,
