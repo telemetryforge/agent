@@ -25,6 +25,10 @@
 
 #include <windows.h>
 
+#include <windows.h>
+
+#include <windows.h>
+
 #include "we.h"
 #include "we_logical_disk.h"
 #include "we_util.h"
