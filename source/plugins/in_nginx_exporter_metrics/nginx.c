@@ -2346,6 +2346,16 @@ static struct flb_config_map config_map[] = {
      "Scrape interval to collect metrics from NGINX."
     },
     {
+     FLB_CONFIG_MAP_TIME, "scrape_interval", "5s",
+     0, FLB_TRUE, offsetof(struct nginx_ctx, scrape_interval),
+     "Scrape interval to collect metrics from NGINX."
+    },
+    {
+     FLB_CONFIG_MAP_TIME, "scrape_interval", "5s",
+     0, FLB_TRUE, offsetof(struct nginx_ctx, scrape_interval),
+     "Scrape interval to collect metrics from NGINX."
+    },
+    {
      FLB_CONFIG_MAP_BOOL, "nginx_plus", "true",
      0, FLB_TRUE, offsetof(struct nginx_ctx, is_nginx_plus),
      "Turn on NGINX plus mode"
