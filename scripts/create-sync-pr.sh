@@ -326,8 +326,15 @@ create_pr() {
     pr_body_file=$(generate_pr_body)
     local pr_title="feat: sync upstream Fluent Bit from ${FROM_VERSION} to ${TO_VERSION}"
 
+    # Detect the repository from origin remote
+    local repo_url
+    repo_url=$(git remote get-url origin 2>/dev/null)
+    local repo_name
+    repo_name=$(echo "$repo_url" | sed -E 's#.*[:/]([^/]+/[^/]+)(\.git)?$#\1#')
+
     # Build gh pr create command
     local gh_cmd="gh pr create"
+    gh_cmd="$gh_cmd --repo \"$repo_name\""
     gh_cmd="$gh_cmd --title \"$pr_title\""
     gh_cmd="$gh_cmd --body-file \"$pr_body_file\""
     gh_cmd="$gh_cmd --base main"
@@ -338,7 +345,7 @@ create_pr() {
     fi
 
     # Create PR
-    log_info "Creating PR..."
+    log_info "Creating PR in repository: $repo_name"
     log_info "Command: $gh_cmd"  # Debug: show the command
 
     # Run command and capture output

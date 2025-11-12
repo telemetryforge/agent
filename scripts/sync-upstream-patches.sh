@@ -48,6 +48,7 @@ DRY_RUN=false
 INTERACTIVE=true
 AUTO_COMMIT=false
 PER_PATCH_COMMIT=true  # Default to individual commits
+SKIP_CATEGORIES=""  # Comma-separated list of categories to skip
 
 usage() {
     cat << EOF
@@ -66,6 +67,9 @@ ${GREEN}Options:${NC}
     --auto-commit             Automatically commit after applying (with --single-commit)
     --per-patch               Commit each patch individually (default)
     --single-commit           Apply all patches then create one commit
+    --skip CATEGORIES         Skip specific patch categories (comma-separated)
+                              Valid categories: PACKAGING, VERSION, TESTS, WORKFLOWS, TECHNICAL
+                              Example: --skip PACKAGING,VERSION
     -h, --help                Show this help message
     --no-colours, --no-colors Disable control characters in output
 
@@ -81,6 +85,12 @@ ${GREEN}Examples:${NC}
 
     # Auto-apply and create single commit
     $0 --from v4.0.10 --to v4.0.11 --no-interactive --single-commit
+
+    # Skip packaging and version bump patches
+    $0 --from v4.0.10 --to v4.0.11 --skip PACKAGING,VERSION
+
+    # Non-interactive, skip workflows and packaging
+    $0 --from v4.0.10 --to v4.0.11 --no-interactive --skip WORKFLOWS,PACKAGING
 
 ${GREEN}Patch Categories:${NC}
 The script categorizes patches as:
@@ -127,6 +137,10 @@ while [[ $# -gt 0 ]]; do
             PER_PATCH_COMMIT=false
             shift
             ;;
+        --skip)
+            SKIP_CATEGORIES="$2"
+            shift 2
+            ;;
         -h|--help)
             usage
             ;;
@@ -159,6 +173,25 @@ log_success() { log "${GREEN}✓${NC} $1"; }
 log_warning() { log "${YELLOW}⚠${NC} $1"; }
 log_error() { log "${RED}✗${NC} $1"; }
 log_step() { echo; log "${CYAN}═══ $1 ═══${NC}"; }
+
+# Check if a category should be skipped
+should_skip_category() {
+    local category="$1"
+    if [[ -z "$SKIP_CATEGORIES" ]]; then
+        return 1  # Don't skip if no categories specified
+    fi
+
+    # Convert to uppercase for comparison (compatible with bash 3.x)
+    local skip_list
+    skip_list=$(echo "$SKIP_CATEGORIES" | tr '[:lower:]' '[:upper:]')
+
+    # Check if category is in the skip list
+    if [[ ",$skip_list," == *",$category,"* ]]; then
+        return 0  # Skip this category
+    fi
+
+    return 1  # Don't skip
+}
 
 # Categorize patch by analyzing its filename and content
 categorize_patch() {
@@ -300,9 +333,12 @@ apply_patch() {
     local method=""
 
     # Use patch command as primary method (more reliable than git apply)
-    if patch -p1 --dry-run < "$patch_file" >/dev/null 2>&1; then
+    # Use --batch and --force to prevent any interactive prompts
+    if patch -p1 --batch --dry-run < "$patch_file" >/dev/null 2>&1; then
         if [[ "$DRY_RUN" == false ]]; then
-            patch -p1 < "$patch_file" >/dev/null 2>&1 && applied=true && method="patch -p1"
+            if patch -p1 --batch --force < "$patch_file" >/dev/null 2>&1; then
+                applied=true && method="patch -p1"
+            fi
         else
             applied=true && method="patch -p1 (dry-run)"
         fi
@@ -310,9 +346,11 @@ apply_patch() {
 
     # If patch fails, try with fuzz
     if [[ "$applied" == false ]]; then
-        if patch -p1 --fuzz=2 --dry-run < "$patch_file" >/dev/null 2>&1; then
+        if patch -p1 --fuzz=2 --batch --dry-run < "$patch_file" >/dev/null 2>&1; then
             if [[ "$DRY_RUN" == false ]]; then
-                patch -p1 --fuzz=2 < "$patch_file" >/dev/null 2>&1 && applied=true && method="patch -p1 --fuzz=2"
+                if patch -p1 --fuzz=2 --batch --force < "$patch_file" >/dev/null 2>&1; then
+                    applied=true && method="patch -p1 --fuzz=2"
+                fi
             else
                 applied=true && method="patch -p1 --fuzz=2 (dry-run)"
             fi
@@ -321,19 +359,21 @@ apply_patch() {
 
     # Last resort: try git apply (sometimes works when patch doesn't)
     if [[ "$applied" == false ]]; then
-        # Try with git apply but verify it actually changes files
-        if [[ "$DRY_RUN" == false ]]; then
-            local files_before files_after
-            files_before=$(find . -type f \( -name "*.c" -o -name "*.h" \) -print0 | xargs -0 ls -l | md5sum)
-            git apply "$patch_file" 2>/dev/null
-            files_after=$(find . -type f \( -name "*.c" -o -name "*.h" \) -print0 | xargs -0 ls -l | md5sum)
-            if [[ "$files_before" != "$files_after" ]]; then
-                applied=true && method="git apply"
+        # Try with git apply - use --check first to avoid hanging
+        if git apply --check "$patch_file" >/dev/null 2>&1; then
+            if [[ "$DRY_RUN" == false ]]; then
+                if git apply "$patch_file" 2>/dev/null; then
+                    applied=true && method="git apply"
+                fi
+            else
+                applied=true && method="git apply (dry-run)"
             fi
-        else
-            git apply --check "$patch_file" 2>/dev/null && applied=true && method="git apply (dry-run)"
         fi
     fi
+
+    # Clean up any reject/backup files from failed patch attempts
+    find . -name "*.rej" -delete 2>/dev/null || true
+    find . -name "*.orig" -delete 2>/dev/null || true
 
     # Go back to repo root
     cd "$original_dir" || exit 1
@@ -369,6 +409,14 @@ Cherry-picked from Fluent Bit $TO_VERSION"
     else
         log_error "Failed: $commit_hash - $description"
         echo "$commit_hash|$description" >> "$PATCH_DIR/failed.log"
+
+        # Ensure we clean up the source directory if patch failed
+        cd "$SOURCE_DIR" || exit 1
+        # Discard any partial changes
+        git checkout -- . 2>/dev/null || true
+        git clean -fd 2>/dev/null || true
+        cd "$original_dir" || exit 1
+
         return 1
     fi
 }
@@ -399,6 +447,13 @@ apply_patches() {
         echo "Commit: $commit_hash"
 
         local should_apply=false
+
+        # Check if this category should be skipped
+        if should_skip_category "$category"; then
+            log_warning "Skipped: $commit_hash (category $category is in skip list)"
+            echo "$commit_hash|$description" >> "$PATCH_DIR/skipped.log"
+            continue
+        fi
 
         if [[ "$INTERACTIVE" == true ]]; then
             # Skip version and packaging by default in interactive mode
@@ -507,12 +562,16 @@ main() {
 
     log_info "Syncing from $FROM_VERSION to $TO_VERSION"
 
+    if [[ -n "$SKIP_CATEGORIES" ]]; then
+        log_warning "Skipping categories: $SKIP_CATEGORIES"
+    fi
+
     # Execute sync steps
     setup_upstream
     generate_patches
     analyze_patches
 
-    if [[ "$DRY_RUN" == false ]]; then
+    if [[ "$DRY_RUN" == false ]] && [[ "$INTERACTIVE" == true ]]; then
         read -p "Continue with applying patches? (y/n): " -n 1 -r
         echo
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
