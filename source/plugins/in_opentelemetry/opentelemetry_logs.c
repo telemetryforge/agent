@@ -148,6 +148,11 @@ static int otlp_pack_any_value(msgpack_packer *mp_pck,
         return 0;
     }
 
+    if (body == NULL) {
+        msgpack_pack_nil(mp_pck);
+        return 0;
+    }
+
     switch(body->value_case){
         case OPENTELEMETRY__PROTO__COMMON__V1__ANY_VALUE__VALUE_STRING_VALUE:
             result = otel_pack_string(mp_pck, body->string_value);
