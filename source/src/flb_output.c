@@ -47,11 +47,6 @@ static const double output_latency_buckets[] = {
     0.5, 1.0, 1.5, 2.5, 5.0, 10.0, 20.0, 30.0
 };
 
-/* Histogram buckets for output latency in seconds */
-static const double output_latency_buckets[] = {
-    0.5, 1.0, 1.5, 2.5, 5.0, 10.0, 20.0, 30.0
-};
-
 struct flb_config_map output_global_properties[] = {
     {
         FLB_CONFIG_MAP_STR, "match", NULL,

@@ -407,34 +407,6 @@ void flb_downstream_resume(struct flb_downstream *stream)
     }
 }
 
-void flb_downstream_pause(struct flb_downstream *stream)
-{
-    if (stream) {
-        stream->paused = FLB_TRUE;
-    }
-}
-
-void flb_downstream_resume(struct flb_downstream *stream)
-{
-    if (stream) {
-        stream->paused = FLB_FALSE;
-    }
-}
-
-void flb_downstream_pause(struct flb_downstream *stream)
-{
-    if (stream) {
-        stream->paused = FLB_TRUE;
-    }
-}
-
-void flb_downstream_resume(struct flb_downstream *stream)
-{
-    if (stream) {
-        stream->paused = FLB_FALSE;
-    }
-}
-
 void flb_downstream_destroy(struct flb_downstream *stream)
 {
     struct flb_connection *connection;

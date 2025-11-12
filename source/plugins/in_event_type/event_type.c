@@ -469,34 +469,6 @@ static void cb_event_type_resume(void *data, struct flb_config *config)
     flb_input_collector_resume(ctx->coll_fd, ctx->ins);
 }
 
-static void cb_event_type_pause(void *data, struct flb_config *config)
-{
-    struct event_type *ctx = data;
-
-    flb_input_collector_pause(ctx->coll_fd, ctx->ins);
-}
-
-static void cb_event_type_resume(void *data, struct flb_config *config)
-{
-    struct event_type *ctx = data;
-
-    flb_input_collector_resume(ctx->coll_fd, ctx->ins);
-}
-
-static void cb_event_type_pause(void *data, struct flb_config *config)
-{
-    struct event_type *ctx = data;
-
-    flb_input_collector_pause(ctx->coll_fd, ctx->ins);
-}
-
-static void cb_event_type_resume(void *data, struct flb_config *config)
-{
-    struct event_type *ctx = data;
-
-    flb_input_collector_resume(ctx->coll_fd, ctx->ins);
-}
-
 /* Configuration properties map */
 static struct flb_config_map config_map[] = {
     {

@@ -262,7 +262,7 @@ flb_sds_t flb_graphql_build_query(const char *query, msgpack_object *variables)
     }
 
     /* Convert msgpack to JSON */
-    json = flb_msgpack_raw_to_json_sds(mp_sbuf.data, mp_sbuf.size);
+    json = flb_msgpack_raw_to_json_sds(mp_sbuf.data, mp_sbuf.size, FLB_TRUE);
     msgpack_sbuffer_destroy(&mp_sbuf);
 
     return json;

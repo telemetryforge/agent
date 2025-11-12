@@ -100,12 +100,6 @@ struct flb_out_http {
     /* Read idle timeout */
     int read_idle_timeout;
 
-    /* Response timeout */
-    int response_timeout;
-
-    /* Read idle timeout */
-    int read_idle_timeout;
-
     /* Upstream connection to the backend server */
     struct flb_upstream *u;
 

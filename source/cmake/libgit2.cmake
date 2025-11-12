@@ -14,6 +14,7 @@ else()
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(LIBGIT2 REQUIRED libgit2)
   include_directories(${LIBGIT2_INCLUDE_DIRS})
+  link_directories(${LIBGIT2_LIBRARY_DIRS})
 endif()
 set(LIBGIT2_FOUND TRUE)
 

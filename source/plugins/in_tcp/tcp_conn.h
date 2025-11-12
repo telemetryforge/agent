@@ -53,12 +53,6 @@ struct tcp_conn {
     int busy;                         /* Connection is being processed     */
     int pending_close;                /* Defer closing until processing ends */
 
-    int busy;                         /* Connection is being processed     */
-    int pending_close;                /* Defer closing until processing ends */
-
-    int busy;                         /* Connection is being processed     */
-    int pending_close;                /* Defer closing until processing ends */
-
     struct mk_list _head;
 };
 

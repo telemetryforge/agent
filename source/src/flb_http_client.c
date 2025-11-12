@@ -2290,9 +2290,6 @@ static int flb_http_encode_basic_auth_value(cfl_sds_t *output_buffer,
     if (raw_value == NULL) {
         return -1;
     }
-    else if (ret == FLB_HTTP_NOT_FOUND) {
-        /* Connection header not found, continue normally */
-    }
 
     sds_result = cfl_sds_printf(&raw_value,
                                 "%s:%s",
@@ -2645,9 +2642,6 @@ int flb_http_request_set_parameters_internal(
 
     if (failure_detected) {
         return -1;
-    }
-    else if (ret == FLB_HTTP_NOT_FOUND) {
-        /* Connection header not found, continue normally */
     }
 
     return 0;

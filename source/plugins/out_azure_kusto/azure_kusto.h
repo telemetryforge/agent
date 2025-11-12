@@ -43,22 +43,6 @@ typedef enum {
     FLB_AZURE_KUSTO_AUTH_WORKLOAD_IDENTITY        /* Workload Identity */
 } flb_azure_kusto_auth_type;
 
-/* Authentication types */
-typedef enum {
-    FLB_AZURE_KUSTO_AUTH_SERVICE_PRINCIPAL = 0,   /* Client ID + Client Secret */
-    FLB_AZURE_KUSTO_AUTH_MANAGED_IDENTITY_SYSTEM, /* System-assigned managed identity */
-    FLB_AZURE_KUSTO_AUTH_MANAGED_IDENTITY_USER,   /* User-assigned managed identity */
-    FLB_AZURE_KUSTO_AUTH_WORKLOAD_IDENTITY        /* Workload Identity */
-} flb_azure_kusto_auth_type;
-
-/* Authentication types */
-typedef enum {
-    FLB_AZURE_KUSTO_AUTH_SERVICE_PRINCIPAL = 0,   /* Client ID + Client Secret */
-    FLB_AZURE_KUSTO_AUTH_MANAGED_IDENTITY_SYSTEM, /* System-assigned managed identity */
-    FLB_AZURE_KUSTO_AUTH_MANAGED_IDENTITY_USER,   /* User-assigned managed identity */
-    FLB_AZURE_KUSTO_AUTH_WORKLOAD_IDENTITY        /* Workload Identity */
-} flb_azure_kusto_auth_type;
-
 /* Kusto streaming inserts oauth scope */
 #define FLB_AZURE_KUSTO_SCOPE "https://help.kusto.windows.net/.default"
 
@@ -115,16 +99,6 @@ struct flb_azure_kusto {
 
     int ingestion_endpoint_connect_timeout;
     int io_timeout;
-
-    /* Authentication */
-    int auth_type;
-    char *auth_type_str;
-    char *workload_identity_token_file;
-
-    /* Authentication */
-    int auth_type;
-    char *auth_type_str;
-    char *workload_identity_token_file;
 
     /* Authentication */
     int auth_type;

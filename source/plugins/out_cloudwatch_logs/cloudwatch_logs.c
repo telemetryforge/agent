@@ -387,15 +387,6 @@ static int cb_cloudwatch_init(struct flb_output_instance *ins,
         }
     }
 
-    struct mk_list *head;
-    struct flb_filter_instance *f_ins;
-    mk_list_foreach(head, &config->filters) {
-        f_ins = mk_list_entry(head, struct flb_filter_instance, _head);
-        if (strstr(f_ins->p->name, "kubernetes")) {
-            ctx->kubernete_metadata_enabled = true;
-        }
-    }
-
     /* Export context */
     flb_output_set_context(ins, ctx);
 
@@ -546,28 +537,6 @@ static int cb_cloudwatch_exit(void *data, struct flb_config *config)
 
     flb_cloudwatch_ctx_destroy(ctx);
     return 0;
-}
-
-void entity_destroy(entity *entity)
-{
-    if(entity->attributes) {
-        flb_free(entity->attributes->cluster_name);
-        flb_free(entity->attributes->instance_id);
-        flb_free(entity->attributes->namespace);
-        flb_free(entity->attributes->node);
-        flb_free(entity->attributes->platform_type);
-        flb_free(entity->attributes->workload);
-        flb_free(entity->attributes->name_source);
-        flb_free(entity->attributes);
-    }
-    if(entity->key_attributes) {
-        flb_free(entity->key_attributes->environment);
-        flb_free(entity->key_attributes->name);
-        flb_free(entity->key_attributes->type);
-        flb_free(entity->key_attributes->account_id);
-        flb_free(entity->key_attributes);
-    }
-    flb_free(entity);
 }
 
 void entity_destroy(entity *entity)

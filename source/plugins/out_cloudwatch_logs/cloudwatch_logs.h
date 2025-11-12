@@ -69,45 +69,6 @@ typedef struct entity_attributes {
     char *name_source;
 }entity_attributes;
 
-/*
- * Entity object used for associating the telemetry
- * in the PutLogEvent call
- */
-typedef struct entity {
-    struct entity_key_attributes *key_attributes;
-    struct entity_attributes *attributes;
-    int filter_count;
-    int service_name_found;
-    int environment_found;
-    int name_source_found;
-    int root_filter_count;
-}entity;
-
-/*
- * KeyAttributes used for CloudWatch Entity object
- * in the PutLogEvent call
- */
-typedef struct entity_key_attributes {
-    char *type;
-    char *name;
-    char *environment;
-    char *account_id;
-}entity_key_attributes;
-
-/*
- * Attributes used for CloudWatch Entity object
- * in the PutLogEvent call
- */
-typedef struct entity_attributes {
-    char *platform_type;
-    char *cluster_name;
-    char *namespace;
-    char *workload;
-    char *node;
-    char *instance_id;
-    char *name_source;
-}entity_attributes;
-
 #define LOG_CLASS_STANDARD                  "STANDARD"
 #define LOG_CLASS_STANDARD_LEN              8
 #define LOG_CLASS_INFREQUENT_ACCESS         "INFREQUENT_ACCESS"
@@ -171,13 +132,6 @@ struct log_stream {
      */
     unsigned long long oldest_event;
     unsigned long long newest_event;
-
-    /*
-     * PutLogEvents entity object
-     * variable that store service or infrastructure
-     * information
-     */
-    struct entity *entity;
 
     /*
      * PutLogEvents entity object
