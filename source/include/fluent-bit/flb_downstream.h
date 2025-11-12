@@ -82,6 +82,12 @@ struct flb_connection *flb_downstream_conn_get(struct flb_downstream *stream);
 void flb_downstream_pause(struct flb_downstream *stream);
 void flb_downstream_resume(struct flb_downstream *stream);
 
+void flb_downstream_pause(struct flb_downstream *stream);
+void flb_downstream_resume(struct flb_downstream *stream);
+
+void flb_downstream_pause(struct flb_downstream *stream);
+void flb_downstream_resume(struct flb_downstream *stream);
+
 int flb_downstream_conn_release(struct flb_connection *connection);
 
 int flb_downstream_conn_pending_destroy_list(struct mk_list *list);
