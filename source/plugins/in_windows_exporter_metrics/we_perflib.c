@@ -908,6 +908,8 @@ int we_perflib_query(struct flb_we *ctx,
     size_t                    raw_data_size;
     int                       result;
 
+    perflib_object->total_byte_length = perf_object->TotalByteLength;
+    perflib_object->definition_length = perf_object->DefinitionLength;
 
     counter_name_index = we_perflib_lookup_counter_index(
         ctx->perflib_context.counter_indexes, counter_name);
@@ -989,6 +991,8 @@ int we_perflib_update_counters(struct flb_we                   *ctx,
     struct we_perflib_counter       *counter;
     int                              result;
 
+    perflib_object->total_byte_length = perf_object->TotalByteLength;
+    perflib_object->definition_length = perf_object->DefinitionLength;
 
     timestamp = cfl_time_now();
 
