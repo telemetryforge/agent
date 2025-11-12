@@ -671,6 +671,13 @@ struct chronicle_entry {
     struct cfl_list _head;
 };
 
+struct chronicle_entry {
+    flb_sds_t log_text;
+    size_t log_text_size;
+    struct flb_time timestamp;
+    struct cfl_list _head;
+};
+
 static int chronicle_format(const void *data, size_t bytes,
                             const char *tag, size_t tag_len,
                             char **out_data, size_t *out_size,
