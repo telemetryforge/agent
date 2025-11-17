@@ -51,8 +51,8 @@ jobs:
                   rm -fv $(brew --prefix zstd)/lib/*.dylib
                   # Remove dynamic linkage for openssl
                   rm -fv $(brew --prefix openssl)/lib/*.dylib
-                  # Remove dynamic linkage for libgit2
-                  rm -fv $(brew --prefix libgit2)/lib/*.dylib
+                  # Keep libgit2 dylib (Homebrew doesn't provide static libs)
+                  # rm -fv $(brew --prefix libgit2)/lib/*.dylib
                   # Remove dynamic linkage for cyrus-sasl
                   rm -fv $(brew --prefix cyrus-sasl)/lib/*.dylib
 

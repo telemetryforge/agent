@@ -152,7 +152,7 @@ jobs:
                   #   calls: true
                   jobs: true
                   working-directory: source/build
-                  root: source/
+                  root: ..
 
             - name: Upload coverage reports
               if: always()
