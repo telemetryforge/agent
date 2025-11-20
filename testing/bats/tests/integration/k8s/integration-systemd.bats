@@ -38,15 +38,15 @@ function teardown() {
 
 # Simple test to deploy default config with OSS helm chart and check metrics are output
 @test "integration - systemd configuration via helm" {
-
     # Create a configmap from the config file and deploy a pod to test it
 
+    assert_file_exist "$BATS_TEST_DIRNAME/resources/systemd/fluent-bit.yaml"
     createConfigMapFromFile "$NAMESPACE" "$BATS_TEST_DIRNAME/resources/systemd/fluent-bit.yaml" "$CONFIGMAP_NAME"
     run kubectl get configmap $CONFIGMAP_NAME --namespace "$NAMESPACE"
     assert_success
 
     # Run with YAML configuration overrides
-    # We need to run as root to create a DB file in /var/log
+    assert_file_exist "$BATS_TEST_DIRNAME/resources/systemd/values.yaml"
     run helm upgrade --install "$HELM_RELEASE_NAME" fluent/fluent-bit \
         --set image.repository="$FLUENTDO_AGENT_IMAGE" \
         --set image.tag="$FLUENTDO_AGENT_TAG" \
