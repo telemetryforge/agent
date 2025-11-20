@@ -16,9 +16,7 @@ pipeline:
       systemd_filter: _SYSTEMD_UNIT=kubelet.service
       read_from_tail: true
       lowercase: on
-
-      # Triggers segmentation fault: https://github.com/fluent/fluent-bit/issues/11068
-      # threaded: true
+      threaded: true
 
       db: /var/log/fluent-bit/storage/systemd.db
       db.sync: Normal
