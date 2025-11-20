@@ -26,7 +26,7 @@ WORKDIR /tmp
 RUN curl -LO https://www.libssh2.org/download/libssh2-${LIBSSH2_VER}.tar.gz && \
     tar xf libssh2-${LIBSSH2_VER}.tar.gz
 WORKDIR /tmp/libssh2-${LIBSSH2_VER}
-RUN ./configure --with-openssl --prefix=/usr/local --enable-static --disable-shared --disable-examples-build && \
+RUN ./configure --with-openssl --prefix=/usr/local --disable-examples-build && \
     make -j "$(getconf _NPROCESSORS_ONLN)" && make install && \
     ldconfig
 
@@ -37,8 +37,7 @@ RUN git clone --branch v${LIBGIT2_VER} --depth 1 https://github.com/libgit2/libg
 WORKDIR /tmp/libgit2
 RUN cmake -B build \
         -DCMAKE_BUILD_TYPE=Release \
-        -DBUILD_SHARED_LIBS=OFF \
-        -DLINK_WITH_STATIC_LIBRARIES=ON \
+        -DBUILD_SHARED_LIBS=ON \
         -DUSE_SSH=ON \
         -DBUILD_TESTS=OFF \
         -DBUILD_CLI=OFF && \
@@ -96,7 +95,6 @@ RUN cmake -DCMAKE_BUILD_TYPE=Release \
     -DFLUENTDO_AGENT_VERSION="$FLUENTDO_AGENT_VERSION" \
     -DFLB_LOG_NO_CONTROL_CHARS=On \
     -DFLB_CORO_STACK_SIZE=131072 \
-    -DLIBSSH2_USE_STATIC_LIBS=On \
     ${CMAKE_EXTRA_ARGS} \
     ..
 
@@ -125,6 +123,13 @@ COPY licenses/* /licenses/
 COPY README.md /help.1
 
 COPY --from=builder /fluent-bit /fluent-bit
+
+# Copy libgit2 and libssh2 runtime libraries from builder
+COPY --from=builder /usr/local/lib64/libgit2.so* /usr/local/lib64/
+COPY --from=builder /usr/local/lib/libssh2.so* /usr/local/lib/
+RUN echo "/usr/local/lib64" > /etc/ld.so.conf.d/local-libs.conf && \
+    echo "/usr/local/lib" >> /etc/ld.so.conf.d/local-libs.conf && \
+    ldconfig
 
 RUN mkdir -p /opt/fluentdo-agent/etc
 COPY config/ /opt/fluentdo-agent/etc/
