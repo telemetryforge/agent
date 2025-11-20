@@ -12,9 +12,7 @@ load "$BATS_FILE_ROOT/load.bash"
 # BATS tests for verifying FluentDo Agent package installation via containers
 
 setupFile() {
-    if [[ "$(uname -s)" != "Linux" ]]; then
-        skip "Skipping test: not running on Linux"
-    fi
+    skipIfNotLinux
 }
 
 @test "integration: install of centos/7" {
