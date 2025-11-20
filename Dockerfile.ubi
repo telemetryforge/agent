@@ -113,7 +113,7 @@ RUN [ -n "$MAKE_EXTRA_ARGS" ] && make ${MAKE_EXTRA_ARGS} || make -j "$(getconf _
 FROM registry.access.redhat.com/ubi10/ubi-minimal:10.1 AS production
 
 # hadolint ignore=DL3041
-RUN microdnf update -y && microdnf install -y openssl libyaml && microdnf clean all
+RUN microdnf update -y && microdnf install -y openssl libyaml cyrus-sasl && microdnf clean all
 
 EXPOSE 2020
 
