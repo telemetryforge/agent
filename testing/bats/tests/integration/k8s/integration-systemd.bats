@@ -37,11 +37,11 @@ function teardown() {
 }
 
 # Simple test to deploy default config with OSS helm chart and check metrics are output
-@test "integration - basic configuration via helm" {
+@test "integration - systemd configuration via helm" {
 
     # Create a configmap from the config file and deploy a pod to test it
 
-    createConfigMapFromFile "$NAMESPACE" "$BATS_TEST_DIRNAME/resources/fluent-bit.yaml" "$CONFIGMAP_NAME"
+    createConfigMapFromFile "$NAMESPACE" "$BATS_TEST_DIRNAME/resources/fluent-bit-systemd.yaml" "$CONFIGMAP_NAME"
     run kubectl get configmap $CONFIGMAP_NAME --namespace "$NAMESPACE"
     assert_success
 
@@ -59,19 +59,15 @@ function teardown() {
 
     # Wait 30s for metrics to be generated
     sleep 30
+
     # Check metrics on plugins are non-zero"
-
-    # We cannot use kubectl exec here as the image may not have a shell
-    #METRICS=$(kubectl exec -t -n "$NAMESPACE" ds/fluent-agent-fluent-bit -- curl -s http://localhost:2020/api/v2/metrics/prometheus)
-
-    # Instead we scrape the metrics endpoint from outside the pod
     kubectl port-forward -n "$NAMESPACE" "service/$HELM_RELEASE_NAME-fluent-bit" 2020:2020 &
     PORT_FORWARD_PID=$!
     sleep 5
     METRICS=$(curl -s http://localhost:2020/api/v2/metrics/prometheus)
     kill $PORT_FORWARD_PID || true
 
-    failOnMetricsZero "$METRICS" 'fluentbit_input_records_total{name="input_tail_k8s"}' "No records ingested"
+    failOnMetricsZero "$METRICS" 'fluentbit_input_records_total{name="input_systemd_k8s"}' "No systemd records ingested"
+    failOnMetricsZero "$METRICS" 'fluentbit_input_records_total{name="input_tail_k8s"}' "No tail records ingested"
     failOnMetricsZero "$METRICS" 'fluentbit_output_proc_records_total{name="output_stdout_all"}' "No records sent to output"
-    # Metrics check passed
 }

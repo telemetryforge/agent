@@ -65,3 +65,54 @@ function skipIfNotK8S() {
 		skip "Skipping test: K8S cluster not accessible"
 	fi
 }
+
+function setupHelmRepo() {
+	helm repo add fluent https://fluent.github.io/helm-charts --force-update
+	helm repo update --fail-on-repo-update-fail
+}
+
+function cleanupHelmNamespace() {
+	local namespace=${1:?Namespace argument required}
+	local helm_release_name=${2:?Helm release name argument required}
+	if [[ -n "${namespace}" ]]; then
+		helm uninstall --namespace "$namespace" "$helm_release_name" 2>/dev/null || true
+		kubectl delete namespace "$namespace" 2>/dev/null || true
+	fi
+}
+
+function createConfigMapFromFile() {
+	local namespace=${1:?Namespace argument required}
+	local file_path=${2:?File path argument required}
+	local configmap_name=${3:-fluent-bit-config}
+
+	kubectl create configmap "$configmap_name" \
+		--namespace "$namespace" \
+		--from-file="$file_path" \
+		-o yaml --dry-run=client | kubectl apply -f -
+}
+
+function deleteConfigMap() {
+	local namespace=${1:?Namespace argument required}
+	local configmap_name=${2:?ConfigMap name argument required}
+
+	kubectl delete configmap "$configmap_name" --namespace "$namespace" 2>/dev/null || true
+}
+
+function failOnMetricsZero() {
+	local metrics_output=${1:?Metrics output argument required}
+	local metric_name=${2:?Metric name argument required}
+	local output_message=${3:-"Metric $metric_name has zero value"}
+
+	local metric_value
+	metric_value=$(echo "$metrics_output" | grep "^$metric_name " | awk '{print $2}')
+	if [[ -z "$metric_value" ]]; then
+		# For debugging purposes
+		echo "DEBUG: $metrics_output"
+		fail "Metric $metric_name not found in output"
+	fi
+	if [[ "$metric_value" -eq 0 ]]; then
+		# For debugging purposes
+		echo "DEBUG: $metrics_output"
+		fail "$output_message"
+	fi
+}

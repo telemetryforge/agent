@@ -1,0 +1,40 @@
+# Taken from https://github.com/fluent/fluent-bit/issues/11068
+service:
+  flush: 1
+  log_level: info
+  http_server: on
+  storage.metrics: on
+  health_check: on
+
+  # Ensure you can write to this as the current user - usually requires a security context
+  storage.path: /var/log/fluent-bit/storage
+pipeline:
+  inputs:
+    - name: systemd
+      alias: input_systemd_k8s
+      tag: host.*
+      systemd_filter: _SYSTEMD_UNIT=kubelet.service
+      read_from_tail: true
+      lowercase: on
+      threaded: true
+
+      db: /var/log/fluent-bit/storage/systemd.db
+      db.Sync: Normal
+      Mem_Buf_Limit: 100MB
+      storage.type: filesystem
+      storage.pause_on_chunks_overlimit: on
+
+    - name: tail
+      alias: input_tail_k8s
+      path: /var/log/containers/*.log
+      tag: kube.*
+      multiline.parser: docker, cri
+      db: /var/log/fluent-bit.db
+      processors:
+        logs:
+          - name: kubernetes
+            kube_tag_prefix: kube.var.log.containers.
+  outputs:
+      - name: stdout
+        alias: output_stdout_all
+        match: "*"
