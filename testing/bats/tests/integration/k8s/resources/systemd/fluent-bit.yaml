@@ -19,21 +19,11 @@ pipeline:
       threaded: true
 
       db: /var/log/fluent-bit/storage/systemd.db
-      db.Sync: Normal
+      db.sync: Normal
       Mem_Buf_Limit: 100MB
       storage.type: filesystem
       storage.pause_on_chunks_overlimit: on
 
-    - name: tail
-      alias: input_tail_k8s
-      path: /var/log/containers/*.log
-      tag: kube.*
-      multiline.parser: docker, cri
-      db: /var/log/fluent-bit.db
-      processors:
-        logs:
-          - name: kubernetes
-            kube_tag_prefix: kube.var.log.containers.
   outputs:
       - name: stdout
         alias: output_stdout_all
