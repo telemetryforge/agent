@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9:9.5 AS base-builder
+FROM registry.access.redhat.com/ubi10:10.1 AS base-builder
 
 # hadolint ignore=DL3041
 RUN dnf update -y && \
@@ -104,7 +104,7 @@ RUN [ -n "$MAKE_EXTRA_ARGS" ] && make ${MAKE_EXTRA_ARGS} || make -j "$(getconf _
     install bin/fluent-bit /fluent-bit/bin/fluent-bit
 
 # The release image now
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.5 AS production
+FROM registry.access.redhat.com/ubi10/ubi-minimal:10.1 AS production
 
 # hadolint ignore=DL3041
 RUN microdnf update -y && microdnf install -y openssl libyaml && microdnf clean all
