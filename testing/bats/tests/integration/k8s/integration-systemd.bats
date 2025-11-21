@@ -52,6 +52,7 @@ function teardown() {
         --set image.tag="$FLUENTDO_AGENT_TAG" \
         --set existingConfigMap=$CONFIGMAP_NAME \
         --values "$BATS_TEST_DIRNAME/resources/systemd/values.yaml" \
+        --timeout "${HELM_TIMEOUT}:-5m0s}" \
         --namespace "$NAMESPACE" --create-namespace --wait
     assert_success
 

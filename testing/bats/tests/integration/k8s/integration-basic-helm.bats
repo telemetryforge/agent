@@ -54,6 +54,7 @@ function teardown() {
         --set args[0]='--workdir=/fluent-bit/etc' \
         --set args[1]='--config=/fluent-bit/etc/conf/fluent-bit.yaml' \
         --set securityContext.runAsUser=0 \
+        --timeout "${HELM_TIMEOUT}:-5m0s}" \
         --namespace "$NAMESPACE" --create-namespace --wait
     assert_success
 
