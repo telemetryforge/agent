@@ -22,7 +22,7 @@ function teardown() {
 }
 
 # Simple test to deploy default config with OSS helm chart and check metrics are output
-@test "integration - systemd configuration via helm" {
+@test "integration: systemd configuration via helm" {
     # Create a configmap from the config file and deploy a pod to test it
 
     assert_file_exist "$BATS_TEST_DIRNAME/resources/systemd/fluent-bit.yaml"

@@ -32,7 +32,7 @@ function teardown() {
     fi
 }
 
-@test "integration - upstream test elasticsearch with http compression" {
+@test "integration: upstream test elasticsearch with http compression" {
     helm repo add elastic https://helm.elastic.co --force-update
     helm repo update
 

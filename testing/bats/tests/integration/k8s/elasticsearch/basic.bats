@@ -32,7 +32,7 @@ function teardown() {
     fi
 }
 
-@test "integration - upstream test elasticsearch default index" {
+@test "integration: upstream test elasticsearch default index" {
     helm repo add elastic https://helm.elastic.co/ --force-update
     helm repo update
 

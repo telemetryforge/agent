@@ -21,7 +21,7 @@ function teardown() {
     helmTeardown
 }
 
-@test "integration - upstream chunk rollover test" {
+@test "integration: upstream chunk rollover test" {
     kubectl create -f ${BATS_TEST_DIRNAME}/resources/manifests -n "$NAMESPACE"
 
     # use 'wait' to check for Ready status in .status.conditions[]

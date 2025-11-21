@@ -44,7 +44,7 @@ function teardown() {
     assert_output --partial '262144'
 }
 
-@test "integration - upstream opensearch default index" {
+@test "integration: upstream opensearch default index" {
     helm repo add opensearch https://opensearch-project.github.io/helm-charts --force-update
     helm repo update
 

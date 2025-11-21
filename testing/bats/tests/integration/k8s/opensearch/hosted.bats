@@ -44,7 +44,7 @@ function createYAMLConfig() {
     envsubst < "${BATS_TEST_DIRNAME}/resources/helm/fluentbit-hosted.yaml.tpl" > "${BATS_TEST_DIRNAME}/resources/helm/fluentbit-hosted.yaml"
 }
 
-@test "integration - upstream AWS OpenSearch hosted" {
+@test "integration: upstream AWS OpenSearch hosted" {
     createYAMLConfig
     helm upgrade --install  --create-namespace --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" fluent/fluent-bit \
         --values $HELM_VALUES_EXTRA_FILE \

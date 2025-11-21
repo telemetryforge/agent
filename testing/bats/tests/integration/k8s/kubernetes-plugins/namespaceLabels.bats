@@ -125,7 +125,7 @@ function deployFB() {
     assert_success
 }
 
-@test "integration - upstream add kubernetes namespace labels" {
+@test "integration: upstream add kubernetes namespace labels" {
     deployFB
     getFluentBitPodName
     createTestPod "k8s-namespace-label-tester"
@@ -133,7 +133,7 @@ function deployFB() {
     assertOutputHasNamespaceLabels
 }
 
-@test "integration - upstream add kubernetes pod and namespace labels" {
+@test "integration: upstream add kubernetes pod and namespace labels" {
     deployFB
     getFluentBitPodName
     createTestPod "k8s-pod-and-namespace-label-tester"

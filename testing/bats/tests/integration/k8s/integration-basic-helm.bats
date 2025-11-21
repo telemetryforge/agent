@@ -22,7 +22,7 @@ function teardown() {
 }
 
 # Simple test to deploy default config with OSS helm chart and check metrics are output
-@test "integration - basic configuration via helm" {
+@test "integration: basic configuration via helm" {
 
     # Create a configmap from the config file and deploy a pod to test it
 
