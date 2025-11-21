@@ -11,7 +11,7 @@ load "$BATS_SUPPORT_ROOT/load.bash"
 load "$BATS_ASSERT_ROOT/load.bash"
 load "$BATS_FILE_ROOT/load.bash"
 
-NAMESPACE=${BATS_TEST_NAME//_/}
+NAMESPACE="$(getNamespaceFromTestName)"
 HELM_RELEASE_NAME=fluentdo-agent
 
 ELASTICSEARCH_IMAGE_REPOSITORY=${ELASTICSEARCH_IMAGE_REPOSITORY:-elasticsearch}
@@ -46,11 +46,11 @@ function teardown() {
     fi
 }
 
-@test "test fluent-bit forwards logs to elasticsearch default index using http compression" {
+@test "integration - upstream test elasticsearch with http compression" {
     helm repo add elastic https://helm.elastic.co/ || helm repo add elastic https://helm.elastic.co
     helm repo update
 
-    helm upgrade --install --debug --create-namespace --namespace "$NAMESPACE" elasticsearch elastic/elasticsearch \
+    helm upgrade --install  --create-namespace --namespace "$NAMESPACE" elasticsearch elastic/elasticsearch \
         --values ${BATS_TEST_DIRNAME}/resources/helm/elasticsearch-compress.yaml \
         --set image="${ELASTICSEARCH_IMAGE_REPOSITORY}" \
         --set imageTag="${ELASTICSEARCH_IMAGE_TAG}" \
@@ -61,7 +61,7 @@ function teardown() {
         "to find 1 pods named 'elasticsearch-master-0' " \
         "with 'status' being 'running'"
 
-    helm upgrade --install --debug --create-namespace --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" fluent/fluent-bit \
+    helm upgrade --install  --create-namespace --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" fluent/fluent-bit \
         --values ${BATS_TEST_DIRNAME}/resources/helm/fluentbit-compress.yaml \
         --set image.repository="$FLUENTDO_AGENT_IMAGE" \
         --set image.tag="$FLUENTDO_AGENT_TAG" \

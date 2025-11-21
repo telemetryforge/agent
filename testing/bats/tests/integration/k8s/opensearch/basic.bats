@@ -14,7 +14,7 @@ load "$BATS_FILE_ROOT/load.bash"
 OPENSEARCH_IMAGE_REPOSITORY=${OPENSEARCH_IMAGE_REPOSITORY:-opensearchproject/opensearch}
 OPENSEARCH_IMAGE_TAG=${OPENSEARCH_IMAGE_TAG:-1.3.0}
 
-NAMESPACE=${BATS_TEST_NAME//_/}
+NAMESPACE="$(getNamespaceFromTestName)"
 HELM_RELEASE_NAME=fluentdo-agent
 
 # shellcheck disable=SC2034
@@ -58,11 +58,11 @@ function teardown() {
     assert_output --partial '262144'
 }
 
-@test "test fluent-bit forwards logs to opensearch default index" {
+@test "integration - upstream opensearch default index" {
     helm repo add opensearch https://opensearch-project.github.io/helm-charts --force-update
     helm repo update
 
-    helm upgrade --install --debug --create-namespace --namespace "$NAMESPACE" opensearch opensearch/opensearch \
+    helm upgrade --install  --create-namespace --namespace "$NAMESPACE" opensearch opensearch/opensearch \
         --values ${BATS_TEST_DIRNAME}/resources/helm/opensearch-basic.yaml \
         --set image.repository="${OPENSEARCH_IMAGE_REPOSITORY}" \
         --set image.tag="${OPENSEARCH_IMAGE_TAG}" \
@@ -74,7 +74,7 @@ function teardown() {
         "to find 1 pods named 'opensearch-cluster-master-0' " \
         "with 'status' being 'running'"
 
-    helm upgrade --install --debug --create-namespace --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" fluent/fluent-bit \
+    helm upgrade --install  --create-namespace --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" fluent/fluent-bit \
         --values ${BATS_TEST_DIRNAME}/resources/helm/fluentbit-basic.yaml \
         --set image.repository="$FLUENTDO_AGENT_IMAGE" \
         --set image.tag="$FLUENTDO_AGENT_TAG" \

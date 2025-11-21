@@ -9,7 +9,7 @@ load "$BATS_FILE_ROOT/load.bash"
 load "$BATS_DETIK_ROOT/utils"
 load "$BATS_DETIK_ROOT/detik"
 
-NAMESPACE=${BATS_TEST_NAME//_/}
+NAMESPACE="$(getNamespaceFromTestName)"
 HELM_RELEASE_NAME=fluentdo-agent
 CONFIGMAP_NAME="fluent-bit-config"
 
@@ -54,7 +54,7 @@ function teardown() {
         --set args[0]='--workdir=/fluent-bit/etc' \
         --set args[1]='--config=/fluent-bit/etc/conf/fluent-bit.yaml' \
         --set securityContext.runAsUser=0 \
-        --timeout "${HELM_TIMEOUT}:-5m0s}" \
+        --timeout "${HELM_TIMEOUT:-5m0s}" \
         --namespace "$NAMESPACE" --create-namespace --wait
     assert_success
 

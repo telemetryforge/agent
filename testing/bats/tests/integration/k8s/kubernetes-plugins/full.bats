@@ -11,12 +11,7 @@ load "$BATS_SUPPORT_ROOT/load.bash"
 load "$BATS_ASSERT_ROOT/load.bash"
 load "$BATS_FILE_ROOT/load.bash"
 
-# shellcheck disable=SC2034
-DETIK_CLIENT_NAMESPACE="${NAMESPACE}"
-FLUENTBIT_POD_NAME=""
-TEST_POD_NAME=""
-
-NAMESPACE=${BATS_TEST_NAME//_/}
+NAMESPACE="$(getNamespaceFromTestName)"
 HELM_RELEASE_NAME=fluentdo-agent
 
 # shellcheck disable=SC2034
@@ -139,7 +134,7 @@ function deployFB() {
     assert_success
 }
 
-@test "test fluent-bit adds kubernetes namespace labels to records" {
+@test "integration - upstream add kubernetes namespace labels" {
     deployFB
     getFluentBitPodName
     createTestPod "k8s-namespace-label-tester"
@@ -147,7 +142,7 @@ function deployFB() {
     assertOutputHasNamespaceLabels
 }
 
-@test "test fluent-bit adds kubernetes pod and namespace labels to records" {
+@test "integration - upstream add kubernetes pod and namespace labels" {
     deployFB
     getFluentBitPodName
     createTestPod "k8s-pod-and-namespace-label-tester"

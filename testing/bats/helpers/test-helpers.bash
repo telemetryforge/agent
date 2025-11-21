@@ -116,3 +116,27 @@ function failOnMetricsZero() {
 		fail "$output_message"
 	fi
 }
+
+# https://stackoverflow.com/a/3352015
+function trimWhitespace() {
+	local var="$*"
+	# remove leading whitespace characters
+    var="${var#"${var%%[![:space:]]*}"}"
+    # remove trailing whitespace characters
+    var="${var%"${var##*[![:space:]]}"}"
+    printf '%s' "$var"
+}
+
+function getNamespaceFromTestName() {
+	# We use the BATS_TEST_NAME variable but remove special characters
+	# and restrict it to <64 characters too, remove the word "test" as
+	# well to try to be more unique.
+	NAMESPACE=${BATS_TEST_NAME//_/}
+	NAMESPACE=${NAMESPACE//:/}
+	NAMESPACE=${NAMESPACE//-/}
+	NAMESPACE=${NAMESPACE//test/}
+	NAMESPACE=${NAMESPACE//integration/}
+	NAMESPACE=${NAMESPACE//upstream/}
+	NAMESPACE=${NAMESPACE:0:63}
+	trimWhitespace "$NAMESPACE"
+}

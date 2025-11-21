@@ -183,6 +183,7 @@ jobs:
         id: test
         uses: docker/build-push-action@v6
         with:
+          context: .
           file: ${{ inputs.definition }}
           # We only build for amd64 as the test image is only used for running BATS tests
           platforms: linux/amd64

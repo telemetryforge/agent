@@ -76,12 +76,12 @@ if [ "$#" -gt 0 ]; then
 	echo "INFO: Running tests with arguments: $*"
 	# We do want string splitting here
 	# shellcheck disable=SC2086
-	bats  --formatter "${BATS_FORMATTER}" $BATS_ARGS "$@"
+	bats --formatter "${BATS_FORMATTER}" $BATS_ARGS "$@"
 else
 	echo "INFO: No arguments passed, running all tests in ${SCRIPT_DIR} and subdirectories"
 	# We do want string splitting here
 	# shellcheck disable=SC2086
-	bats  --formatter "${BATS_FORMATTER}" $BATS_ARGS --recursive "${SCRIPT_DIR}/tests"
+	bats --formatter "${BATS_FORMATTER}" $BATS_ARGS --recursive "${SCRIPT_DIR}/tests"
 fi
 
 popd

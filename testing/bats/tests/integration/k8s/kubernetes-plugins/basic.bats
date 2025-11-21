@@ -11,15 +11,7 @@ load "$BATS_SUPPORT_ROOT/load.bash"
 load "$BATS_ASSERT_ROOT/load.bash"
 load "$BATS_FILE_ROOT/load.bash"
 
-# These are required for bats-detik
-# shellcheck disable=SC2034
-DETIK_CLIENT_NAME="kubectl -n $NAMESPACE"
-# shellcheck disable=SC2034
-DETIK_CLIENT_NAMESPACE="${NAMESPACE}"
-FLUENTBIT_POD_NAME=""
-TEST_POD_NAME=""
-
-NAMESPACE=${BATS_TEST_NAME//_/}
+NAMESPACE="$(getNamespaceFromTestName)"
 HELM_RELEASE_NAME=fluentdo-agent
 
 # shellcheck disable=SC2034
@@ -51,8 +43,8 @@ function teardown() {
     fi
 }
 
-@test "test fluent-bit adds kubernetes pod labels to records" {
-    run helm upgrade --install --debug --create-namespace --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" fluent/fluent-bit \
+@test "integration - upstream add kubernetes pod labels to records" {
+    run helm upgrade --install  --create-namespace --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" fluent/fluent-bit \
         --values "${BATS_TEST_DIRNAME}/resources/fluentbit-basic.yaml" \
         --set image.repository="$FLUENTDO_AGENT_IMAGE" \
         --set image.tag="$FLUENTDO_AGENT_TAG" \

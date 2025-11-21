@@ -11,7 +11,7 @@ load "$BATS_SUPPORT_ROOT/load.bash"
 load "$BATS_ASSERT_ROOT/load.bash"
 load "$BATS_FILE_ROOT/load.bash"
 
-NAMESPACE=${BATS_TEST_NAME//_/}
+NAMESPACE=$(getNamespaceFromTestName)
 HELM_RELEASE_NAME=fluentdo-agent
 
 # shellcheck disable=SC2034
@@ -41,7 +41,7 @@ function teardown() {
     fi
 }
 
-@test "chunk rollover test" {
+@test "integration - upstream chunk rollover test" {
     kubectl create -f ${BATS_TEST_DIRNAME}/resources/manifests -n "$NAMESPACE"
 
     # use 'wait' to check for Ready status in .status.conditions[]
@@ -49,12 +49,12 @@ function teardown() {
     kubectl wait pods -n "$NAMESPACE" -l app=payload-receiver --for condition=Ready --timeout=30s
 
     # replace the namespace for svc FQDN
-    helm upgrade --install --debug --create-namespace --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" fluent/fluent-bit \
+    helm upgrade --install --create-namespace --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" fluent/fluent-bit \
         --values ${BATS_TEST_DIRNAME}/resources/helm/fluentbit-basic.yaml \
         --set image.repository="$FLUENTDO_AGENT_IMAGE" \
         --set image.tag="$FLUENTDO_AGENT_TAG" \
         --set env[0].name=NAMESPACE,env[0].value="${NAMESPACE}" \
-        --timeout "${HELM_TIMEOUT}:-5m0s}" \
+        --timeout "${HELM_TIMEOUT:-5m0s}" \
         --wait
 
     # Time interval in seconds to check the pods status

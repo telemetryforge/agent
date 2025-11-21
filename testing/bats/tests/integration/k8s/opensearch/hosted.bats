@@ -11,16 +11,10 @@ load "$BATS_SUPPORT_ROOT/load.bash"
 load "$BATS_ASSERT_ROOT/load.bash"
 load "$BATS_FILE_ROOT/load.bash"
 
-setup_file() {
-    if [[ $HOSTED_OPENSEARCH_HOST == "localhost" ]]; then
-        skip "Skipping Hosted OpenSearch When 'HOSTED_OPENSEARCH_HOST=localhost'"
-    fi
-}
-
 OPENSEARCH_IMAGE_REPOSITORY=${OPENSEARCH_IMAGE_REPOSITORY:-opensearchproject/opensearch}
 OPENSEARCH_IMAGE_TAG=${OPENSEARCH_IMAGE_TAG:-1.3.0}
 
-NAMESPACE=${BATS_TEST_NAME//_/}
+NAMESPACE="$(getNamespaceFromTestName)"
 HELM_RELEASE_NAME=fluentdo-agent
 
 # shellcheck disable=SC2034
@@ -58,17 +52,10 @@ function teardown() {
     fi
 }
 
-# These are required for bats-detik
-# shellcheck disable=SC2034
-DETIK_CLIENT_NAME="kubectl -n $NAMESPACE"
-# shellcheck disable=SC2034
-DETIK_CLIENT_NAMESPACE="${NAMESPACE}"
-
-
-@test "test fluent-bit forwards logs to AWS OpenSearch hosted service default index" {
+@test "integration - upstream AWS OpenSearch hosted" {
     envsubst < "${BATS_TEST_DIRNAME}/resources/helm/fluentbit-hosted.yaml.tpl" > "${BATS_TEST_DIRNAME}/resources/helm/fluentbit-hosted.yaml"
 
-    helm upgrade --install --debug --create-namespace --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" fluent/fluent-bit \
+    helm upgrade --install  --create-namespace --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" fluent/fluent-bit \
         --values $HELM_VALUES_EXTRA_FILE \
         -f ${BATS_TEST_DIRNAME}/resources/helm/fluentbit-hosted.yaml \
         --set image.repository="$FLUENTDO_AGENT_IMAGE" \

@@ -9,7 +9,7 @@ load "$BATS_FILE_ROOT/load.bash"
 load "$BATS_DETIK_ROOT/utils"
 load "$BATS_DETIK_ROOT/detik"
 
-NAMESPACE=${BATS_TEST_NAME//_/}
+NAMESPACE="$(getNamespaceFromTestName)"
 HELM_RELEASE_NAME=fluentdo-agent
 CONFIGMAP_NAME="fluent-bit-config"
 
@@ -52,7 +52,7 @@ function teardown() {
         --set image.tag="$FLUENTDO_AGENT_TAG" \
         --set existingConfigMap=$CONFIGMAP_NAME \
         --values "$BATS_TEST_DIRNAME/resources/systemd/values.yaml" \
-        --timeout "${HELM_TIMEOUT}:-5m0s}" \
+        --timeout "${HELM_TIMEOUT:-5m0s}" \
         --namespace "$NAMESPACE" --create-namespace --wait
     assert_success
 
