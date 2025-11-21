@@ -14,12 +14,6 @@ load "$BATS_FILE_ROOT/load.bash"
 OPENSEARCH_IMAGE_REPOSITORY=${OPENSEARCH_IMAGE_REPOSITORY:-opensearchproject/opensearch}
 OPENSEARCH_IMAGE_TAG=${OPENSEARCH_IMAGE_TAG:-1.3.0}
 
-NAMESPACE="$(getNamespaceFromTestName)"
-HELM_RELEASE_NAME=fluentdo-agent
-
-# shellcheck disable=SC2034
-DETIK_CLIENT_NAMESPACE="${NAMESPACE}"
-
 # bats file_tags=integration,k8s
 
 function setup() {
@@ -30,13 +24,8 @@ function setup() {
     if [[ -z "$HOSTED_OPENSEARCH_USERNAME" || -z "$HOSTED_OPENSEARCH_PASSWORD" ]]; then
         fail "Missing hosted OpenSearch credentials"
     fi
-    setupHelmRepo
-
-    # Always clean up
     rm -f ${BATS_TEST_DIRNAME}/resources/helm/fluentbit-hosted.yaml
-    cleanupHelmNamespace "$NAMESPACE" "$HELM_RELEASE_NAME"
-
-    kubectl create namespace "$NAMESPACE"
+    helmSetup
 }
 
 function teardown() {
@@ -44,7 +33,7 @@ function teardown() {
         echo "Skipping teardown"
     else
         rm -f ${BATS_TEST_DIRNAME}/resources/helm/fluentbit-hosted.yaml
-        cleanupHelmNamespace "$NAMESPACE" "$HELM_RELEASE_NAME"
+        helmTeardown
     fi
 }
 

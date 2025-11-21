@@ -14,23 +14,13 @@ load "$BATS_FILE_ROOT/load.bash"
 OPENSEARCH_IMAGE_REPOSITORY=${OPENSEARCH_IMAGE_REPOSITORY:-opensearchproject/opensearch}
 OPENSEARCH_IMAGE_TAG=${OPENSEARCH_IMAGE_TAG:-1.3.0}
 
-NAMESPACE="$(getNamespaceFromTestName)"
-HELM_RELEASE_NAME=fluentdo-agent
-
-# shellcheck disable=SC2034
-DETIK_CLIENT_NAMESPACE="${NAMESPACE}"
-
 # bats file_tags=integration,k8s
 
 function setup() {
     skipIfNotK8S
-    setupHelmRepo
-
-    # Always clean up
+    setHelmVariables
     run helm uninstall -n $NAMESPACE opensearch 2>/dev/null
-    cleanupHelmNamespace "$NAMESPACE" "$HELM_RELEASE_NAME"
-
-    kubectl create namespace "$NAMESPACE"
+    helmSetup
 }
 
 function teardown() {
@@ -38,7 +28,7 @@ function teardown() {
         echo "Skipping teardown"
     else
         run helm uninstall -n $NAMESPACE opensearch
-        cleanupHelmNamespace "$NAMESPACE" "$HELM_RELEASE_NAME"
+        helmTeardown
     fi
 }
 

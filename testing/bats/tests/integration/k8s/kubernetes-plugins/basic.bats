@@ -11,23 +11,13 @@ load "$BATS_SUPPORT_ROOT/load.bash"
 load "$BATS_ASSERT_ROOT/load.bash"
 load "$BATS_FILE_ROOT/load.bash"
 
-NAMESPACE="$(getNamespaceFromTestName)"
-HELM_RELEASE_NAME=fluentdo-agent
-
-# shellcheck disable=SC2034
-DETIK_CLIENT_NAMESPACE="${NAMESPACE}"
-
 # bats file_tags=integration,k8s
 
 function setup() {
     skipIfNotK8S
-    setupHelmRepo
-
-    # Always clean up
+    setHelmVariables
     run kubectl delete pod "$TEST_POD_NAME" -n "$NAMESPACE" --grace-period 1 --wait 2>/dev/null || true
-    cleanupHelmNamespace "$NAMESPACE" "$HELM_RELEASE_NAME"
-
-    kubectl create namespace "$NAMESPACE"
+    helmSetup
 }
 
 function teardown() {
@@ -35,7 +25,7 @@ function teardown() {
         echo "Skipping teardown"
     else
         run kubectl delete pod "$TEST_POD_NAME" -n "$NAMESPACE" --grace-period 1 --wait 2>/dev/null
-        cleanupHelmNamespace "$NAMESPACE" "$HELM_RELEASE_NAME"
+        helmTeardown
     fi
 }
 

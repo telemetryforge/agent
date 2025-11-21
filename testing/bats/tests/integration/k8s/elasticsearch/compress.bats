@@ -11,34 +11,24 @@ load "$BATS_SUPPORT_ROOT/load.bash"
 load "$BATS_ASSERT_ROOT/load.bash"
 load "$BATS_FILE_ROOT/load.bash"
 
-NAMESPACE="$(getNamespaceFromTestName)"
-HELM_RELEASE_NAME=fluentdo-agent
-
 ELASTICSEARCH_IMAGE_REPOSITORY=${ELASTICSEARCH_IMAGE_REPOSITORY:-elasticsearch}
 ELASTICSEARCH_IMAGE_TAG=${ELASTICSEARCH_IMAGE_TAG:-7.17.9}
-
-# shellcheck disable=SC2034
-DETIK_CLIENT_NAMESPACE="${NAMESPACE}"
 
 # bats file_tags=integration,k8s
 
 function setup() {
     skipIfNotK8S
-    setupHelmRepo
-
-    # Always clean up
-    run helm uninstall -n $NAMESPACE elasticsearch 2>/dev/null
-    cleanupHelmNamespace "$NAMESPACE" "$HELM_RELEASE_NAME"
-
-    kubectl create namespace "$NAMESPACE"
+    setHelmVariables
+    run helm uninstall -n "$NAMESPACE" elasticsearch 2>/dev/null
+    helmSetup
 }
 
 function teardown() {
     if [[ -n "${SKIP_TEARDOWN:-}" ]]; then
         echo "Skipping teardown"
     else
-        run helm uninstall -n $NAMESPACE elasticsearch
-        cleanupHelmNamespace "$NAMESPACE" "$HELM_RELEASE_NAME"
+        run helm uninstall -n "$NAMESPACE" elasticsearch
+        helmTeardown
     fi
 }
 

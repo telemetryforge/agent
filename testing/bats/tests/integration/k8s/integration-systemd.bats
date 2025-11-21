@@ -9,31 +9,16 @@ load "$BATS_FILE_ROOT/load.bash"
 load "$BATS_DETIK_ROOT/utils"
 load "$BATS_DETIK_ROOT/detik"
 
-NAMESPACE="$(getNamespaceFromTestName)"
-HELM_RELEASE_NAME=fluentdo-agent
 CONFIGMAP_NAME="fluent-bit-config"
-
-# shellcheck disable=SC2034
-DETIK_CLIENT_NAMESPACE=$NAMESPACE
 
 # bats file_tags=integration,k8s
 
 function setup() {
-    skipIfNotK8S
-    setupHelmRepo
-
-    # Always clean up
-    cleanupHelmNamespace "$NAMESPACE" "$HELM_RELEASE_NAME"
-
-    kubectl create namespace "$NAMESPACE"
+    helmSetup
 }
 
 function teardown() {
-    if [[ -n "${SKIP_TEARDOWN:-}" ]]; then
-        echo "Skipping teardown"
-    else
-        cleanupHelmNamespace "$NAMESPACE" "$HELM_RELEASE_NAME"
-    fi
+    helmTeardown
 }
 
 # Simple test to deploy default config with OSS helm chart and check metrics are output

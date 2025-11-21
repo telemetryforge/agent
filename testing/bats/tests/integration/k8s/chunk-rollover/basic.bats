@@ -11,30 +11,14 @@ load "$BATS_SUPPORT_ROOT/load.bash"
 load "$BATS_ASSERT_ROOT/load.bash"
 load "$BATS_FILE_ROOT/load.bash"
 
-NAMESPACE=$(getNamespaceFromTestName)
-HELM_RELEASE_NAME=fluentdo-agent
-
-# shellcheck disable=SC2034
-DETIK_CLIENT_NAMESPACE="${NAMESPACE}"
-
 # bats file_tags=integration,k8s
 
 function setup() {
-    skipIfNotK8S
-    setupHelmRepo
-
-    # Always clean up
-    cleanupHelmNamespace "$NAMESPACE" "$HELM_RELEASE_NAME"
-
-    kubectl create namespace "$NAMESPACE"
+    helmSetup
 }
 
 function teardown() {
-    if [[ -n "${SKIP_TEARDOWN:-}" ]]; then
-        echo "Skipping teardown"
-    else
-        cleanupHelmNamespace "$NAMESPACE" "$HELM_RELEASE_NAME"
-    fi
+    helmTeardown
 }
 
 @test "integration - upstream chunk rollover test" {

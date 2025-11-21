@@ -11,9 +11,6 @@ load "$BATS_SUPPORT_ROOT/load.bash"
 load "$BATS_ASSERT_ROOT/load.bash"
 load "$BATS_FILE_ROOT/load.bash"
 
-# shellcheck disable=SC2034
-DETIK_CLIENT_NAMESPACE="${NAMESPACE}"
-
 # bats file_tags=integration,k8s
 
 FLUENTBIT_POD_NAME=""
@@ -25,21 +22,10 @@ function setupFile() {
 
 function setup() {
     skipIfNotK8S
-    setupHelmRepo
-
-    NAMESPACE="$(getNamespaceFromTestName)"
-    export NAMESPACE
-
-    # We need a per-test unique helm release name for cluster roles
-    HELM_RELEASE_NAME="$(getHelmReleaseNameFromTestName)"
-    export HELM_RELEASE_NAME
-
-    # Always clean up
+    setHelmVariables
     run kubectl delete pod "$TEST_POD_NAME" -n "$NAMESPACE" --grace-period 1 --wait 2>/dev/null || true
-    cleanupHelmNamespace "$NAMESPACE" "$HELM_RELEASE_NAME"
-
-    kubectl create namespace "$NAMESPACE"
-    run kubectl label namespace "$NAMESPACE" "this_is_a_namespace_label=true"
+    helmSetup
+    kubectl label namespace "$NAMESPACE" "this_is_a_namespace_label=true"
 
     FLUENTBIT_POD_NAME=""
     TEST_POD_NAME=""
@@ -50,7 +36,7 @@ function teardown() {
         echo "Skipping teardown"
     else
         run kubectl delete pod "$TEST_POD_NAME" -n "$NAMESPACE" --grace-period 1 --wait 2>/dev/null
-        cleanupHelmNamespace "$NAMESPACE" "$HELM_RELEASE_NAME"
+        helmTeardown
     fi
 }
 

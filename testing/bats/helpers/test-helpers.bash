@@ -155,3 +155,37 @@ function getHelmReleaseNameFromTestName() {
 	HELM_RELEASE_NAME=${HELM_RELEASE_NAME:0:50}
 	trimWhitespace "$HELM_RELEASE_NAME"
 }
+
+function setHelmVariables() {
+    NAMESPACE="$(getNamespaceFromTestName)"
+    export NAMESPACE
+
+    # We need a per-test unique helm release name for cluster roles
+    HELM_RELEASE_NAME="$(getHelmReleaseNameFromTestName)"
+    export HELM_RELEASE_NAME
+
+	# shellcheck disable=SC2034
+	DETIK_CLIENT_NAMESPACE="${NAMESPACE}"
+	export DETIK_CLIENT_NAMESPACE
+}
+
+function helmSetup() {
+    skipIfNotK8S
+    setupHelmRepo
+	setHelmVariables
+
+    # Always clean up first
+    cleanupHelmNamespace "$NAMESPACE" "$HELM_RELEASE_NAME"
+
+	# Create our namespace
+    kubectl create namespace "$NAMESPACE"
+}
+
+function helmTeardown() {
+    if [[ -n "${SKIP_TEARDOWN:-}" ]]; then
+        echo "Skipping teardown"
+    else
+        cleanupHelmNamespace "$NAMESPACE" "$HELM_RELEASE_NAME"
+    fi
+	export DETIK_CLIENT_NAMESPACE=''
+}
