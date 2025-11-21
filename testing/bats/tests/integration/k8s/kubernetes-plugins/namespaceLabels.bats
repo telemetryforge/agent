@@ -114,7 +114,7 @@ function assertOutputHasNamespaceLabels() {
 
 function deployFB() {
     run helm upgrade --install --create-namespace --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" fluent/fluent-bit \
-        --values "${BATS_TEST_DIRNAME}/resources/fluentbit-full.yaml" \
+        --values "${BATS_TEST_DIRNAME}/resources/fluentbit-namespace-labels.yaml" \
         --set image.repository="$FLUENTDO_AGENT_IMAGE" \
         --set image.tag="$FLUENTDO_AGENT_TAG" \
         --set securityContext.runAsUser=0 \
