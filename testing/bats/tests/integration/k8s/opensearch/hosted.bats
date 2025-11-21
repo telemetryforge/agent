@@ -52,9 +52,15 @@ function teardown() {
     fi
 }
 
-@test "integration - upstream AWS OpenSearch hosted" {
+function createYAMLConfig() {
+    export HOSTED_OPENSEARCH_HOST=${HOSTED_OPENSEARCH_HOST:?Missing HOSTED_OPENSEARCH_HOST}
+    export HOSTED_OPENSEARCH_USERNAME=${HOSTED_OPENSEARCH_USERNAME:-admin}
+    export HOSTED_OPENSEARCH_PASSWORD=${HOSTED_OPENSEARCH_PASSWORD:?Missing HOSTED_OPENSEARCH_PASSWORD}
     envsubst < "${BATS_TEST_DIRNAME}/resources/helm/fluentbit-hosted.yaml.tpl" > "${BATS_TEST_DIRNAME}/resources/helm/fluentbit-hosted.yaml"
+}
 
+@test "integration - upstream AWS OpenSearch hosted" {
+    createYAMLConfig
     helm upgrade --install  --create-namespace --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" fluent/fluent-bit \
         --values $HELM_VALUES_EXTRA_FILE \
         -f ${BATS_TEST_DIRNAME}/resources/helm/fluentbit-hosted.yaml \

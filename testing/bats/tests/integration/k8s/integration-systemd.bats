@@ -68,6 +68,7 @@ function teardown() {
     local attempts=3
     local delay=5
     for i in $(seq 1 "$attempts"); do
+        echo "Attempt $i"
         run kubectl logs -n "$NAMESPACE" "$(kubectl get pods -n "$NAMESPACE" -l app.kubernetes.io/name=fluent-bit -o jsonpath="{.items[0].metadata.name}")" 
         assert_success
         refute_output --partial "[error]"
