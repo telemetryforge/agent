@@ -53,6 +53,7 @@ function teardown() {
         --values ${BATS_TEST_DIRNAME}/resources/helm/fluentbit-basic.yaml \
         --set image.repository="$FLUENTDO_AGENT_IMAGE" \
         --set image.tag="$FLUENTDO_AGENT_TAG" \
+        --set securityContext.runAsUser=0 \
         --set env[0].name=NAMESPACE,env[0].value="${NAMESPACE}" \
         --timeout "${HELM_TIMEOUT:-5m0s}" \
         --wait
