@@ -25,24 +25,26 @@ echo "INFO: Testing with URL '$FLUENTDO_AGENT_URL'"
 # FLUENTDO_AGENT_IMAGE=...
 # FLUENTDO_AGENT_TAG=...
 
-# Attempt to auto-parallelise when available
-if command -v rush &>/dev/null; then
-	echo "Using rush for parallelism"
-	export BATS_NO_PARALLELIZE_ACROSS_FILES=${BATS_NO_PARALLELIZE_ACROSS_FILES:-1}
-	export BATS_NUMBER_OF_PARALLEL_JOBS=${BATS_NUMBER_OF_PARALLEL_JOBS:-4}
-	export BATS_PARALLEL_BINARY_NAME=${BATS_PARALLEL_BINARY_NAME:-rush}
-elif command -v parallel &>/dev/null; then
-	echo "Using parallel for parallelism"
-	export BATS_NO_PARALLELIZE_ACROSS_FILES=${BATS_NO_PARALLELIZE_ACROSS_FILES:-1}
-	export BATS_NUMBER_OF_PARALLEL_JOBS=${BATS_NUMBER_OF_PARALLEL_JOBS:-4}
-	export BATS_PARALLEL_BINARY_NAME=${BATS_PARALLEL_BINARY_NAME:-parallel}
+# Attempt to auto-parallelise when available, only across files
+if [[ -z "${BATS_PARALLEL_BINARY_NAME:-}" ]]; then
+	if command -v rush &>/dev/null; then
+		echo "Using rush for parallelism"
+		export BATS_NUMBER_OF_PARALLEL_JOBS=${BATS_NUMBER_OF_PARALLEL_JOBS:-4}
+		export BATS_PARALLEL_BINARY_NAME=${BATS_PARALLEL_BINARY_NAME:-rush}
+	elif command -v parallel &>/dev/null; then
+		echo "Using parallel for parallelism"
+		export BATS_NUMBER_OF_PARALLEL_JOBS=${BATS_NUMBER_OF_PARALLEL_JOBS:-4}
+		export BATS_PARALLEL_BINARY_NAME=${BATS_PARALLEL_BINARY_NAME:-parallel}
+	fi
+else
+	echo "Using provided parallel config with $BATS_PARALLEL_BINARY_NAME"
 fi
 
 # Test configuration and control
 export CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
 
 export BATS_FORMATTER=${BATS_FORMATTER:-tap}
-export BATS_ARGS=${BATS_ARGS:---timing --verbose-run --print-output-on-failure --no-parallelize-within-files}
+export BATS_ARGS=${BATS_ARGS:---timing --verbose-run --print-output-on-failure}
 # In seconds so pick 5 minutes although can modify it per test in setup()
 export BATS_TEST_TIMEOUT=${BATS_TEST_TIMEOUT:-300}
 

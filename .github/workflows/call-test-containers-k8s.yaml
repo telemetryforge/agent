@@ -78,6 +78,7 @@ jobs:
         shell: bash
         env:
           # allow for some parallelity without GNU parallel, since it is not installed by default
+		  # Runners are not super powerful so limited amount we can do here
           BATS_NO_PARALLELIZE_ACROSS_FILES: 1
           BATS_NUMBER_OF_PARALLEL_JOBS: 4
           BATS_PARALLEL_BINARY_NAME: rush
