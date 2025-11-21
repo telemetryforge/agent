@@ -22,6 +22,10 @@ DETIK_CLIENT_NAMESPACE="${NAMESPACE}"
 FLUENTBIT_POD_NAME=""
 TEST_POD_NAME=""
 
+function setupFile() {
+    export BATS_NO_PARALLELIZE_WITHIN_FILE=true
+}
+
 function setup() {
     skipIfNotK8S
     setupHelmRepo
