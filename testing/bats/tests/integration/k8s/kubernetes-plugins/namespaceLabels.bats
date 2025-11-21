@@ -94,10 +94,10 @@ function refuteOutputHasPodLabels() {
     assert_success
     refute_output ""
 
-    # Check pod label matches
     match1="kubernetes\":{\"pod_name\":\"${TEST_POD_NAME}\",\"namespace_name\":\"${NAMESPACE}\""
+    assert_output --partial "$match1"
+
     match2='"labels":{"this_is_a_test_label":"true"}'
-    refute_output --partial "$match1"
     refute_output --partial "$match2"
 }
 
@@ -137,6 +137,6 @@ function deployFB() {
     deployFB
     getFluentBitPodName
     createTestPod "k8s-pod-and-namespace-label-tester"
-    assertOutputHasPodLabels true
-    assertOutputHasNamespaceLabels true
+    assertOutputHasPodLabels
+    assertOutputHasNamespaceLabels
 }
