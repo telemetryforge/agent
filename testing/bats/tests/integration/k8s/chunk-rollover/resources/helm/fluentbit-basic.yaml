@@ -48,7 +48,7 @@ config:
     [OUTPUT]
         name                      http
         match                     *
-        host                      payload-receiver-service.${TEST_NAMESPACE}.svc.cluster.local
+        host                      payload-receiver-service.${NAMESPACE}.svc.cluster.local
         port                      8088
         retry_limit               3
         storage.total_limit_size  300M
@@ -58,7 +58,7 @@ config:
     [OUTPUT]
         name                      http
         match                     *
-        host                      payload-receiver-service.${TEST_NAMESPACE}.svc.cluster.local
+        host                      payload-receiver-service.${NAMESPACE}.svc.cluster.local
         port                      8088
         retry_limit               3
         storage.total_limit_size  300M
@@ -68,7 +68,7 @@ config:
     [OUTPUT]
         name                      http
         match                     *
-        host                      payload-receiver-service.${TEST_NAMESPACE}.svc.cluster.local
+        host                      payload-receiver-service.${NAMESPACE}.svc.cluster.local
         port                      8088
         retry_limit               3
         storage.total_limit_size  300M
@@ -78,7 +78,7 @@ config:
     [OUTPUT]
         name                      http
         match                     *
-        host                      payload-receiver-service.${TEST_NAMESPACE}.svc.cluster.local
+        host                      payload-receiver-service.${NAMESPACE}.svc.cluster.local
         port                      8088
         retry_limit               3
         storage.total_limit_size  300M
