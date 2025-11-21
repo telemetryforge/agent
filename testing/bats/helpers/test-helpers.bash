@@ -140,3 +140,18 @@ function getNamespaceFromTestName() {
 	NAMESPACE=${NAMESPACE:0:63}
 	trimWhitespace "$NAMESPACE"
 }
+
+function getHelmReleaseNameFromTestName() {
+	HELM_RELEASE_NAME=${BATS_TEST_NAME//_/}
+	HELM_RELEASE_NAME=${HELM_RELEASE_NAME//:/}
+	HELM_RELEASE_NAME=${HELM_RELEASE_NAME//-/}
+	HELM_RELEASE_NAME=${HELM_RELEASE_NAME//test/}
+	HELM_RELEASE_NAME=${HELM_RELEASE_NAME//integration/}
+	HELM_RELEASE_NAME=${HELM_RELEASE_NAME//upstream/}
+	# Remove numeric characters
+	HELM_RELEASE_NAME=${HELM_RELEASE_NAME//[[:digit:]]/}
+	# Helm release names are limited to 53 characters
+	# https://helm.sh/docs/chart_template_guide/getting_started/#adding-a-simple-template-call
+	HELM_RELEASE_NAME=${HELM_RELEASE_NAME:0:50}
+	trimWhitespace "$HELM_RELEASE_NAME"
+}

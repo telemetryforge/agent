@@ -40,10 +40,6 @@ function setup() {
 }
 
 function teardown() {
-    run kubectl get pods --all-namespaces -o yaml 2>/dev/null
-    run kubectl describe pod -n "$NAMESPACE" -l app.kubernetes.io/name=fluent-bit
-    run kubectl logs -n "$NAMESPACE" -l app.kubernetes.io/name=fluent-bit
-
     if [[ -n "${SKIP_TEARDOWN:-}" ]]; then
         echo "Skipping teardown"
     else

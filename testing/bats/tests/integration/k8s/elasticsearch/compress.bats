@@ -34,10 +34,6 @@ function setup() {
 }
 
 function teardown() {
-    run kubectl get pods --all-namespaces -o yaml 2>/dev/null
-    run kubectl describe pod -n "$NAMESPACE" -l app.kubernetes.io/name=fluent-bit
-    run kubectl logs -n "$NAMESPACE" -l app.kubernetes.io/name=fluent-bit
-
     if [[ -n "${SKIP_TEARDOWN:-}" ]]; then
         echo "Skipping teardown"
     else
@@ -47,7 +43,7 @@ function teardown() {
 }
 
 @test "integration - upstream test elasticsearch with http compression" {
-    helm repo add elastic https://helm.elastic.co/ || helm repo add elastic https://helm.elastic.co
+    helm repo add elastic https://helm.elastic.co --force-update
     helm repo update
 
     helm upgrade --install  --create-namespace --namespace "$NAMESPACE" elasticsearch elastic/elasticsearch \

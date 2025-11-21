@@ -11,9 +11,6 @@ load "$BATS_SUPPORT_ROOT/load.bash"
 load "$BATS_ASSERT_ROOT/load.bash"
 load "$BATS_FILE_ROOT/load.bash"
 
-NAMESPACE="$(getNamespaceFromTestName)"
-HELM_RELEASE_NAME=fluentdo-agent
-
 # shellcheck disable=SC2034
 DETIK_CLIENT_NAMESPACE="${NAMESPACE}"
 
@@ -30,6 +27,13 @@ function setup() {
     skipIfNotK8S
     setupHelmRepo
 
+    NAMESPACE="$(getNamespaceFromTestName)"
+    export NAMESPACE
+
+    # We need a per-test unique helm release name for cluster roles
+    HELM_RELEASE_NAME="$(getHelmReleaseNameFromTestName)"
+    export HELM_RELEASE_NAME
+
     # Always clean up
     run kubectl delete pod "$TEST_POD_NAME" -n "$NAMESPACE" --grace-period 1 --wait 2>/dev/null || true
     cleanupHelmNamespace "$NAMESPACE" "$HELM_RELEASE_NAME"
@@ -42,10 +46,6 @@ function setup() {
 }
 
 function teardown() {
-    run kubectl get pods --all-namespaces -o yaml 2>/dev/null
-    run kubectl describe pod -n "$NAMESPACE" -l app.kubernetes.io/name=fluent-bit
-    run kubectl logs -n "$NAMESPACE" -l app.kubernetes.io/name=fluent-bit
-
     if [[ -n "${SKIP_TEARDOWN:-}" ]]; then
         echo "Skipping teardown"
     else
