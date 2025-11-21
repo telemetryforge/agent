@@ -18,13 +18,13 @@ OPENSEARCH_IMAGE_TAG=${OPENSEARCH_IMAGE_TAG:-1.3.0}
 
 function setup() {
     skipIfNotK8S
-    if [[ -z "$HOSTED_OPENSEARCH_HOST" ]]; then
+    if [[ -z "${HOSTED_OPENSEARCH_HOST:-}" ]]; then
         skip "Skipping as no hosted OpenSearch"
     fi
-    if [[ -z "$HOSTED_OPENSEARCH_USERNAME" || -z "$HOSTED_OPENSEARCH_PASSWORD" ]]; then
+    if [[ -z "${HOSTED_OPENSEARCH_USERNAME:-}" || -z "${HOSTED_OPENSEARCH_PASSWORD:-}" ]]; then
         fail "Missing hosted OpenSearch credentials"
     fi
-    rm -f ${BATS_TEST_DIRNAME}/resources/helm/fluentbit-hosted.yaml
+    rm -f "${BATS_TEST_DIRNAME}/resources/helm/fluentbit-hosted.yaml"
     helmSetup
 }
 
@@ -32,7 +32,7 @@ function teardown() {
     if [[ -n "${SKIP_TEARDOWN:-}" ]]; then
         echo "Skipping teardown"
     else
-        rm -f ${BATS_TEST_DIRNAME}/resources/helm/fluentbit-hosted.yaml
+        rm -f "${BATS_TEST_DIRNAME}/resources/helm/fluentbit-hosted.yaml"
         helmTeardown
     fi
 }
