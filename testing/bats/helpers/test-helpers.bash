@@ -159,10 +159,12 @@ function getHelmReleaseNameFromTestName() {
 function setHelmVariables() {
     NAMESPACE="$(getNamespaceFromTestName)"
     export NAMESPACE
+	echo "Using namespace: $NAMESPACE"
 
     # We need a per-test unique helm release name for cluster roles
     HELM_RELEASE_NAME="$(getHelmReleaseNameFromTestName)"
     export HELM_RELEASE_NAME
+	echo "Using release name: $HELM_RELEASE_NAME"
 
 	# shellcheck disable=SC2034
 	DETIK_CLIENT_NAMESPACE="${NAMESPACE}"

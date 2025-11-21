@@ -43,7 +43,7 @@ function teardown() {
 
 function getFluentBitPodName() {
     try "at most 30 times every 2s " \
-        "to find 1 pods named '$HELM_RELEASE_NAME' " \
+        "to find 1 pods named 'fluent-bit'" \
         "with 'status' being 'running'"
 
     FLUENTBIT_POD_NAME=$(kubectl get pods -n "$NAMESPACE" -l "app.kubernetes.io/name=fluent-bit" --no-headers | awk '{ print $1 }')
