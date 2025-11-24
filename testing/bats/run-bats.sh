@@ -54,7 +54,7 @@ export BATS_SUPPORT_ROOT=$BATS_LIB_ROOT/bats-support
 export BATS_ASSERT_ROOT=$BATS_LIB_ROOT/bats-assert
 export BATS_DETIK_ROOT=$BATS_LIB_ROOT/bats-detik
 
-export DETIK_CLIENT_NAME=${DEIK_CLIENT_NAME:-kubectl}
+export DETIK_CLIENT_NAME=${DETIK_CLIENT_NAME:-kubectl}
 
 # Helper files can include custom functions to simplify testing
 # This is the location of the default helpers.
