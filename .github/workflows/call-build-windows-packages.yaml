@@ -39,7 +39,7 @@ jobs:
       VCPKG_LIBRARY_LINKAGE: static
     steps:
       - name: Checkout ${{ inputs.ref }} code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.ref }}
           repository: FluentDo/agent

@@ -27,7 +27,7 @@ jobs:
       sha: ${{ steps.get-commit.outputs.sha }}
       branch: ${{ steps.detect-branch.outputs.branch || 'main' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: 25.10 run
         if: github.event_name == 'schedule' && github.event.schedule=='0 10 * * 1'
@@ -96,7 +96,7 @@ jobs:
           secrets: |-
             github-pat:projects/626836145334/secrets/GITHUB_CI_PAT
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.find-last-good.outputs.sha }}
           # The tag must be pushed using a PAT to ensure workflows then run.

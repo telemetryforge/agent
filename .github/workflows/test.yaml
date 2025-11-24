@@ -26,7 +26,7 @@ jobs:
       kind-versions: ${{ steps.set-meta.outputs.kind-versions }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: FluentDo/agent
           ref: ${{ github.event.inputs.ref || github.ref }}
