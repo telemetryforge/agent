@@ -6,13 +6,7 @@
     "amazonlinux/2023",
     "centos/6",
     "centos/7",
-    "centos/8",
-    "centos/9",
-    "centos/10",
     "mariner/2",
-    "rockylinux/8",
-    "rockylinux/9",
-    "rockylinux/10",
     "debian/buster",
     "debian/bullseye",
     "debian/bookworm",
@@ -34,6 +28,10 @@
       "amazonlinux/2023.arm64v8",
       "centos/6",
       "centos/7",
+      "centos/8",
+      "centos/8.arm64v8",
+      "centos/9",
+      "centos/9.arm64v8",
       "centos/10",
       "centos/10.arm64v8",
       "debian/bookworm",
@@ -50,8 +48,6 @@
   },
   "kind_versions": [
     "v1.31.12",
-    "v1.32.8",
-    "v1.33.4",
     "v1.34.0"
   ]
 }

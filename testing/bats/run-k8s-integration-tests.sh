@@ -15,8 +15,8 @@ SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 
 # Set up KIND and load the image then run tests
 
-export FLUENTDO_AGENT_IMAGE=${FLUENTDO_AGENT_IMAGE:?}
-export FLUENTDO_AGENT_TAG=${FLUENTDO_AGENT_TAG:?}
+export FLUENTDO_AGENT_IMAGE=${FLUENTDO_AGENT_IMAGE:-ghcr.io/fluentdo/agent/ubi}
+export FLUENTDO_AGENT_TAG=${FLUENTDO_AGENT_TAG:-main}
 export CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
 
 CONTAINER_IMAGE="${FLUENTDO_AGENT_IMAGE}:${FLUENTDO_AGENT_TAG}"
@@ -61,6 +61,11 @@ kind create cluster --name "$KIND_CLUSTER_NAME" --image "$KIND_NODE_IMAGE" --wai
 echo "INFO: Loading image into KIND"
 kind load docker-image "$CONTAINER_IMAGE" --name "$KIND_CLUSTER_NAME"
 
-"$SCRIPT_DIR"/run-bats.sh --filter-tags 'integration,k8s' --recursive "$SCRIPT_DIR/tests"
+# Allow us to specify a specific test if we want
+if [ "$#" -gt 0 ]; then
+	"$SCRIPT_DIR"/run-bats.sh "$@"
+else
+	"$SCRIPT_DIR"/run-bats.sh --filter-tags 'integration,k8s' --recursive "$SCRIPT_DIR/tests"
+fi
 
 echo "INFO: All tests complete"
