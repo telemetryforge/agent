@@ -20,13 +20,7 @@ function ensure_variables_set() {
 }
 
 function skipIfNotLinux() {
-	if [[ "$(uname -s)" != "Linux" ]]; then
-		skip 'Skipping test: not running on Linux'
-	fi
-}
-
-function skipIfNotWindows() {
-    if [[ "${OSTYPE:-}" == "msys" ]]; then
+    if [[ "${OSTYPE:-}" != "msys" ]]; then
         skip "Skipping test: not running on Windows"
     fi
     if [[ "$(uname -s)" != *"NT"* ]]; then
