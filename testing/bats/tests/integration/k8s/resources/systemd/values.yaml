@@ -1,0 +1,12 @@
+args:
+  - "--workdir=/fluent-bit/etc"
+  - "--config=/fluent-bit/etc/conf/fluent-bit.yaml"
+securityContext:
+  runAsUser: 0
+extraVolumeMounts:
+  - name: systemdlog
+    mountPath: /run/log
+extraVolumes:
+  - name: systemdlog
+    hostPath:
+      path: /run/log

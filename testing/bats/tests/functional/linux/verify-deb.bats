@@ -10,9 +10,7 @@ load "$BATS_FILE_ROOT/load.bash"
 # bats file_tags=functional,linux,package
 
 setup() {
-    if [[ "$(uname -s)" != "Linux" ]]; then
-        skip "Skipping test: not running on Linux"
-    fi
+    skipIfNotLinux
     if ! command -v dpkg &> /dev/null; then
         skip "Skipping test: no dpkg command"
     fi

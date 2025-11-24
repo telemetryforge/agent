@@ -1,0 +1,10 @@
+protocol: http
+httpPort: 9200
+transportPort: 9300
+replicas: 1
+minimumMasterNodes: 1
+
+# Do not disable demo config as it prevents the cert generation
+# extraEnvs:
+#   - name: DISABLE_INSTALL_DEMO_CONFIG
+#     value: "true"
