@@ -34,7 +34,7 @@ jobs:
       oss-version: ${{ steps.set-oss-version.outputs.oss-version }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Debug
         uses: raven-actions/debug@v1
@@ -288,7 +288,7 @@ jobs:
       DISTROLESS_IMAGE_NAME: ghcr.io/fluentdo/agent/debian
       TAG: ${{ needs.build-image.outputs.version }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         # We need full history to be able to detect branch ancestry
         with:
           fetch-depth: 0
