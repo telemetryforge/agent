@@ -10,9 +10,7 @@ load "$BATS_FILE_ROOT/load.bash"
 # bats file_tags=functional,linux,package
 
 setup() {
-    if [[ "$(uname -s)" != "Linux" ]]; then
-        skip "Skipping test: not running on Linux"
-    fi
+    skipIfNotLinux
     export INSTALL_PREFIX="/opt/fluentdo-agent"
 
     # Ensure we skip tests in the container

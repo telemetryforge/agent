@@ -12,29 +12,17 @@ CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
 # bats file_tags=integration,containers
 
 setup() {
-    # All container tests assume Docker is available and can run containers
-    if ! command -v "$CONTAINER_RUNTIME" &>/dev/null; then
-        skip "Skipping test: no $CONTAINER_RUNTIME"
-    fi
+    skipIfNotContainer
 }
 
 # All container tests use the environment variable FLUENTDO_AGENT_IMAGE to determine which image to test
 @test "integration: verify FLUENTDO_AGENT_IMAGE is set" {
-    if [ -z "${FLUENTDO_AGENT_IMAGE}" ]; then
-        skip "Skipping test: FLUENTDO_AGENT_IMAGE not set"
-    fi
     [ -n "${FLUENTDO_AGENT_IMAGE}" ]
     [ -n "${FLUENTDO_AGENT_TAG}" ]
 }
 
 # Verify we can pull and run the FLUENTDO_AGENT_IMAGE
 @test "integration: verify pulling and running FLUENTDO_AGENT_IMAGE" {
-    if [ -z "${FLUENTDO_AGENT_IMAGE}" ]; then
-        skip "Skipping test: FLUENTDO_AGENT_IMAGE not set"
-    fi
-    if [ -z "${FLUENTDO_AGENT_TAG}" ]; then
-        fail "FLUENTDO_AGENT_TAG not set"
-    fi
     run "$CONTAINER_RUNTIME" pull "${FLUENTDO_AGENT_IMAGE}:${FLUENTDO_AGENT_TAG}"
     assert_success
 
@@ -44,9 +32,6 @@ setup() {
 }
 
 @test "integration: verify default configuration is valid" {
-    if [ -z "${FLUENTDO_AGENT_IMAGE}" ]; then
-        skip "Skipping test: FLUENTDO_AGENT_IMAGE not set"
-    fi
     assert_file_exist "$BATS_TEST_DIRNAME/resources/fluent-bit.yaml"
     run "$CONTAINER_RUNTIME" run --rm -t \
         -v "$BATS_TEST_DIRNAME/resources/fluent-bit.yaml:/fluent-bit/etc/fluent-bit.yaml:ro" \
