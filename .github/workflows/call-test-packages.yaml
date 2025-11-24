@@ -112,7 +112,7 @@ jobs:
         config: ${{ fromJson(needs.call-test-packages-get-meta.outputs.linux-test-targets) }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: FluentDo/agent
           ref: ${{ inputs.ref }}
@@ -185,7 +185,7 @@ jobs:
       FLUENT_BIT_BINARY: ${{ matrix.binary }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: FluentDo/agent
           ref: ${{ inputs.ref }}
