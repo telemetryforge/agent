@@ -26,7 +26,7 @@ function skipIfNotLinux() {
 }
 
 function skipIfNotWindows() {
-    if [[ "${OSTYPE:-}" == "msys" ]]; then
+    if [[ "${OSTYPE:-}" != "msys" ]]; then
         skip "Skipping test: not running on Windows"
     fi
     if [[ "$(uname -s)" != *"NT"* ]]; then
