@@ -25,7 +25,7 @@ function setup() {
     setHelmVariables
     run kubectl delete pod "$TEST_POD_NAME" -n "$NAMESPACE" --grace-period 1 --wait 2>/dev/null || true
     helmSetup
-    kubectl label namespace "$NAMESPACE" "this_is_a_namespace_label=true"
+    kubectl label namespace "$NAMESPACE" "this_is_a_namespace_label=true" --overwrite
 
     FLUENTBIT_POD_NAME=""
     TEST_POD_NAME=""

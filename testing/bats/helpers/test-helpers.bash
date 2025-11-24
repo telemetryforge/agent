@@ -66,6 +66,15 @@ function skipIfNotK8S() {
 	fi
 }
 
+function skipIfNotHostedOpensearch() {
+    if [[ -z "${HOSTED_OPENSEARCH_HOST:-}" ]]; then
+        skip "Skipping as no hosted OpenSearch"
+    fi
+    if [[ -z "${HOSTED_OPENSEARCH_USERNAME:-}" || -z "${HOSTED_OPENSEARCH_PASSWORD:-}" ]]; then
+        fail "Missing hosted OpenSearch credentials"
+    fi
+}
+
 function setupHelmRepo() {
 	helm repo add fluent https://fluent.github.io/helm-charts --force-update
 	helm repo update --fail-on-repo-update-fail
@@ -138,6 +147,8 @@ function getNamespaceFromTestName() {
 	NAMESPACE=${NAMESPACE//integration/}
 	NAMESPACE=${NAMESPACE//upstream/}
 	NAMESPACE=${NAMESPACE:0:63}
+	# lowercase
+	NAMESPACE=${NAMESPACE,,}
 	trimWhitespace "$NAMESPACE"
 }
 
@@ -153,6 +164,8 @@ function getHelmReleaseNameFromTestName() {
 	# Helm release names are limited to 53 characters
 	# https://helm.sh/docs/chart_template_guide/getting_started/#adding-a-simple-template-call
 	HELM_RELEASE_NAME=${HELM_RELEASE_NAME:0:50}
+	# Lowercase required
+	HELM_RELEASE_NAME=${HELM_RELEASE_NAME,,}
 	trimWhitespace "$HELM_RELEASE_NAME"
 }
 

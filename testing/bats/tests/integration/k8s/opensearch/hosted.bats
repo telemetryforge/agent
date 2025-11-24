@@ -17,13 +17,6 @@ OPENSEARCH_IMAGE_TAG=${OPENSEARCH_IMAGE_TAG:-1.3.0}
 # bats file_tags=integration,k8s
 
 function setup() {
-    skipIfNotK8S
-    if [[ -z "${HOSTED_OPENSEARCH_HOST:-}" ]]; then
-        skip "Skipping as no hosted OpenSearch"
-    fi
-    if [[ -z "${HOSTED_OPENSEARCH_USERNAME:-}" || -z "${HOSTED_OPENSEARCH_PASSWORD:-}" ]]; then
-        fail "Missing hosted OpenSearch credentials"
-    fi
     rm -f "${BATS_TEST_DIRNAME}/resources/helm/fluentbit-hosted.yaml"
     helmSetup
 }
@@ -45,9 +38,9 @@ function createYAMLConfig() {
 }
 
 @test "integration: upstream AWS OpenSearch hosted" {
+    skipIfNotHostedOpensearch
     createYAMLConfig
     helm upgrade --install  --create-namespace --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" fluent/fluent-bit \
-        --values $HELM_VALUES_EXTRA_FILE \
         -f ${BATS_TEST_DIRNAME}/resources/helm/fluentbit-hosted.yaml \
         --set image.repository="$FLUENTDO_AGENT_IMAGE" \
         --set image.tag="$FLUENTDO_AGENT_TAG" \

@@ -70,15 +70,15 @@ jobs:
           support-install: false
 
       - name: Install Rush for parallelism
-        run: curl -sSfL https://github.com/shenwei356/rush/releases/download/v0.7.0/rush_linux_amd64.tar.gz | sudo tar xzf - -C /usr/local/bin
+        run: curl -sSfL "https://github.com/shenwei356/rush/releases/download/${RUSH_VERSION}/rush_linux_amd64.tar.gz" | sudo tar xzf - -C /usr/local/bin
         shell: bash
+        env:
+          RUSH_VERSION: v0.7.0
 
       - name: Run integration tests
         run: ./testing/bats/run-k8s-integration-tests.sh
         shell: bash
         env:
-          # allow for some parallelity without GNU parallel, since it is not installed by default
-		  # Runners are not super powerful so limited amount we can do here
           BATS_NO_PARALLELIZE_ACROSS_FILES: 1
           BATS_NUMBER_OF_PARALLEL_JOBS: 4
           BATS_PARALLEL_BINARY_NAME: rush
@@ -86,10 +86,18 @@ jobs:
       # Debugging steps to run if something goes wrong
       - name: Debug - List all pods
         if: always()
+        continue-on-error: true
         run: kubectl get pods -A
         shell: bash
 
       - name: Debug - Describe pods
         if: always()
+        continue-on-error: true
         run: kubectl describe pods -A
+        shell: bash
+
+      - name: Debug - list all processes
+        if: always()
+        continue-on-error: true
+        run: ps afx
         shell: bash
