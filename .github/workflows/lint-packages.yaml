@@ -28,7 +28,7 @@ jobs:
     name: PR - Lintian (Package changes)
     steps:
       - name: Checkout for config file
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Download package
         uses: actions/download-artifact@v6

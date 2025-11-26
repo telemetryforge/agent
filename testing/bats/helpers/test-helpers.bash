@@ -26,7 +26,7 @@ function skipIfNotLinux() {
 }
 
 function skipIfNotWindows() {
-    if [[ "${OSTYPE:-}" == "msys" ]]; then
+    if [[ "${OSTYPE:-}" != "msys" ]]; then
         skip "Skipping test: not running on Windows"
     fi
     if [[ "$(uname -s)" != *"NT"* ]]; then
@@ -64,6 +64,15 @@ function skipIfNotK8S() {
 	if ! kubectl get nodes >/dev/null 2>&1; then
 		skip "Skipping test: K8S cluster not accessible"
 	fi
+}
+
+function skipIfNotHostedOpensearch() {
+    if [[ -z "${HOSTED_OPENSEARCH_HOST:-}" ]]; then
+        skip "Skipping as no hosted OpenSearch"
+    fi
+    if [[ -z "${HOSTED_OPENSEARCH_USERNAME:-}" || -z "${HOSTED_OPENSEARCH_PASSWORD:-}" ]]; then
+        fail "Missing hosted OpenSearch credentials"
+    fi
 }
 
 function setupHelmRepo() {
@@ -115,4 +124,83 @@ function failOnMetricsZero() {
 		echo "DEBUG: $metrics_output"
 		fail "$output_message"
 	fi
+}
+
+# https://stackoverflow.com/a/3352015
+function trimWhitespace() {
+	local var="$*"
+	# remove leading whitespace characters
+    var="${var#"${var%%[![:space:]]*}"}"
+    # remove trailing whitespace characters
+    var="${var%"${var##*[![:space:]]}"}"
+    printf '%s' "$var"
+}
+
+function getNamespaceFromTestName() {
+	# We use the BATS_TEST_NAME variable but remove special characters
+	# and restrict it to <64 characters too, remove the word "test" as
+	# well to try to be more unique.
+	NAMESPACE=${BATS_TEST_NAME//_/}
+	NAMESPACE=${NAMESPACE//:/}
+	NAMESPACE=${NAMESPACE//-/}
+	NAMESPACE=${NAMESPACE//test/}
+	NAMESPACE=${NAMESPACE//integration/}
+	NAMESPACE=${NAMESPACE//upstream/}
+	NAMESPACE=${NAMESPACE:0:63}
+	# lowercase
+	NAMESPACE=${NAMESPACE,,}
+	trimWhitespace "$NAMESPACE"
+}
+
+function getHelmReleaseNameFromTestName() {
+	HELM_RELEASE_NAME=${BATS_TEST_NAME//_/}
+	HELM_RELEASE_NAME=${HELM_RELEASE_NAME//:/}
+	HELM_RELEASE_NAME=${HELM_RELEASE_NAME//-/}
+	HELM_RELEASE_NAME=${HELM_RELEASE_NAME//test/}
+	HELM_RELEASE_NAME=${HELM_RELEASE_NAME//integration/}
+	HELM_RELEASE_NAME=${HELM_RELEASE_NAME//upstream/}
+	# Remove numeric characters
+	HELM_RELEASE_NAME=${HELM_RELEASE_NAME//[[:digit:]]/}
+	# Helm release names are limited to 53 characters
+	# https://helm.sh/docs/chart_template_guide/getting_started/#adding-a-simple-template-call
+	HELM_RELEASE_NAME=${HELM_RELEASE_NAME:0:50}
+	# Lowercase required
+	HELM_RELEASE_NAME=${HELM_RELEASE_NAME,,}
+	trimWhitespace "$HELM_RELEASE_NAME"
+}
+
+function setHelmVariables() {
+    NAMESPACE="$(getNamespaceFromTestName)"
+    export NAMESPACE
+	echo "Using namespace: $NAMESPACE"
+
+    # We need a per-test unique helm release name for cluster roles
+    HELM_RELEASE_NAME="$(getHelmReleaseNameFromTestName)"
+    export HELM_RELEASE_NAME
+	echo "Using release name: $HELM_RELEASE_NAME"
+
+	# shellcheck disable=SC2034
+	DETIK_CLIENT_NAMESPACE="${NAMESPACE}"
+	export DETIK_CLIENT_NAMESPACE
+}
+
+function helmSetup() {
+    skipIfNotK8S
+    setupHelmRepo
+	setHelmVariables
+
+    # Always clean up first
+    cleanupHelmNamespace "$NAMESPACE" "$HELM_RELEASE_NAME"
+
+	# Create our namespace
+    kubectl create namespace "$NAMESPACE"
+}
+
+function helmTeardown() {
+    if [[ -n "${SKIP_TEARDOWN:-}" ]]; then
+        echo "Skipping teardown"
+    else
+        cleanupHelmNamespace "$NAMESPACE" "$HELM_RELEASE_NAME"
+    fi
+	export DETIK_CLIENT_NAMESPACE=''
 }

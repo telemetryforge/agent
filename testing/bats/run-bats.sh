@@ -25,17 +25,19 @@ echo "INFO: Testing with URL '$FLUENTDO_AGENT_URL'"
 # FLUENTDO_AGENT_IMAGE=...
 # FLUENTDO_AGENT_TAG=...
 
-# Attempt to auto-parallelise when available
-if command -v rush &>/dev/null; then
-	echo "Using rush for parallelism"
-	export BATS_NO_PARALLELIZE_ACROSS_FILES=${BATS_NO_PARALLELIZE_ACROSS_FILES:-1}
-	export BATS_NUMBER_OF_PARALLEL_JOBS=${BATS_NUMBER_OF_PARALLEL_JOBS:-4}
-	export BATS_PARALLEL_BINARY_NAME=${BATS_PARALLEL_BINARY_NAME:-rush}
-elif command -v parallel &>/dev/null; then
-	echo "Using parallel for parallelism"
-	export BATS_NO_PARALLELIZE_ACROSS_FILES=${BATS_NO_PARALLELIZE_ACROSS_FILES:-1}
-	export BATS_NUMBER_OF_PARALLEL_JOBS=${BATS_NUMBER_OF_PARALLEL_JOBS:-4}
-	export BATS_PARALLEL_BINARY_NAME=${BATS_PARALLEL_BINARY_NAME:-parallel}
+# Attempt to auto-parallelise when available, only across files
+if [[ -z "${BATS_PARALLEL_BINARY_NAME:-}" ]]; then
+	if command -v rush &>/dev/null; then
+		echo "Using rush for parallelism"
+		export BATS_NUMBER_OF_PARALLEL_JOBS=${BATS_NUMBER_OF_PARALLEL_JOBS:-4}
+		export BATS_PARALLEL_BINARY_NAME=${BATS_PARALLEL_BINARY_NAME:-rush}
+	elif command -v parallel &>/dev/null; then
+		echo "Using parallel for parallelism"
+		export BATS_NUMBER_OF_PARALLEL_JOBS=${BATS_NUMBER_OF_PARALLEL_JOBS:-4}
+		export BATS_PARALLEL_BINARY_NAME=${BATS_PARALLEL_BINARY_NAME:-parallel}
+	fi
+else
+	echo "Using provided parallel config with $BATS_PARALLEL_BINARY_NAME"
 fi
 
 # Test configuration and control
@@ -52,7 +54,7 @@ export BATS_SUPPORT_ROOT=$BATS_LIB_ROOT/bats-support
 export BATS_ASSERT_ROOT=$BATS_LIB_ROOT/bats-assert
 export BATS_DETIK_ROOT=$BATS_LIB_ROOT/bats-detik
 
-export DETIK_CLIENT_NAME=${DEIK_CLIENT_NAME:-kubectl}
+export DETIK_CLIENT_NAME=${DETIK_CLIENT_NAME:-kubectl}
 
 # Helper files can include custom functions to simplify testing
 # This is the location of the default helpers.
@@ -76,12 +78,12 @@ if [ "$#" -gt 0 ]; then
 	echo "INFO: Running tests with arguments: $*"
 	# We do want string splitting here
 	# shellcheck disable=SC2086
-	bats  --formatter "${BATS_FORMATTER}" $BATS_ARGS "$@"
+	bats --formatter "${BATS_FORMATTER}" $BATS_ARGS "$@"
 else
 	echo "INFO: No arguments passed, running all tests in ${SCRIPT_DIR} and subdirectories"
 	# We do want string splitting here
 	# shellcheck disable=SC2086
-	bats  --formatter "${BATS_FORMATTER}" $BATS_ARGS --recursive "${SCRIPT_DIR}/tests"
+	bats --formatter "${BATS_FORMATTER}" $BATS_ARGS --recursive "${SCRIPT_DIR}/tests"
 fi
 
 popd
