@@ -681,9 +681,11 @@ void flb_test_threaded_forward_issue_10946()
     flb_destroy(ctx);
 }
 
+/* Static callback for fw_make_ctx_with_forward to avoid stack-use-after-return */
+static struct flb_lib_out_cb fw_ctx_cb = {0};
+
 static flb_ctx_t *fw_make_ctx_with_forward(int *in_ffd_out, int *out_ffd_out)
 {
-    struct flb_lib_out_cb cb = {0};
     flb_ctx_t *ctx;
     int in_ffd, out_ffd, ret;
 
@@ -703,9 +705,9 @@ static flb_ctx_t *fw_make_ctx_with_forward(int *in_ffd_out, int *out_ffd_out)
     if (in_ffd < 0) { flb_destroy(ctx); return NULL; }
 
     /* lib output: count only (no payload check) */
-    cb.cb   = cb_count_only;
-    cb.data = NULL;
-    out_ffd = flb_output(ctx, (char *) "lib", (void *) &cb);
+    fw_ctx_cb.cb   = cb_count_only;
+    fw_ctx_cb.data = NULL;
+    out_ffd = flb_output(ctx, (char *) "lib", (void *) &fw_ctx_cb);
     TEST_CHECK(out_ffd >= 0);
     if (out_ffd < 0) {
         flb_destroy(ctx);
