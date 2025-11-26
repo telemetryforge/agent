@@ -236,6 +236,9 @@ struct flb_openai_client *flb_openai_client_create(const char *endpoint,
 
     if (!client->upstream) {
         flb_error("[openai] failed to create upstream connection");
+        if (client->tls) {
+            flb_tls_destroy(client->tls);
+        }
         flb_free(client->path);
         flb_free(client->host);
         flb_free(client->proxy_host);
@@ -287,12 +290,51 @@ static int parse_json(const char *json, size_t json_len,
     return 0;
 }
 
+/* Count total tokens consumed by a value (including nested children) */
+static int json_token_size(jsmntok_t *tokens, int token_count, int idx)
+{
+    int i, j, count;
+    jsmntok_t *t;
+
+    if (idx >= token_count) {
+        return 0;
+    }
+
+    t = &tokens[idx];
+    count = 1;  /* Count this token */
+
+    if (t->type == JSMN_OBJECT) {
+        /* Object: iterate through key-value pairs */
+        j = idx + 1;
+        for (i = 0; i < t->size; i++) {
+            j++;  /* Skip the key token */
+            if (j < token_count) {
+                j += json_token_size(tokens, token_count, j);  /* Skip the value */
+            }
+        }
+        count = j - idx;
+    }
+    else if (t->type == JSMN_ARRAY) {
+        /* Array: iterate through elements */
+        j = idx + 1;
+        for (i = 0; i < t->size; i++) {
+            if (j < token_count) {
+                j += json_token_size(tokens, token_count, j);
+            }
+        }
+        count = j - idx;
+    }
+    /* Primitives (string, number, bool, null) have size 1 */
+
+    return count;
+}
+
 /* Find token by key in JSON object */
 static jsmntok_t *json_get_key(const char *json, jsmntok_t *tokens,
                                 int token_count, int parent_idx,
                                 const char *key)
 {
-    int i;
+    int i, j;
     int key_len;
     jsmntok_t *t;
 
@@ -303,13 +345,23 @@ static jsmntok_t *json_get_key(const char *json, jsmntok_t *tokens,
     key_len = strlen(key);
     t = &tokens[parent_idx];
 
-    /* Iterate through object keys */
-    for (i = parent_idx + 1; i < token_count && i < parent_idx + t->size * 2 + 1; i += 2) {
-        if (tokens[i].type == JSMN_STRING &&
-            tokens[i].end - tokens[i].start == key_len &&
-            strncmp(json + tokens[i].start, key, key_len) == 0) {
+    /* Iterate through object key-value pairs */
+    j = parent_idx + 1;
+    for (i = 0; i < t->size && j < token_count; i++) {
+        /* j points to a key token */
+        if (tokens[j].type == JSMN_STRING &&
+            tokens[j].end - tokens[j].start == key_len &&
+            strncmp(json + tokens[j].start, key, key_len) == 0) {
             /* Found key, return value token */
-            return &tokens[i + 1];
+            if (j + 1 < token_count) {
+                return &tokens[j + 1];
+            }
+            return NULL;
+        }
+        /* Skip the key and its value */
+        j++;  /* Move past the key */
+        if (j < token_count) {
+            j += json_token_size(tokens, token_count, j);  /* Skip the value */
         }
     }
 

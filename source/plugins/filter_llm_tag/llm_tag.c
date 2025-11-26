@@ -394,7 +394,17 @@ static int cb_llm_tag_filter(const void *data, size_t bytes,
         /* Query all rules in one batch */
         ret = query_llm_batch(ctx, log_message, batch_results);
         if (ret != 0) {
-            flb_plg_warn(ctx->ins, "batch LLM query failed, skipping record");
+            flb_plg_warn(ctx->ins, "batch LLM query failed, keeping original record");
+
+            /* Preserve the original record on LLM failure to prevent data loss */
+            ret = flb_log_event_encoder_emit_raw_record(
+                      &log_encoder,
+                      log_decoder.record_base,
+                      log_decoder.record_length);
+            if (ret == FLB_EVENT_ENCODER_SUCCESS) {
+                records_kept++;
+            }
+
             flb_free(batch_results);
             flb_free(log_message);
             continue;
@@ -509,17 +519,6 @@ static int cb_llm_tag_init(struct flb_filter_instance *ins,
 
     /* Initialize rules list */
     mk_list_init(&ctx->rules_list);
-
-    /* Debug: check if model_api_key is in ins->properties */
-    {
-        struct mk_list *head;
-        struct flb_kv *kv;
-        flb_plg_debug(ins, "Checking ins->properties for model_api_key:");
-        mk_list_foreach(head, &ins->properties) {
-            kv = mk_list_entry(head, struct flb_kv, _head);
-            flb_plg_debug(ins, "  property: %s = %s", kv->key, kv->val ? kv->val : "(null)");
-        }
-    }
 
     /* Load config map */
     ret = flb_filter_config_map_set(ins, (void *) ctx);

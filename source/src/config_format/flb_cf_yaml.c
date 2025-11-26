@@ -846,12 +846,64 @@ static struct cfl_kvlist *kvlist_deep_copy(struct cfl_kvlist *src)
             }
             break;
 
-        default:
-            /* For other types, try to insert directly */
-            if (cfl_kvlist_insert(dst, src_kvp->key, src_kvp->val) < 0) {
+        case CFL_VARIANT_BOOL:
+            new_variant = cfl_variant_create_from_bool(src_kvp->val->data.as_bool);
+            if (new_variant == NULL || cfl_kvlist_insert(dst, src_kvp->key, new_variant) < 0) {
+                if (new_variant) cfl_variant_destroy(new_variant);
                 cfl_kvlist_destroy(dst);
                 return NULL;
             }
+            break;
+
+        case CFL_VARIANT_INT:
+            new_variant = cfl_variant_create_from_int64(src_kvp->val->data.as_int64);
+            if (new_variant == NULL || cfl_kvlist_insert(dst, src_kvp->key, new_variant) < 0) {
+                if (new_variant) cfl_variant_destroy(new_variant);
+                cfl_kvlist_destroy(dst);
+                return NULL;
+            }
+            break;
+
+        case CFL_VARIANT_UINT:
+            new_variant = cfl_variant_create_from_uint64(src_kvp->val->data.as_uint64);
+            if (new_variant == NULL || cfl_kvlist_insert(dst, src_kvp->key, new_variant) < 0) {
+                if (new_variant) cfl_variant_destroy(new_variant);
+                cfl_kvlist_destroy(dst);
+                return NULL;
+            }
+            break;
+
+        case CFL_VARIANT_DOUBLE:
+            new_variant = cfl_variant_create_from_double(src_kvp->val->data.as_double);
+            if (new_variant == NULL || cfl_kvlist_insert(dst, src_kvp->key, new_variant) < 0) {
+                if (new_variant) cfl_variant_destroy(new_variant);
+                cfl_kvlist_destroy(dst);
+                return NULL;
+            }
+            break;
+
+        case CFL_VARIANT_NULL:
+            new_variant = cfl_variant_create_from_null();
+            if (new_variant == NULL || cfl_kvlist_insert(dst, src_kvp->key, new_variant) < 0) {
+                if (new_variant) cfl_variant_destroy(new_variant);
+                cfl_kvlist_destroy(dst);
+                return NULL;
+            }
+            break;
+
+        case CFL_VARIANT_BYTES:
+            new_variant = cfl_variant_create_from_bytes(src_kvp->val->data.as_bytes,
+                                                        cfl_variant_size_get(src_kvp->val),
+                                                        CFL_FALSE);
+            if (new_variant == NULL || cfl_kvlist_insert(dst, src_kvp->key, new_variant) < 0) {
+                if (new_variant) cfl_variant_destroy(new_variant);
+                cfl_kvlist_destroy(dst);
+                return NULL;
+            }
+            break;
+
+        default:
+            /* Unknown type - skip this entry to avoid memory issues */
             break;
         }
     }
