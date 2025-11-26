@@ -881,9 +881,26 @@ static int configure_plugins_type(struct flb_config *config, struct flb_cf *cf, 
                  if (kv->val->type == CFL_VARIANT_STRING) {
                     ret = flb_filter_set_property(ins, kv->key, kv->val->data.as_string);
                 } else if (kv->val->type == CFL_VARIANT_ARRAY) {
-                    for (i = 0; i < kv->val->data.as_array->entry_count; i++) {
-                        val = kv->val->data.as_array->entries[i];
-                        ret = flb_filter_set_property(ins, kv->key, val->data.as_string);
+                    /* Check if array contains strings or objects */
+                    if (kv->val->data.as_array->entry_count > 0 &&
+                        kv->val->data.as_array->entries[0]->type == CFL_VARIANT_STRING) {
+                        /* Array of strings - set each one */
+                        for (i = 0; i < kv->val->data.as_array->entry_count; i++) {
+                            val = kv->val->data.as_array->entries[i];
+                            ret = flb_filter_set_property(ins, kv->key, val->data.as_string);
+                        }
+                    } else {
+                        /* Array of objects/kvlists - this is a VARIANT property */
+                        /* Add to ins->properties as a variant pointer for config map to find */
+                        struct flb_filter_instance *f_ins = (struct flb_filter_instance *)ins;
+                        struct flb_kv *kv_prop = flb_kv_item_create(&f_ins->properties, kv->key, NULL);
+                        if (kv_prop) {
+                            /* Store the variant pointer as the "value" */
+                            kv_prop->val = (char *)kv->val;
+                            ret = 0;
+                        } else {
+                            ret = -1;
+                        }
                     }
                 }
             }
