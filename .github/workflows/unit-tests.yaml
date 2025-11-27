@@ -83,6 +83,10 @@ jobs:
                   echo "Number of processors: $(getconf _NPROCESSORS_ONLN)"
               shell: bash
 
+            - name: Configure system
+              run: sudo usermod -a -G systemd-journal $(id -un)
+              shell: bash
+
             - name: Configure tests
               uses: threeal/cmake-action@v2.1.0
               with:
@@ -115,6 +119,23 @@ jobs:
               run: |
                   ctest -j 16 --build-run-dir "$PWD" --output-on-failure
               working-directory: source/build
+
+            - name: Debug coverage files
+              working-directory: source/build
+              run: |
+                find . -iname '*.gcda'
+                find . -iname '*.gcno'
+              shell: bash
+
+            - name: Debug coverage generation
+              working-directory: source/build
+              run: |
+                gcovr --version
+                gcovr --human-readable --json --demangled-names --stdout \
+                  --gcov-keep \
+                  --gcov-ignore-errors all \
+                  --gcov-ignore-parse-errors all
+              shell: bash
 
             - name: Check Test Coverage
               if: always()
