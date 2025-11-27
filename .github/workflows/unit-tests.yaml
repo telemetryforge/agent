@@ -144,6 +144,9 @@ jobs:
                   # Exclude coverage from vendored libraries
                   excludes: "lib/*"
 
+                  # Handle errors during parsing and other issues with the underlying framework
+                  gcov-executable: gcov --gcov-ignore-errors all --gcov-ignore-parse-errors all
+
                   # Optionally fail on thresholds
                   # fail-under-line: 0 - 100	Fail if the total line coverage is less than this value.
                   # fail-under-branch: 0 - 100	Fail if the total branch coverage is less than this value.
