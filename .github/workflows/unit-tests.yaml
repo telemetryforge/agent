@@ -25,7 +25,7 @@ jobs:
         name: Run unit tests for ${{ matrix.sanitizers.name }} sanitizer
         # 4 vCPU, 8GB RAM
         runs-on: namespace-profile-ubuntu-latest
-        timeout-minutes: 30
+        # timeout-minutes: 30
         strategy:
             matrix:
                 sanitizers:
@@ -40,12 +40,12 @@ jobs:
                     # - name: thread
                     #   options: |
                     #       SANITIZE_THREAD=On
-        env:
-            # To support parallel execution we must ensure coverage output is unique per test case
-            # then combine it later on
-            # https://stackoverflow.com/a/70566435
-            CFLAGS: "-fprofile-dir=coverage.%p"
-            CXXFLAGS: "-fprofile-dir=coverage.%p"
+        # env:
+        #     # To support parallel execution we must ensure coverage output is unique per test case
+        #     # then combine it later on
+        #     # https://stackoverflow.com/a/70566435
+        #     CFLAGS: "-fprofile-dir=coverage.%p"
+        #     CXXFLAGS: "-fprofile-dir=coverage.%p"
 
         steps:
             - name: Checkout code
@@ -129,9 +129,9 @@ jobs:
               continue-on-error: true
               # Ensure we catch ctest issues with stuck tests not completing
               # https://gitlab.kitware.com/cmake/cmake/-/issues/20116
-              timeout-minutes: 15
+            #   timeout-minutes: 15
               run: |
-                  ctest -j 8 --build-run-dir "$PWD" --output-on-failure
+                  ctest --build-run-dir "$PWD" --output-on-failure
               working-directory: source/build
 
             - name: Debug coverage files
@@ -142,17 +142,17 @@ jobs:
                   find . -iname '*.gcno'
               shell: bash
 
-            - name: Recombine coverage files
-              if: always()
-              working-directory: source/build
-              # https://stackoverflow.com/a/70566435
-              run: |
-                  ../../scripts/gcov-tool-many.sh merge coverage.*
-                  # Get rid of mangled names like #home#user#myproject#bin#main.gcda
-                  for f in `find -name '#*.gc[dn][ao]'`; do
-                    mv -v "$f" $(basename "$f" | tr \# /)
-                  done
-              shell: bash
+            # - name: Recombine coverage files
+            #   if: always()
+            #   working-directory: source/build
+            #   # https://stackoverflow.com/a/70566435
+            #   run: |
+            #       ../../scripts/gcov-tool-many.sh merge coverage.*
+            #       # Get rid of mangled names like #home#user#myproject#bin#main.gcda
+            #       for f in `find -name '#*.gc[dn][ao]'`; do
+            #         mv -v "$f" $(basename "$f" | tr \# /)
+            #       done
+            #   shell: bash
 
             - name: Debug coverage generation
               if: always()
