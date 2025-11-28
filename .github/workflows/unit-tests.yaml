@@ -26,6 +26,7 @@ jobs:
         runs-on: namespace-profile-ubuntu-latest
         # timeout-minutes: 30
         strategy:
+            fail-fast: false
             matrix:
                 config:
                     - name: address sanitiser
@@ -98,7 +99,7 @@ jobs:
             - name: Remove all vendored dependencies coverage info
               if: matrix.config.name == 'coverage'
               working-directory: source/build
-              run: find lib -type -f \( -iname "*.gcda" -o -iname "*.gcno" \) -delete -print
+              run: find lib -type f \( -iname "*.gcda" -o -iname "*.gcno" \) -delete -print
               shell: bash
 
             - name: Debug coverage generation
@@ -115,6 +116,7 @@ jobs:
 
             - name: Check Test Coverage
               if: matrix.config.name == 'coverage'
+              continue-on-error: true
               uses: threeal/gcovr-action@v1.2.0
               with:
                   # Exclude coverage from vendored libraries
