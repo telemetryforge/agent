@@ -18,6 +18,7 @@
  */
 
 #include <fluent-bit/flb_info.h>
+#include <fluent-bit/flb_compat.h>
 #include <fluent-bit/flb_filter.h>
 #include <fluent-bit/flb_filter_plugin.h>
 #include <fluent-bit/flb_config.h>
@@ -31,7 +32,7 @@
 #include <fluent-bit/flb_kv.h>
 #include <fluent-bit/flb_storage.h>
 #include <msgpack.h>
-#include <time.h>
+#include <string.h>
 
 #include "llm_tag.h"
 
@@ -171,6 +172,39 @@ static void unescape_newlines(char *str)
     *dst = '\0';
 }
 
+/* Cross-platform case-insensitive substring search */
+static char *flb_strcasestr(const char *haystack, const char *needle)
+{
+    size_t needle_len;
+    const char *p;
+
+    if (!haystack || !needle) {
+        return NULL;
+    }
+
+    needle_len = strlen(needle);
+    if (needle_len == 0) {
+        return (char *)haystack;
+    }
+
+    for (p = haystack; *p; p++) {
+        if (strncasecmp(p, needle, needle_len) == 0) {
+            return (char *)p;
+        }
+    }
+    return NULL;
+}
+
+/* Cross-platform strtok_r */
+static char *flb_strtok_r(char *str, const char *delim, char **saveptr)
+{
+#ifdef FLB_SYSTEM_WINDOWS
+    return strtok_s(str, delim, saveptr);
+#else
+    return strtok_r(str, delim, saveptr);
+#endif
+}
+
 /* Query LLM for batch classification - evaluate all rules in one request */
 static int query_llm_batch(struct flb_llm_tag *ctx,
                            const char *log_message,
@@ -186,13 +220,13 @@ static int query_llm_batch(struct flb_llm_tag *ctx,
     int prompt_len = 0;
     char *line;
     char *saveptr;
-    struct timespec start_time, end_time;
+    struct flb_time start_time, end_time, diff_time;
     double elapsed_ms;
 
     ctx->requests_total++;
 
     /* Get start time */
-    clock_gettime(CLOCK_MONOTONIC, &start_time);
+    flb_time_get(&start_time);
 
     /* Build conditions list */
     conditions[0] = '\0';
@@ -239,9 +273,9 @@ static int query_llm_batch(struct flb_llm_tag *ctx,
                                             &response);
 
     /* Calculate elapsed time */
-    clock_gettime(CLOCK_MONOTONIC, &end_time);
-    elapsed_ms = (end_time.tv_sec - start_time.tv_sec) * 1000.0 +
-                 (end_time.tv_nsec - start_time.tv_nsec) / 1000000.0;
+    flb_time_get(&end_time);
+    flb_time_diff(&end_time, &start_time, &diff_time);
+    elapsed_ms = flb_time_to_double(&diff_time) * 1000.0;
 
     if (ret != 0) {
         ctx->requests_failed++;
@@ -260,24 +294,24 @@ static int query_llm_batch(struct flb_llm_tag *ctx,
         flb_plg_debug(ctx->ins, "Batch LLM response (unescaped): %s", response.content);
 
         /* Parse line by line - work directly with response content */
-        line = strtok_r(response.content, "\n", &saveptr);
+        line = flb_strtok_r(response.content, "\n", &saveptr);
         while (line != NULL) {
             int num;
 
             /* Parse "N: yes" or "N: no" - more lenient to handle various formats */
             if (sscanf(line, "%d:", &num) == 1 && num > 0 && num <= rule_idx) {
                 /* Look for "yes" or "no" anywhere in the line after the number */
-                if (strcasestr(line, "yes")) {
+                if (flb_strcasestr(line, "yes")) {
                     results[num - 1] = 1;
                     flb_plg_debug(ctx->ins, "Rule %d: yes", num);
                 }
-                else if (strcasestr(line, "no")) {
+                else if (flb_strcasestr(line, "no")) {
                     results[num - 1] = 0;
                     flb_plg_debug(ctx->ins, "Rule %d: no", num);
                 }
             }
 
-            line = strtok_r(NULL, "\n", &saveptr);
+            line = flb_strtok_r(NULL, "\n", &saveptr);
         }
     }
 
