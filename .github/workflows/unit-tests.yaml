@@ -1,201 +1,197 @@
 name: Run unit tests
 on:
-    pull_request:
-        branches:
-            - main
-            - "release/**"
-        paths:
-            - "source/**"
-            - ".github/workflows/unit-tests.yaml"
-    workflow_dispatch:
-        inputs:
-            ref:
-                description: "The git reference to checkout"
-                required: false
-                type: string
-                default: "main"
+  push:
+    branches:
+      - main
+      - "release/**"
+  pull_request:
+    branches:
+      - main
+      - "release/**"
+    paths:
+      - "source/**"
+      - ".github/workflows/unit-tests.yaml"
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "The git reference to checkout"
+        required: false
+        type: string
+        default: "main"
 
 jobs:
-    linux-unit-tests:
-        name: Run unit tests for ${{ matrix.sanitizers.name }} sanitizer
-        # 4 vCPU, 8GB RAM
-        runs-on: namespace-profile-ubuntu-latest
-        timeout-minutes: 30
-        strategy:
-            matrix:
-                sanitizers:
-                    - name: address
-                      options: |
-                          SANITIZE_ADDRESS=On
-                          SANITIZE_UNDEFINED=On
-                    # Uncomment to enable additional sanitizers as needed
-                    # - name: memory
-                    #   options: |
-                    #       SANITIZE_MEMORY=On
-                    # - name: thread
-                    #   options: |
-                    #       SANITIZE_THREAD=On
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v6
-              with:
-                  ref: ${{ github.event.inputs.ref || github.ref }}
+  linux-unit-tests:
+    name: Run unit tests for ${{ matrix.config.name }}
+    # 4 vCPU, 8GB RAM
+    runs-on: namespace-profile-ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        config:
+          - name: address sanitiser
+            options: |
+              SANITIZE_ADDRESS=On
+              SANITIZE_UNDEFINED=On
+          - name: coverage
+            options: |
+              FLB_COVERAGE=On
+          # Uncomment to enable additional config as needed
+          # - name: memory
+          #   options: |
+          #       SANITIZE_MEMORY=On
+          # - name: thread
+          #   options: |
+          #       SANITIZE_THREAD=On
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
 
-            - name: Setup environment
-              # Check the source/packaging/docker/ubuntu/Dockerfile for the dependencies we need
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y \
-                    gcovr \
-                    libbpf-dev \
-                    linux-tools-common \
-                    libsystemd-dev \
-                    flex bison \
-                    libsasl2-2 libsasl2-dev libssl-dev libssl3 libcurl4-openssl-dev \
-                    libyaml-dev pkg-config zlib1g-dev libgit2-dev
-              shell: bash
+      - name: Setup environment
+        # Check the source/packaging/docker/ubuntu/Dockerfile for the dependencies we need
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            gcovr \
+            libbpf-dev \
+            linux-tools-common \
+            libsystemd-dev \
+            flex bison \
+            libsasl2-2 libsasl2-dev libssl-dev libssl3 libcurl4-openssl-dev \
+            libyaml-dev pkg-config zlib1g-dev libgit2-dev
+        shell: bash
 
-            - name: Install cmake
-              uses: jwlawson/actions-setup-cmake@v2
-              with:
-                  cmake-version: "3.31.6"
+      - name: Install cmake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: "3.31.6"
 
-            - name: Verify toolchain versions
-              run: |
-                  git --version
-                  gcc --version
-                  g++ --version
-                  cmake --version
+      - name: Verify toolchain versions
+        run: |
+          git --version
+          gcc --version
+          g++ --version
+          cmake --version
 
-                  mkdir -p source/build
-              shell: bash
+          mkdir -p source/build
+        shell: bash
 
-            - name: Debug info
-              continue-on-error: true
-              run: |
-                  uname -a
-                  lsb_release -a || true
-                  cat /etc/os-release || true
-                  df -h
-                  free -h
-                  ulimit -a
+      - name: Debug info
+        continue-on-error: true
+        run: |
+          uname -a
+          lsb_release -a || true
+          cat /etc/os-release || true
+          df -h
+          free -h
+          ulimit -a
 
-                  echo "Number of processors: $(getconf _NPROCESSORS_ONLN)"
-              shell: bash
+          echo "Number of processors: $(getconf _NPROCESSORS_ONLN)"
+        shell: bash
 
-            - name: Configure tests
-              uses: threeal/cmake-action@v2.1.0
-              with:
-                  source-dir: source
-                  build-dir: source/build
-                  options: |
-                      CMAKE_BUILD_TYPE=Debug
-                      CMAKE_EXPORT_COMPILE_COMMANDS=On
+      - name: Configure tests
+        uses: threeal/cmake-action@v2.1.0
+        with:
+          source-dir: source
+          build-dir: source/build
+          options: |
+            CMAKE_BUILD_TYPE=Debug
+            CMAKE_EXPORT_COMPILE_COMMANDS=On
 
-                      FLUENTDO_AGENT_TESTS=On
-                      FLB_TESTS_INTERNAL=On
-                      FLB_TESTS_RUNTIME=On
+            FLUENTDO_AGENT_TESTS=On
+            FLB_TESTS_INTERNAL=On
+            FLB_TESTS_RUNTIME=On
 
-                      FLB_BACKTRACE=Off
-                      FLB_SHARED_LIB=Off
-                      FLB_COVERAGE=On
+            FLB_BACKTRACE=Off
+            FLB_SHARED_LIB=Off
 
-                      ${{ matrix.sanitizers.options }}
-                  run-build: false
+            ${{ matrix.config.options }}
+          run-build: false
 
-            - name: Build tests
-              run: |
-                  make -j 4
-              working-directory: source/build
+      - name: Build tests
+        run: |
+          make -j 4
+        working-directory: source/build
 
-            - name: Run tests
-              # Ensure we catch ctest issues with stuck tests not completing
-              # https://gitlab.kitware.com/cmake/cmake/-/issues/20116
-              timeout-minutes: 15
-              run: |
-                  ctest -j 16 --build-run-dir "$PWD" --output-on-failure
-              working-directory: source/build
+      - name: Run tests
+        # Ensure we catch ctest issues with stuck tests not completing
+        # https://gitlab.kitware.com/cmake/cmake/-/issues/20116
+        timeout-minutes: 15
+        run: |
+          ctest -j 16 --build-run-dir "$PWD" --output-on-failure
+        working-directory: source/build
 
-            - name: Check Test Coverage
-              if: always()
-              uses: threeal/gcovr-action@v1.2.0
-              with:
-                  # Exclude coverage from vendored libraries
-                  excludes: "lib/*"
+      - name: Remove vendored library coverage info
+        working-directory: source/build
+        run: find lib \( -name "*.gcda" -o -name "*.gcno" \) -print -delete
+        shell: bash
 
-                  # Optionally fail on thresholds
-                  # fail-under-line: 0 - 100	Fail if the total line coverage is less than this value.
-                  # fail-under-branch: 0 - 100	Fail if the total branch coverage is less than this value.
-                  # fail-under-function: 0 - 100	Fail if the total function coverage is less than this value.
-                  # fail-under-decision: 0 - 100	Fail if the total decision coverage is less than this value.
+      - name: Generate coverage
+        # Failures here should not fail the whole job
+        continue-on-error: true
+        if: matrix.config.name == 'coverage'
+        working-directory: source/build
+        run: |
+          gcovr --object-directory . --root .. --gcov-ignore-parse-errors --gcov-ignore-errors \
+            --sort-key uncovered-percent \
+            --xml=cobertura.xml \
+            --html=coverage.html --html-title='FluentDo Agent Test Coverage Report' \
+            --coveralls=coveralls.json \
+            --json=coverage.json \
+            --txt=coverage.txt \
+            --print-summary
+        shell: bash
 
-                  html-out: coverage.html
-                  html-details: true
-                  html-title: FluentDo Agent Test Coverage Report
-                  html-theme: github.green
+      - name: Send to Coveralls
+        # Failures here should not fail the whole job
+        continue-on-error: true
+        if: matrix.config.name == 'coverage'
+        uses: coverallsapp/github-action@v2
+        with:
+          file: source/build/coveralls.json
 
-                  xml-out: cobertura.xml
+      - name: Upload coverage reports
+        if: matrix.config.name == 'coverage'
+        uses: actions/upload-artifact@v5
+        with:
+          name: coverage-reports
+          path: |
+            source/build/coverage*.*
+            source/build/cobertura.xml
+            source/build/coveralls.json
 
-                  coveralls-out: coveralls.json
+      # - name: Breakpoint if tests failed
+      #   if: failure() && contains(runner.name, 'nsc-')
+      #   uses: namespacelabs/breakpoint-action@v0
+      #   with:
+      #       duration: 5m
+      #       authorized-users: patrick-stephens,niedbalski
 
-                  json-out: coverage.json
-                  json-pretty: true
+  # Placeholder to make it simple to create a status check on this, do not change name.
+  # Instead of modifying branch protection rules every time we add a new job, we just
+  # add it as a dependency of this job.
+  # This job must always run last so it depends on all other jobs that must complete.
+  # Note that jobs that are conditionally run (e.g. not on PRs) must be excluded here.
+  # If you add a new job that must complete then add it here.
+  tests-complete:
+    name: All unit tests complete
+    # We use this to always run even if a previous job fails or is skipped (which we check for)
+    if: always()
+    needs:
+      - linux-unit-tests
 
-                  json-summary-out: coverage-summary.json
-                  json-summary-pretty: true
+    # Add additional jobs here as required that must complete
+    runs-on: ubuntu-latest
+    steps:
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@release/v1
+        with:
+          # Add any jobs that can be skipped here to avoid failure of this job
+          # allowed-skips: build-linux,build-windows
+          # Convert the needs object to JSON to pass it in
+          jobs: ${{ toJSON(needs) }}
 
-                  txt-out: coverage.txt
-
-                  print-summary: true
-                  coveralls-send: true
-                  #   decisions: true
-                  #   calls: true
-                  jobs: true
-                  working-directory: source/build
-                  root: ..
-
-            - name: Upload coverage reports
-              if: always()
-              uses: actions/upload-artifact@v5
-              with:
-                  name: coverage-reports
-                  path: |
-                      source/build/coverage*.*
-                      source/build/cobertura.xml
-                      source/build/coveralls.json
-                  if-no-files-found: error
-
-            # - name: Breakpoint if tests failed
-            #   if: failure() && contains(runner.name, 'nsc-')
-            #   uses: namespacelabs/breakpoint-action@v0
-            #   with:
-            #       duration: 5m
-            #       authorized-users: patrick-stephens,niedbalski
-
-    # Placeholder to make it simple to create a status check on this, do not change name.
-    # Instead of modifying branch protection rules every time we add a new job, we just
-    # add it as a dependency of this job.
-    # This job must always run last so it depends on all other jobs that must complete.
-    # Note that jobs that are conditionally run (e.g. not on PRs) must be excluded here.
-    # If you add a new job that must complete then add it here.
-    tests-complete:
-        name: All unit tests complete
-        # We use this to always run even if a previous job fails or is skipped (which we check for)
-        if: always()
-        needs:
-            - linux-unit-tests
-
-        # Add additional jobs here as required that must complete
-        runs-on: ubuntu-latest
-        steps:
-            - name: Decide whether the needed jobs succeeded or failed
-              uses: re-actors/alls-green@release/v1
-              with:
-                  # Add any jobs that can be skipped here to avoid failure of this job
-                  # allowed-skips: build-linux,build-windows
-                  # Convert the needs object to JSON to pass it in
-                  jobs: ${{ toJSON(needs) }}
-
-            - name: All tests complete
-              run: echo "All unit tests complete"
-              shell: bash
+      - name: All tests complete
+        run: echo "All unit tests complete"
+        shell: bash
