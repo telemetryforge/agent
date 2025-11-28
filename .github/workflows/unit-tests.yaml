@@ -134,7 +134,7 @@ jobs:
         working-directory: source/build
         run: |
           gcovr --object-directory . --root .. --gcov-ignore-parse-errors --gcov-ignore-errors \
-            --sort-key uncovered-percent \
+            --sort uncovered-percent \
             --xml=cobertura.xml \
             --html=coverage.html --html-title='FluentDo Agent Test Coverage Report' \
             --coveralls=coveralls.json \
