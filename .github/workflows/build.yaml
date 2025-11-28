@@ -305,6 +305,41 @@ jobs:
           find output/ -type f \( -iname '*-headers.rpm' -o -iname '*-extra.rpm' -o -iname '*-headers.deb' -o -iname '*-extra.deb' \) -delete -print
         shell: bash
 
+      - name: Install dependencies to support signing
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y createrepo-c rpm debsigs coreutils
+        shell: bash
+
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: "projects/841522437311/locations/global/workloadIdentityPools/github-actions/providers/github-actions"
+          service_account: "terraform-infra@infrastructure-464010.iam.gserviceaccount.com"
+
+      - id: get-secrets
+        name: Get secrets from GCP Secret Manager
+        # This step retrieves secrets from GCP Secret Manager and sets them as outputs
+        # The secrets can then be accessed in subsequent steps using ${{ steps.get-secrets.outputs.<secret_name> }}
+        uses: "google-github-actions/get-secretmanager-secrets@v3"
+        with:
+          secrets: |-
+            gpg_private_key:projects/626836145334/secrets/GPG_PRIVATE_KEY
+            gpg_private_key_passphrase:projects/626836145334/secrets/GPG_PRIVATE_KEY_PASSPHRASE
+
+      - name: Import GPG key for signing
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ steps.get-secrets.outputs.gpg_private_key }}
+          passphrase: ${{ steps.get-secrets.outputs.gpg_private_key_passphrase }}
+
+      - name: Sign and generate checksums
+        run: ./scripts/sign-packages.sh
+        env:
+          GPG_KEY: ${{ steps.import_gpg.outputs.name }}
+          BASE_DIR: ${{ github.workspace }}/output/
+
       - name: Package into a single tarball so we can have individual distributions
         # No packages unless we use specific labels for a PR
         if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'build-packages') || contains(github.event.pull_request.labels.*.name, 'build-linux') || contains(github.event.pull_request.labels.*.name, 'build-windows') }}
@@ -419,13 +454,6 @@ jobs:
           target_commitish: ${{ github.sha }}
           # Only make the latest release if the commit exists on the default branch
           make_latest: ${{ steps.check_branch.outputs.is_default == 'true' }}
-
-      - name: Authenticate with GCP
-        if: ${{ github.event_name != 'pull_request' }}
-        uses: google-github-actions/auth@v3
-        with:
-          workload_identity_provider: "projects/841522437311/locations/global/workloadIdentityPools/github-actions/providers/github-actions"
-          service_account: "terraform-infra@infrastructure-464010.iam.gserviceaccount.com"
 
       - name: Upload packages to Google Cloud Storage if not a PR
         # Only if not a pull request
