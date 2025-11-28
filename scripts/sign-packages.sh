@@ -18,22 +18,21 @@ SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 GPG_KEY=${GPG_KEY:-}
 BASE_DIR=${BASE_DIR:-$SCRIPT_DIR/..}
 
+echo "INFO: Searching $BASE_DIR"
+
 # Generate checksums for all packages
 if command -v sha256sum &>/dev/null; then
 	echo "INFO: Generating checksums"
-	find "$BASE_DIR" -type f \( -name "*.exe" -o -name "*.zip" -o -name "*.msi" -o -name "*.pkg" -o -name "*.rpm" -o "*.deb" \) -exec sha256sum {} {}.sha256 \;
+	find "$BASE_DIR" \( -name "*.exe" -o -name "*.zip" -o -name "*.msi" -o -name "*.pkg" -o -name "*.rpm" -o -name "*.deb" \) -type f -print -exec sh -c 'cd $(dirname "$1");sha256sum $(basename "$1") > "$1".sha256' _ {} \;
 else
 	echo "WARNING: skipping checksum generation"
 fi
 
 if [[ -n "$GPG_KEY" ]]; then
 	if command -v rpm &>/dev/null; then
-		echo "INFO: RPM signing configuration"
-		rpm --showrc | grep gpg
-		rpm -q gpg-pubkey --qf '%{name}-%{version}-%{release} --> %{summary}\n'
-
+		echo "INFO: RPM signing"
 		# Sign all RPMs
-		find "$BASE_DIR" -type f -name "*.rpm" -exec rpm --define "_gpg_name $GPG_KEY" --addsign {} \;
+		find "$BASE_DIR" -type f -name "*.rpm" -print -exec rpm --define "_gpg_name $GPG_KEY" --addsign {} \;
 	else
 		echo "WARNING: skipping RPM signing"
 	fi
@@ -41,7 +40,7 @@ if [[ -n "$GPG_KEY" ]]; then
 	if command -v debsigs &>/dev/null; then
 		echo "INFO: Signing DEBs"
 		# Sign all DEBs
-		find "$BASE_DIR" -type f -name "*.deb" -exec debsigs --sign=origin -k "$GPG_KEY" {} \;
+		find "$BASE_DIR" -type f -name "*.deb" -print -exec debsigs --sign=origin -k "$GPG_KEY" {} \;
 	else
 		echo "WARNING: skipping DEB signing"
 	fi
@@ -49,8 +48,8 @@ if [[ -n "$GPG_KEY" ]]; then
 	# Sign all checksums
 	if command -v gpg &>/dev/null; then
 		echo "INFO: Signing checksums"
-		find "$BASE_DIR" -type f -name "*.sha256" -exec gpg --default-key "$GPG_KEY" --sign {} \;
-		find "$BASE_DIR" -type f -name "*.sha256" -exec gpg --default-key "$GPG_KEY" --clear-sign {} \;
+		find "$BASE_DIR" -type f -name "*.sha256" -print -exec gpg --default-key "$GPG_KEY" --sign {} \;
+		find "$BASE_DIR" -type f -name "*.sha256" -print -exec gpg --default-key "$GPG_KEY" --clear-sign {} \;
 	else
 		echo "WARNING: skipping checksum signing"
 	fi
