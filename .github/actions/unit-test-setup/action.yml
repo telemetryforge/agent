@@ -1,0 +1,50 @@
+name: Common unit test set up
+description: Common action to set up everything for unit tests
+runs:
+  using: composite
+  steps:
+    - name: Setup environment
+      # Check the source/packaging/docker/ubuntu/Dockerfile for the dependencies we need
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          gcovr \
+          libbpf-dev \
+          linux-tools-common \
+          libsystemd-dev \
+          flex bison \
+          libsasl2-2 libsasl2-dev libssl-dev libssl3 libcurl4-openssl-dev \
+          libyaml-dev pkg-config zlib1g-dev libgit2-dev
+      shell: bash
+
+    - name: Install cmake
+      uses: jwlawson/actions-setup-cmake@v2
+      with:
+        cmake-version: "3.31.6"
+
+    - name: Verify toolchain versions
+      run: |
+        git --version
+        gcc --version
+        g++ --version
+        cmake --version
+
+        mkdir -p source/build
+      shell: bash
+
+    - name: Debug info
+      continue-on-error: true
+      run: |
+        uname -a
+        lsb_release -a || true
+        cat /etc/os-release || true
+        df -h
+        free -h
+        ulimit -a
+
+        echo "Number of processors: $(getconf _NPROCESSORS_ONLN)"
+      shell: bash
+
+    - name: Configure system
+      run: sudo usermod -a -G systemd-journal $(id -un)
+      shell: bash

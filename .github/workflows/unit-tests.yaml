@@ -1,4 +1,3 @@
-
 name: Run unit tests
 on:
     pull_request:
@@ -22,31 +21,33 @@ concurrency:
 
 jobs:
     linux-unit-tests:
-        name: Run unit tests for ${{ matrix.sanitizers.name }} sanitizer
+        name: Run unit tests for ${{ matrix.config.name }}
         # 4 vCPU, 8GB RAM
         runs-on: namespace-profile-ubuntu-latest
         # timeout-minutes: 30
         strategy:
             matrix:
-                sanitizers:
-                    - name: address
+                config:
+                    - name: address sanitiser
                       options: |
                           SANITIZE_ADDRESS=On
                           SANITIZE_UNDEFINED=On
-                    # Uncomment to enable additional sanitizers as needed
+                      # Run unit tests in parallel
+                      parallel: 16
+                    - name: coverage
+                      options: |
+                          FLB_COVERAGE=On
+                      # Run unit tests serially to ensure coverage generation is accurate
+                      parallel: 1
+                    # Uncomment to enable additional sanitisers as needed
                     # - name: memory
                     #   options: |
                     #       SANITIZE_MEMORY=On
+                    #   parallel: 16
                     # - name: thread
                     #   options: |
                     #       SANITIZE_THREAD=On
-        # env:
-        #     # To support parallel execution we must ensure coverage output is unique per test case
-        #     # then combine it later on
-        #     # https://stackoverflow.com/a/70566435
-        #     CFLAGS: "-fprofile-dir=coverage.%p"
-        #     CXXFLAGS: "-fprofile-dir=coverage.%p"
-
+                    #   parallel: 16
         steps:
             - name: Checkout code
               uses: actions/checkout@v6
@@ -54,50 +55,7 @@ jobs:
                   ref: ${{ github.event.inputs.ref || github.ref }}
 
             - name: Setup environment
-              # Check the source/packaging/docker/ubuntu/Dockerfile for the dependencies we need
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y \
-                    gcovr \
-                    libbpf-dev \
-                    linux-tools-common \
-                    libsystemd-dev \
-                    flex bison \
-                    libsasl2-2 libsasl2-dev libssl-dev libssl3 libcurl4-openssl-dev \
-                    libyaml-dev pkg-config zlib1g-dev libgit2-dev
-              shell: bash
-
-            - name: Install cmake
-              uses: jwlawson/actions-setup-cmake@v2
-              with:
-                  cmake-version: "3.31.6"
-
-            - name: Verify toolchain versions
-              run: |
-                  git --version
-                  gcc --version
-                  g++ --version
-                  cmake --version
-
-                  mkdir -p source/build
-              shell: bash
-
-            - name: Debug info
-              continue-on-error: true
-              run: |
-                  uname -a
-                  lsb_release -a || true
-                  cat /etc/os-release || true
-                  df -h
-                  free -h
-                  ulimit -a
-
-                  echo "Number of processors: $(getconf _NPROCESSORS_ONLN)"
-              shell: bash
-
-            - name: Configure system
-              run: sudo usermod -a -G systemd-journal $(id -un)
-              shell: bash
+              uses: ./.github/actions/unit-test-setup
 
             - name: Configure tests
               uses: threeal/cmake-action@v2.1.0
@@ -107,7 +65,6 @@ jobs:
                   options: |
                       CMAKE_BUILD_TYPE=Debug
                       CMAKE_EXPORT_COMPILE_COMMANDS=On
-                      CMAKE_VERBOSE_MAKEFILE=On
 
                       FLUENTDO_AGENT_TESTS=On
                       FLB_TESTS_INTERNAL=On
@@ -115,9 +72,8 @@ jobs:
 
                       FLB_BACKTRACE=Off
                       FLB_SHARED_LIB=Off
-                      FLB_COVERAGE=On
 
-                      ${{ matrix.sanitizers.options }}
+                      ${{ matrix.config.options }}
                   run-build: false
 
             - name: Build tests
@@ -126,36 +82,28 @@ jobs:
               working-directory: source/build
 
             - name: Run tests
-              continue-on-error: true
               # Ensure we catch ctest issues with stuck tests not completing
               # https://gitlab.kitware.com/cmake/cmake/-/issues/20116
-            #   timeout-minutes: 15
               run: |
-                  ctest --build-run-dir "$PWD" --output-on-failure
+                  ctest -j ${{ matrix.config.parallel }} --build-run-dir "$PWD" --output-on-failure
               working-directory: source/build
 
             - name: Debug coverage files
-              if: always()
               working-directory: source/build
               run: |
                   find . -iname '*.gcda'
                   find . -iname '*.gcno'
               shell: bash
 
-            # - name: Recombine coverage files
-            #   if: always()
-            #   working-directory: source/build
-            #   # https://stackoverflow.com/a/70566435
-            #   run: |
-            #       ../../scripts/gcov-tool-many.sh merge coverage.*
-            #       # Get rid of mangled names like #home#user#myproject#bin#main.gcda
-            #       for f in `find -name '#*.gc[dn][ao]'`; do
-            #         mv -v "$f" $(basename "$f" | tr \# /)
-            #       done
-            #   shell: bash
+            - name: Remove all vendored dependencies coverage info
+              if: matrix.config.name == 'coverage'
+              working-directory: source/build
+              run: find lib -type -f \( -iname "*.gcda" -o -iname "*.gcno" \) -delete -print
+              shell: bash
 
             - name: Debug coverage generation
-              if: always()
+              if: matrix.config.name == 'coverage'
+              continue-on-error: true
               working-directory: source/build
               run: |
                   gcovr --version
@@ -166,7 +114,7 @@ jobs:
               shell: bash
 
             - name: Check Test Coverage
-              if: always()
+              if: matrix.config.name == 'coverage'
               uses: threeal/gcovr-action@v1.2.0
               with:
                   # Exclude coverage from vendored libraries
@@ -207,7 +155,7 @@ jobs:
                   root: ..
 
             - name: Upload coverage reports
-              if: always()
+              if: matrix.config.name == 'coverage'
               uses: actions/upload-artifact@v5
               with:
                   name: coverage-reports
@@ -215,14 +163,6 @@ jobs:
                       source/build/coverage*.*
                       source/build/cobertura.xml
                       source/build/coveralls.json
-                  if-no-files-found: error
-
-            # - name: Breakpoint if tests failed
-            #   if: failure() && contains(runner.name, 'nsc-')
-            #   uses: namespacelabs/breakpoint-action@v0
-            #   with:
-            #       duration: 5m
-            #       authorized-users: patrick-stephens,niedbalski
 
     # Placeholder to make it simple to create a status check on this, do not change name.
     # Instead of modifying branch protection rules every time we add a new job, we just
