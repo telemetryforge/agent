@@ -133,6 +133,7 @@ jobs:
         continue-on-error: true
         if: matrix.config.name == 'coverage'
         working-directory: source/build
+        # Generating in coveralls format triggers errors so we use Cobertura format for now
         run: |
           gcovr --object-directory . --root .. --gcov-ignore-parse-errors --gcov-ignore-errors \
             --sort uncovered-percent \
@@ -161,7 +162,6 @@ jobs:
           path: |
             source/build/coverage*.*
             source/build/cobertura.xml
-            source/build/coveralls.json
 
       # - name: Breakpoint if tests failed
       #   if: failure() && contains(runner.name, 'nsc-')
