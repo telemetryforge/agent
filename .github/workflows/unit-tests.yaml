@@ -149,10 +149,7 @@ jobs:
         if: matrix.config.name == 'coverage'
         uses: coverallsapp/github-action@v2
         with:
-          files: |
-            source/build/coverage*.*
-            source/build/cobertura.xml
-            source/build/coveralls.json
+          file: source/build/coveralls.json
 
       - name: Upload coverage reports
         if: matrix.config.name == 'coverage'
