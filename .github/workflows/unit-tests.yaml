@@ -1,5 +1,9 @@
 name: Run unit tests
 on:
+  push:
+    branches:
+      - main
+      - "release/**"
   pull_request:
     branches:
       - main
@@ -29,6 +33,7 @@ jobs:
               SANITIZE_ADDRESS=On
               SANITIZE_UNDEFINED=On
           - name: coverage
+            options: |
               FLB_COVERAGE=On
           # Uncomment to enable additional config as needed
           # - name: memory
