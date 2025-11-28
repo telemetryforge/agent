@@ -305,6 +305,12 @@ jobs:
           find output/ -type f \( -iname '*-headers.rpm' -o -iname '*-extra.rpm' -o -iname '*-headers.deb' -o -iname '*-extra.deb' \) -delete -print
         shell: bash
 
+      - name: Install dependencies to support signing
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm debsigs coreutils
+        shell: bash
+
       - name: Authenticate with GCP
         uses: google-github-actions/auth@v3
         with:
