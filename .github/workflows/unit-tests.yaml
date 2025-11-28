@@ -161,7 +161,6 @@ jobs:
           path: |
             source/build/coverage*.*
             source/build/cobertura.xml
-            source/build/coveralls.json
 
       # - name: Breakpoint if tests failed
       #   if: failure() && contains(runner.name, 'nsc-')

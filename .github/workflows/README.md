@@ -123,14 +123,14 @@ The CI/CD pipeline is designed to:
 
 - Multiple sanitizer configurations (address, undefined, memory, thread)
 - Code coverage reporting using gcovr
-- Coverage reports in multiple formats (HTML, XML, JSON, Coveralls)
+- Coverage reports in multiple formats (HTML, XML, JSON)
 - Runs on Namespace profile runners (4 vCPU, 8GB RAM)
 - 15-minute timeout for test execution
 - Parallel test execution with ctest
 
 **Outputs:**
 
-- Coverage reports (HTML, XML, JSON, Coveralls)
+- Coverage reports (HTML, XML, JSON)
 - Test results
 
 ### Lint
