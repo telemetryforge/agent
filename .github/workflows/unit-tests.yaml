@@ -26,6 +26,7 @@ jobs:
     runs-on: namespace-profile-ubuntu-latest
     timeout-minutes: 30
     strategy:
+      fail-fast: false
       matrix:
         config:
           - name: address sanitiser
