@@ -26,6 +26,7 @@ jobs:
     runs-on: namespace-profile-ubuntu-latest
     timeout-minutes: 30
     strategy:
+      fail-fast: false
       matrix:
         config:
           - name: address sanitiser
@@ -132,12 +133,12 @@ jobs:
         continue-on-error: true
         if: matrix.config.name == 'coverage'
         working-directory: source/build
+        # Generating in coveralls format triggers errors so we use Cobertura format for now
         run: |
           gcovr --object-directory . --root .. --gcov-ignore-parse-errors --gcov-ignore-errors \
-            --sort-key uncovered-percent \
+            --sort uncovered-percent \
             --xml=cobertura.xml \
             --html=coverage.html --html-title='FluentDo Agent Test Coverage Report' \
-            --coveralls=coveralls.json \
             --json=coverage.json \
             --txt=coverage.txt \
             --print-summary
@@ -149,7 +150,9 @@ jobs:
         if: matrix.config.name == 'coverage'
         uses: coverallsapp/github-action@v2
         with:
-          file: source/build/coveralls.json
+          file: source/build/cobertura.xml
+          format: cobertura
+          flag-name: Unit
 
       - name: Upload coverage reports
         if: matrix.config.name == 'coverage'
@@ -159,7 +162,6 @@ jobs:
           path: |
             source/build/coverage*.*
             source/build/cobertura.xml
-            source/build/coveralls.json
 
       # - name: Breakpoint if tests failed
       #   if: failure() && contains(runner.name, 'nsc-')
