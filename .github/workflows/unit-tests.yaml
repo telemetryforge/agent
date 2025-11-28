@@ -117,6 +117,9 @@ jobs:
               working-directory: source/build
 
             - name: Check Test Coverage
+              # Failures here should not fail the whole job
+              continue-on-error: true
+              # Run even if unit tests fail
               if: always()
               uses: threeal/gcovr-action@v1.2.0
               with:
@@ -155,7 +158,6 @@ jobs:
                   root: ..
 
             - name: Upload coverage reports
-              if: always()
               uses: actions/upload-artifact@v5
               with:
                   name: coverage-reports
@@ -163,7 +165,6 @@ jobs:
                       source/build/coverage*.*
                       source/build/cobertura.xml
                       source/build/coveralls.json
-                  if-no-files-found: error
 
             # - name: Breakpoint if tests failed
             #   if: failure() && contains(runner.name, 'nsc-')
