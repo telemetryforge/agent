@@ -2,6 +2,8 @@
 
 This directory contains the GitHub Actions workflows and reusable actions for the FluentDo Agent project. The CI/CD pipeline automates building, testing, packaging, and releasing the agent across multiple platforms.
 
+[![Coverage Status](https://coveralls.io/repos/github/FluentDo/agent/badge.svg)](https://coveralls.io/github/FluentDo/agent)
+
 ## Table of Contents
 
 - [GitHub Actions CI/CD Documentation](#github-actions-cicd-documentation)
@@ -123,14 +125,14 @@ The CI/CD pipeline is designed to:
 
 - Multiple sanitizer configurations (address, undefined, memory, thread)
 - Code coverage reporting using gcovr
-- Coverage reports in multiple formats (HTML, XML, JSON, Coveralls)
+- Coverage reports in multiple formats (HTML, XML, JSON)
 - Runs on Namespace profile runners (4 vCPU, 8GB RAM)
 - 15-minute timeout for test execution
 - Parallel test execution with ctest
 
 **Outputs:**
 
-- Coverage reports (HTML, XML, JSON, Coveralls)
+- Coverage reports (HTML, XML, JSON)
 - Test results
 
 ### Lint

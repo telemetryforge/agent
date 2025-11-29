@@ -21,7 +21,6 @@ It also has built-in functionality for:
 3. AI processors for routing (Smart log routing)
 4. Enhanced storage layer (Efficient buffering)
 
-
 ## Support & Lifecycle
 
 ### Version Support Matrix
@@ -173,6 +172,8 @@ make
 The Cosign key for our images is [provided](./cosign.pub) in this repo.
 
 Follow the documentation to verify against it: <https://docs.sigstore.dev/cosign/verifying/verify/>.
+
+The GPG key is also [provided](./gpg.pub) that signs packages and checksums.
 
 ### Reporting Security Issues
 
