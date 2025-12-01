@@ -420,6 +420,7 @@ endif()
 # =======
 REGISTER_FILTER_PLUGIN("filter_alter_size")
 REGISTER_FILTER_PLUGIN("filter_aws")
+REGISTER_FILTER_PLUGIN("filter_llm_tag")
 REGISTER_FILTER_PLUGIN("filter_checklist")
 REGISTER_FILTER_PLUGIN("filter_ecs")
 REGISTER_FILTER_PLUGIN("filter_record_modifier")

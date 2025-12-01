@@ -89,6 +89,7 @@ DEFINE_OPTION(FLB_PROCESSOR_DEDUP          "Enable record deduplication processo
 DEFINE_OPTION(FLB_FILTER_ALTER_SIZE           "Enable alter_size filter"                     OFF)
 DEFINE_OPTION(FLB_FILTER_AWS                  "Enable aws filter"                            ON)
 DEFINE_OPTION(FLB_FILTER_CHECKLIST            "Enable checklist filter"                      OFF)
+DEFINE_OPTION(FLB_FILTER_LLM_TAG              "Enable LLM-based log tagging filter"          ON)
 DEFINE_OPTION(FLB_FILTER_ECS                  "Enable AWS ECS filter"                        ON)
 DEFINE_OPTION(FLB_FILTER_EXPECT               "Enable expect filter"                         ON)
 DEFINE_OPTION(FLB_FILTER_GEOIP2               "Enable geoip2 filter"                         OFF)
