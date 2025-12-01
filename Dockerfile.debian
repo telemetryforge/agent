@@ -5,7 +5,7 @@
 FROM multiarch/qemu-user-static:x86_64-arm AS qemu-arm32
 FROM multiarch/qemu-user-static:x86_64-aarch64 AS qemu-arm64
 
-FROM debian:bookworm-slim AS base-builder
+FROM debian:trixie-slim AS base-builder
 
 COPY --from=qemu-arm32 /usr/bin/qemu-arm-static /usr/bin/
 COPY --from=qemu-arm64 /usr/bin/qemu-aarch64-static /usr/bin/
@@ -13,8 +13,7 @@ COPY --from=qemu-arm64 /usr/bin/qemu-aarch64-static /usr/bin/
 ENV DEBIAN_FRONTEND=noninteractive
 
 # hadolint ignore=DL3008
-RUN echo "deb http://deb.debian.org/debian bookworm-backports main" >> /etc/apt/sources.list && \
-    apt-get update && \
+RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
     curl \
@@ -26,7 +25,7 @@ RUN echo "deb http://deb.debian.org/debian bookworm-backports main" >> /etc/apt/
     libcurl4-openssl-dev \
     libsasl2-dev \
     pkg-config \
-    libsystemd-dev/bookworm-backports \
+    libsystemd-dev \
     zlib1g-dev \
     flex \
     bison \
@@ -48,7 +47,7 @@ ARG FLUENTDO_AGENT_VERSION=25.12.1
 ENV FLUENTDO_AGENT_VERSION=${FLUENTDO_AGENT_VERSION}
 
 # Build metadata
-ARG FLUENTDO_AGENT_DISTRO=debian/bookworm
+ARG FLUENTDO_AGENT_DISTRO=debian/trixie
 ENV FLUENTDO_AGENT_DISTRO=$FLUENTDO_AGENT_DISTRO
 
 ARG FLUENTDO_AGENT_PACKAGE_TYPE=CONTAINER
@@ -114,7 +113,7 @@ RUN /fluent-bit/bin/fluent-bit -J > /fluent-bit/etc/schema.json && \
 
 # Simple example of how to properly extract packages for reuse in distroless
 # Taken from: https://github.com/GoogleContainerTools/distroless/issues/863
-FROM debian:bookworm-slim AS deb-extractor
+FROM debian:trixie-slim AS deb-extractor
 COPY --from=qemu-arm32 /usr/bin/qemu-arm-static /usr/bin/
 COPY --from=qemu-arm64 /usr/bin/qemu-aarch64-static /usr/bin/
 
@@ -122,19 +121,18 @@ COPY --from=qemu-arm64 /usr/bin/qemu-aarch64-static /usr/bin/
 # We also include some extra handling for the status files that some tooling uses for scanning, etc.
 WORKDIR /tmp
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-RUN echo "deb http://deb.debian.org/debian bookworm-backports main" >> /etc/apt/sources.list && \
-    apt-get update && \
+RUN apt-get update && \
     apt-get download \
-    libssl3 \
-    libcurl4 \
+    libssl3t64 \
+    libcurl4t64 \
     libnghttp2-14 \
     librtmp1 \
-    libssh2-1 \
-    libpsl5 \
+    libssh2-1t64 \
+    libpsl5t64 \
     libbrotli1 \
     libsasl2-2 \
     pkg-config \
-    libsystemd0/bookworm-backports \
+    libsystemd0 \
     zlib1g \
     ca-certificates \
     libatomic1 \
@@ -148,23 +146,23 @@ RUN echo "deb http://deb.debian.org/debian bookworm-backports main" >> /etc/apt/
     libk5crypto3 \
     libcom-err2 \
     libkrb5support0 \
-    libgnutls30 \
+    libgnutls30t64 \
     libkeyutils1 \
     libp11-kit0 \
     libidn2-0 \
-    libunistring2 \
+    libunistring5 \
     libtasn1-6 \
-    libnettle8 \
-    libhogweed6 \
+    libnettle8t64 \
+    libhogweed6t64 \
     libgmp10 \
     libffi8 \
     liblzma5 \
     libyaml-0-2 \
     libcap2 \
-    libgit2-1.5 \
-    libmbedtls14 \
-    libmbedx509-1 \
-    libmbedcrypto7 \
+    libgit2-1.9 \
+    libmbedtls21 \
+    libmbedx509-7 \
+    libmbedcrypto16 \
     libhttp-parser2.9 \
     libpcre2-8-0 \
     && \
@@ -244,8 +242,7 @@ FROM debug-test-base AS debug
 # Add useful debugging tools
 ENV DEBIAN_FRONTEND=noninteractive
 # hadolint ignore=DL3008
-RUN echo "deb http://deb.debian.org/debian bookworm-backports main" >> /etc/apt/sources.list && \
-    apt-get update && \
+RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     bash gdb valgrind \
     git bash-completion vim tmux jq \
