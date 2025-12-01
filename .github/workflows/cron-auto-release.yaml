@@ -12,6 +12,11 @@ on:
         required: false
         default: "main"
         type: string
+      tag-prefix:
+        description: The tag prefix we are looking for.
+        required: false
+        default: "v25.10*"
+        type: string
       dry-run:
         description: Dry-run the change by doing everything except pushing the tag
         required: false
@@ -26,6 +31,7 @@ jobs:
     outputs:
       sha: ${{ steps.get-commit.outputs.sha }}
       branch: ${{ steps.detect-branch.outputs.branch || 'main' }}
+      prefix: ${{ steps.detect-prefix.outputs.prefix || 'v*' }}
     steps:
       - uses: actions/checkout@v6
 
@@ -33,18 +39,21 @@ jobs:
         if: github.event_name == 'schedule' && github.event.schedule=='0 10 * * 1'
         run: |
           echo "BRANCH=release/25.10-lts" >> $GITHUB_ENV
+          echo "TAG_PREFIX=v25.10*" >> $GITHUB_ENV
         shell: bash
 
       - name: main run
         if: github.event_name == 'schedule' && github.event.schedule=='0 10 * * 2'
         run: |
           echo "BRANCH=main" >> $GITHUB_ENV
+          echo "TAG_PREFIX=v*" >> $GITHUB_ENV
         shell: bash
 
       - name: Manual run
         if: github.event_name == 'workflow_dispatch'
         run: |
           echo "BRANCH=${{ github.event.inputs.branch }}" >> $GITHUB_ENV
+          echo "TAG_PREFIX=${{ github.event.inputs.tag-prefix }}" >> $GITHUB_ENV
         shell: bash
 
       - name: Figure out branch we are running for
@@ -52,6 +61,13 @@ jobs:
         run: |
           echo "branch=$BRANCH"
           echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Figure out branch we are running for
+        id: detect-prefix
+        run: |
+          echo "prefix=$TAG_PREFIX"
+          echo "prefix=$TAG_PREFIX" >> $GITHUB_OUTPUT
         shell: bash
 
       - name: Find matching workflow
@@ -111,8 +127,8 @@ jobs:
         run: |
           if [[ "$BRANCH" != 'main' ]]; then
             echo "Creating next tag name in sequence"
-            # Get last tag for branch
-            LAST_TAG=$(git describe --tags --match="v*" origin/"$BRANCH" --abbrev=0)
+            # Get last tag for glob
+            LAST_TAG=$(git tag -n 1 "${{ needs.find-last-good.outputs.prefix }}" --format='%(refname:strip=2)' --sort='-version:refname' | head -n 1)
             echo "Found last tag=$LAST_TAG"
             VNUM1=$(echo "$LAST_TAG" | cut -d"." -f1)
             VNUM2=$(echo "$LAST_TAG" | cut -d"." -f2)
@@ -157,4 +173,3 @@ jobs:
         run: |
           git push origin ${{ steps.tag_name.outputs.tag_name }}
         shell: bash
-
