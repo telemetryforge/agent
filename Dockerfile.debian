@@ -181,7 +181,7 @@ RUN find /dpkg/ -type d -empty -delete && \
 
 # We want latest at time of build
 # hadolint ignore=DL3006
-FROM gcr.io/distroless/cc-debian12 AS production
+FROM gcr.io/distroless/cc-debian13 AS production
 
 ARG FLUENT_BIT_VERSION
 ARG FLUENTDO_AGENT_VERSION
