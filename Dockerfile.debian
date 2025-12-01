@@ -126,6 +126,7 @@ RUN apt-get update && \
     libssl3t64 \
     libcurl4t64 \
     libnghttp2-14 \
+    libnghttp3-9 \
     librtmp1 \
     libssh2-1t64 \
     libpsl5t64 \
