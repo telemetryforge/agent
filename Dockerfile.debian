@@ -166,6 +166,7 @@ RUN apt-get update && \
     libmbedcrypto16 \
     libhttp-parser2.9 \
     libpcre2-8-0 \
+    libldap2 \
     && \
     mkdir -p /dpkg/var/lib/dpkg/status.d/ && \
     for deb in *.deb; do \
