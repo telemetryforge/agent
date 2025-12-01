@@ -1,0 +1,9 @@
+source/packaging/packages/
+targets.txt
+gha-creds*.json
+*.log
+.vagrant/
+.aider*
+downloads/
+upstream/
+source/build/
