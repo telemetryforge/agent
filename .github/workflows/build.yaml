@@ -378,15 +378,15 @@ jobs:
             --remove-signatures \
             --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
             "docker://${{ env.UBI_IMAGE_NAME }}:${{ env.TAG }}" \
-            "oci-archive:output/fluent-do-agent-container.tar"
+            "oci-archive:output/fluentdo-agent-container.tar"
           skopeo copy \
             --all \
             --remove-signatures \
             --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
             "docker://${{ env.DISTROLESS_IMAGE_NAME }}:${{ env.TAG }}" \
-            "oci-archive:output/fluent-do-agent-container-slim.tar"
-          tar -czvf output/fluent-do-agent-container.tar.gz output/fluent-do-agent-container.tar output/fluent-do-agent-container-slim.tar
-          rm -f output/fluent-do-agent-container.tar output/fluent-do-agent-container-slim.tar
+            "oci-archive:output/fluentdo-agent-container-slim.tar"
+          tar -czvf output/fluentdo-agent-container.tar.gz output/fluentdo-agent-container.tar output/fluentdo-agent-container-slim.tar
+          rm -f output/fluentdo-agent-container.tar output/fluentdo-agent-container-slim.tar
         shell: bash
 
       - name: Construct release info
@@ -443,7 +443,7 @@ jobs:
             *.spdx
             output/*.json
             deliverables.tar.gz
-            output/fluent-do-agent-container.tar.gz
+            output/fluentdo-agent-container.tar.gz
             output/package-macos-*
             output/package-windows-*
           fail_on_unmatched_files: false
