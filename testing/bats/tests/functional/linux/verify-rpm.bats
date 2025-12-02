@@ -46,6 +46,8 @@ teardown() {
 }
 
 @test "RPM systemd service is installed" {
+    # CentOS 6 has no systemd support, it uses init.d
+    skipIfCentos6
     run rpm -ql "$PACKAGE_NAME"
     assert_success
     assert_output --partial 'lib/systemd/system/fluent-bit.service'

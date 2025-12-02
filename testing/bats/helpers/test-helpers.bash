@@ -25,6 +25,14 @@ function skipIfNotLinux() {
 	fi
 }
 
+function skipIfCentos6() {
+	if [[ -f /etc/redhat-release ]] && grep -qi "centos.*6" /etc/redhat-release; then
+		skip 'Skipping test: detected CentOS 6'
+	elif [[ -f /etc/centos-release ]] && grep -qi "centos.*6" /etc/centos-release; then
+		skip 'Skipping test: detected CentOS 6'
+	fi
+}
+
 function skipIfNotWindows() {
     if [[ "${OSTYPE:-}" != "msys" ]]; then
         skip "Skipping test: not running on Windows"
