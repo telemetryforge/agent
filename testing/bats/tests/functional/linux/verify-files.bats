@@ -50,6 +50,11 @@ teardown() {
     [ -d "/opt/fluentdo-agent/bin" ]
 }
 
+# Negative test for hyphenated directory which should not be present
+@test "Installation directory /opt/fluent-do-agent does not exist" {
+    [ ! -d "/opt/fluent-do-agent" ]
+}
+
 # ============================================================================
 # Binary Tests
 # ============================================================================
