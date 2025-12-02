@@ -22,6 +22,9 @@ setup() {
 }
 
 teardown() {
+    if command -v rpm &> /dev/null; then
+        run rpm -ql "$PACKAGE_NAME" 2>/dev/null
+    fi
     if [[ -n "${SKIP_TEARDOWN:-}" ]]; then
         echo "Skipping teardown"
     fi
@@ -46,7 +49,16 @@ teardown() {
 }
 
 @test "RPM systemd service is installed" {
+    # CentOS 6 has no systemd support, it uses init.d
+    skipIfCentos6
     run rpm -ql "$PACKAGE_NAME"
     assert_success
     assert_output --partial 'lib/systemd/system/fluent-bit.service'
+}
+
+@test "RPM init.d service is installed" {
+    skipIfNotCentos6
+    run rpm -ql "$PACKAGE_NAME"
+    assert_success
+    assert_output --partial 'etc/init.d/fluent-bit'
 }

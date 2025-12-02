@@ -37,8 +37,7 @@
     "ubuntu/22.04.arm64v8",
     "ubuntu/24.04",
     "ubuntu/24.04.arm64v8",
-    "suse/15",
-    "suse/15.arm64v8"
+    "suse/15"
   ],
   "release": {
     "linux_targets": [
