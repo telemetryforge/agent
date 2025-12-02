@@ -12,6 +12,7 @@ load "$BATS_FILE_ROOT/load.bash"
 setup() {
     skipIfNotLinux
     export INSTALL_PREFIX="/opt/fluentdo-agent"
+    export PACKAGE_NAME="fluentdo-agent"
 
     # Ensure we skip tests in the container
     if command -v rpm &>/dev/null; then
