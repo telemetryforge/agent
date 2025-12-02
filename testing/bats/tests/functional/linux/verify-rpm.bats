@@ -53,3 +53,10 @@ teardown() {
     assert_success
     assert_output --partial 'lib/systemd/system/fluent-bit.service'
 }
+
+@test "RPM init.d service is installed" {
+    skipIfNotCentos6
+    run rpm -ql "$PACKAGE_NAME"
+    assert_success
+    assert_output --partial 'etc/init.d/fluent-bit'
+}
