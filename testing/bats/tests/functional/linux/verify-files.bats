@@ -116,16 +116,19 @@ teardown() {
 # ============================================================================
 
 @test "Systemd service file fluent-bit.service exists" {
+    skipIfCentos6
     [ -f "/lib/systemd/system/fluent-bit.service" ] || \
     [ -f "/usr/lib/systemd/system/fluent-bit.service" ]
 }
 
 @test "Systemd service file is readable" {
+    skipIfCentos6
     [ -r "/lib/systemd/system/fluent-bit.service" ] || \
     [ -r "/usr/lib/systemd/system/fluent-bit.service" ]
 }
 
 @test "Systemd service file contains correct description" {
+    skipIfCentos6
     grep -q "Description=FluentDo Agent" \
         /lib/systemd/system/fluent-bit.service 2>/dev/null || \
     grep -q "Description=FluentDo Agent" \
@@ -133,6 +136,7 @@ teardown() {
 }
 
 @test "Systemd service file points to correct executable" {
+    skipIfCentos6
     grep -q "ExecStart=/opt/fluentdo-agent/bin/fluent-bit" \
         /lib/systemd/system/fluent-bit.service 2>/dev/null || \
     grep -q "ExecStart=/opt/fluentdo-agent/bin/fluent-bit" \
@@ -140,6 +144,7 @@ teardown() {
 }
 
 @test "Systemd service is properly formatted" {
+    skipIfCentos6
     if ! command -v systemd-analyze &> /dev/null; then
         skip 'Skipping test: no systemd-analyze available'
     fi
