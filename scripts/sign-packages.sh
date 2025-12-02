@@ -31,8 +31,18 @@ fi
 if [[ -n "$GPG_KEY" ]]; then
 	if command -v rpm &>/dev/null; then
 		echo "INFO: RPM signing"
-		# Sign all RPMs
+
+		# Now sign everything
 		find "$BASE_DIR" -type f -name "*.rpm" -print -exec rpm --define "_gpg_name $GPG_KEY" --addsign {} \;
+
+		# Legacy targets have some issues with more recent GPG keys: https://superuser.com/a/977804
+		excludePackages=("package-centos-6" "package-centos-7" "package-centos-8" "package-almalinux-8" "package-rockylinux-8")
+		for i in "${excludePackages[@]}"; do
+		  if [[ -d "$BASE_DIR"/"$i" ]]; then
+			echo "Removing GPG key from legacy package: $i"
+			find "$BASE_DIR"/"$i" -type f -name "*.rpm" -print -exec rpm --delsign {} \;
+		  fi
+		done
 	else
 		echo "WARNING: skipping RPM signing"
 	fi

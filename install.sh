@@ -49,6 +49,9 @@ if [ -n "${DISABLE_CONTROL_CHARS:-}" ]; then
 	NC=''
 fi
 
+# Any additional options to pass to the package manager
+INSTALL_ADDITIONAL_PARAMETERS=${INSTALL_ADDITIONAL_PARAMETERS:-}
+
 # ============================================================================
 # Prerequisites Check
 # ============================================================================
@@ -674,24 +677,27 @@ install_package() {
 				log_warning "Unable to update repositories"
 				log_debug "$SUDO $PKG_MANAGER update failed"
 			fi
-            log_debug "Running: $SUDO $PKG_MANAGER install -y $package_file"
-            if ! $SUDO "$PKG_MANAGER" install -y "$package_file"; then
+            log_debug "Running: $SUDO $PKG_MANAGER install -y $INSTALL_ADDITIONAL_PARAMETERS $package_file"
+            # shellcheck disable=SC2086
+            if ! $SUDO "$PKG_MANAGER" install -y $INSTALL_ADDITIONAL_PARAMETERS "$package_file"; then
                 log_error "Failed to install .deb package"
                 return 1
             fi
             ;;
         rpm)
             log_debug "Installing .rpm package"
-            log_debug "Running: $SUDO $PKG_MANAGER install -y $package_file"
-            if ! $SUDO "$PKG_MANAGER" install -y "$package_file"; then
+            log_debug "Running: $SUDO $PKG_MANAGER install -y $INSTALL_ADDITIONAL_PARAMETERS $package_file"
+            # shellcheck disable=SC2086
+            if ! $SUDO "$PKG_MANAGER" install -y $INSTALL_ADDITIONAL_PARAMETERS "$package_file"; then
                 log_error "Failed to install .rpm package"
                 return 1
             fi
             ;;
         apk)
             log_debug "Installing .apk package"
-            log_debug "Running: $SUDO $PKG_MANAGER add --allow-untrusted $package_file"
-            if ! $SUDO "$PKG_MANAGER" add --allow-untrusted "$package_file"; then
+            log_debug "Running: $SUDO $PKG_MANAGER add --allow-untrusted $INSTALL_ADDITIONAL_PARAMETERS $package_file"
+            # shellcheck disable=SC2086
+            if ! $SUDO "$PKG_MANAGER" add --allow-untrusted $INSTALL_ADDITIONAL_PARAMETERS "$package_file"; then
                 log_error "Failed to install .apk package"
                 return 1
             fi
