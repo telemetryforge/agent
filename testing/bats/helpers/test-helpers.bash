@@ -35,13 +35,12 @@ function skipIfCentos6() {
 
 function skipIfNotCentos6() {
 	if [[ -f /etc/redhat-release ]] && grep -qi "centos.*6" /etc/redhat-release; then
-		return
+		echo "CentOS 6 detected"
+	elif [[ -f /etc/centos-release ]] && grep -qi "centos.*6" /etc/centos-release; then
+		echo "CentOS 6 detected"
+	else
+		skip 'Skipping test: not CentOS 6'
 	fi
-	if [[ -f /etc/centos-release ]] && grep -qi "centos.*6" /etc/centos-release; then
-		return
-	fi
-	skip 'Skipping test: not CentOS 6'
-}
 }
 
 function skipIfNotWindows() {
