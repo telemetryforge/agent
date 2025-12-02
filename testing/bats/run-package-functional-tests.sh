@@ -14,8 +14,8 @@ done
 SCRIPT_DIR=$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)
 
 export CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
-export BASE_IMAGE=${BASE_IMAGE:-dokken/almalinux-8}
-export DISTRO=${DISTRO:-almalinux/8}
+export BASE_IMAGE=${BASE_IMAGE:-dokken/centos-6}
+export DISTRO=${DISTRO:-centos/6}
 export FLUENT_BIT_BINARY=${FLUENT_BIT_BINARY:-/opt/fluentdo-agent/bin/fluent-bit}
 
 # Only used if no packages downloaded and running manually (not in CI)

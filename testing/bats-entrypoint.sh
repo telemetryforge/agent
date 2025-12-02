@@ -20,8 +20,8 @@ if [[ -d "$DOWNLOAD_DIR" ]]; then
 	if command -v yum &>/dev/null; then
 		# Ensure EPEL is installed for any dependencies, this may fail if not available for the target so ignore errors
 		yum install -y epel-release 2>/dev/null || true
-		# Install all RPMs found in the download directory
-		find "$DOWNLOAD_DIR" -name '*.rpm' -exec yum install -y {} \;
+		# Install all RPMs found in the download directory and list files installed
+		find "$DOWNLOAD_DIR" -name '*.rpm' -exec yum install -y --rpmverbosity=debug {} \;
 	elif command -v apt-get &>/dev/null; then
 		apt-get update
 		find "$DOWNLOAD_DIR" -name '*.deb' -exec apt-get install -y {} \;

@@ -22,6 +22,7 @@ setup() {
 }
 
 teardown() {
+    run rpm -ql "$PACKAGE_NAME" 2>/dev/null
     if [[ -n "${SKIP_TEARDOWN:-}" ]]; then
         echo "Skipping teardown"
     fi
