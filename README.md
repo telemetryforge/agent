@@ -28,7 +28,7 @@ It also has built-in functionality for:
 | Version | Release Date | Type | End of Support | Status | Branch |
 |---------|--------------|------|----------------|--------|--------|
 | **[26.10](https://github.com/orgs/FluentDo/projects/4)** | Oct 2026 | LTS | Oct 2028 | 🟡 Planned ||
-| **[26.04](https://github.com/orgs/FluentDo/projects/4)** | Apr 2026 | LTS | Apr 2028 | 🟢 Active | `main` |
+| **[26.04](https://github.com/orgs/FluentDo/projects/4)** | Apr 2026 | LTS | Apr 2028 | 🟢 In development | `main` |
 | **[25.10](https://github.com/orgs/FluentDo/projects/3)** | Oct 2025 | LTS | Oct 2027 | 🟢 Active | `release/25.10-lts` |
 | 25.07 | Jul 2025 | Regular | Jan 2026 | 🟢 Active ||
 
