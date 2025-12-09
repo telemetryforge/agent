@@ -16,7 +16,7 @@ setup() {
     fi
 
     export PACKAGE_NAME="fluentdo-agent"
-    if ! dpkg -l | grep -q "ii.*$PACKAGE_NAME" ; then
+    if ! dpkg -s "$PACKAGE_NAME" ; then
         skip "Skipping test: $PACKAGE_NAME DEB not installed"
     fi
 }
@@ -30,24 +30,19 @@ teardown() {
 @test "DEB package is installed" {
     run dpkg -l
     assert_success
-    assert_output --partial "ii.*$PACKAGE_NAME"
+    assert_output --partial "$PACKAGE_NAME"
 }
 
 @test "DEB package version is correct" {
-    run dpkg -l "$PACKAGE_NAME" | grep "$PACKAGE_NAME" | awk '{print $3}'
+    run dpkg -s "$PACKAGE_NAME"
     assert_success
-    assert_output --partial "$FLUENTDO_AGENT_VERSION"
+    assert_output --partial "Version: $FLUENTDO_AGENT_VERSION"
+    assert_output --partial 'Status: install ok installed'
 }
 
 @test "DEB package provides fluentdo-agent" {
     run apt-cache policy "$PACKAGE_NAME"
     assert_success
-}
-
-@test "DEB conffiles are properly installed" {
-    run dpkg --status "$PACKAGE_NAME"
-    assert_success
-    assert_output --partial 'Status'
 }
 
 @test "DEB systemd service is in package" {

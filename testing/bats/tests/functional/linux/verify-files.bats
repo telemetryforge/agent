@@ -16,11 +16,11 @@ setup() {
 
     # Ensure we skip tests in the container
     if command -v rpm &>/dev/null; then
-        if ! rpm -qa | grep -q "fluentdo-agent" ; then
+        if ! rpm -qa | grep -q "$PACKAGE_NAME" ; then
             skip "Skipping test: $PACKAGE_NAME RPM not installed"
         fi
     elif command -v dpkg &>/dev/null; then
-        if ! dpkg -l | grep -q "ii.*fluentdo-agent" ; then
+        if ! dpkg -s "$PACKAGE_NAME" ; then
             skip "Skipping test: $PACKAGE_NAME DEB not installed"
         fi
     fi
