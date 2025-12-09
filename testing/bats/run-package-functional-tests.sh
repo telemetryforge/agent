@@ -20,7 +20,7 @@ export FLUENT_BIT_BINARY=${FLUENT_BIT_BINARY:-/opt/fluentdo-agent/bin/fluent-bit
 
 # Only used if no packages downloaded and running manually (not in CI)
 export FLUENTDO_AGENT_URL=${FLUENTDO_AGENT_URL:-https://staging.fluent.do}
-export FLUENTDO_AGENT_VERSION=${FLUENTDO_AGENT_VERSION:-25.12.2}
+export FLUENTDO_AGENT_VERSION=${FLUENTDO_AGENT_VERSION:-25.12.3}
 
 # Location of packages to test
 export DOWNLOAD_DIR=${DOWNLOAD_DIR:-$PWD/downloads}
