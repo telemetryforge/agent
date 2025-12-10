@@ -77,6 +77,7 @@ echo "INFO: running test container 'bats/test/$DISTRO'"
 "${CONTAINER_RUNTIME}" run --rm -t \
 	-v "$DOWNLOAD_DIR:/downloads:ro" \
 	-e FLUENT_BIT_BINARY="$FLUENT_BIT_BINARY" \
+	-e FLUENTDO_AGENT_PACKAGE_INSTALLED=true \
 	"bats/test/$DISTRO"
 
 echo "INFO: All tests complete"
