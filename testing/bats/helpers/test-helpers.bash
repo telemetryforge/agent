@@ -25,6 +25,12 @@ function skipIfNotLinux() {
 	fi
 }
 
+function skipIfPackageNotInstalled() {
+	if [[ "${FLUENTDO_AGENT_PACKAGE_INSTALLED:-}" != "true" ]]; then
+		skip 'Skipping test: package not installed'
+	fi
+}
+
 function skipIfCentos6() {
 	if [[ -f /etc/redhat-release ]] && grep -qi "centos.*6" /etc/redhat-release; then
 		skip 'Skipping test: detected CentOS 6'

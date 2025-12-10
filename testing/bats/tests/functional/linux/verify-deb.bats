@@ -11,19 +11,20 @@ load "$BATS_FILE_ROOT/load.bash"
 
 setup() {
     skipIfNotLinux
+    skipIfPackageNotInstalled
     if ! command -v dpkg &> /dev/null; then
         skip "Skipping test: no dpkg command"
     fi
 
     export PACKAGE_NAME="fluentdo-agent"
-    if ! dpkg -s "$PACKAGE_NAME" ; then
-        skip "Skipping test: $PACKAGE_NAME DEB not installed"
-    fi
 }
 
 teardown() {
     if [[ -n "${SKIP_TEARDOWN:-}" ]]; then
         echo "Skipping teardown"
+    fi
+    if command -v dpkg &> /dev/null; then
+        run dpkg -l
     fi
 }
 

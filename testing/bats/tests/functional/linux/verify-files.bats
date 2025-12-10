@@ -15,20 +15,18 @@ setup() {
     export PACKAGE_NAME="fluentdo-agent"
 
     # Ensure we skip tests in the container
-    if command -v rpm &>/dev/null; then
-        if ! rpm -qa | grep -q "$PACKAGE_NAME" ; then
-            skip "Skipping test: $PACKAGE_NAME RPM not installed"
-        fi
-    elif command -v dpkg &>/dev/null; then
-        if ! dpkg -s "$PACKAGE_NAME" ; then
-            skip "Skipping test: $PACKAGE_NAME DEB not installed"
-        fi
-    fi
+    skipIfPackageNotInstalled
 }
 
 teardown() {
     if [[ -n "${SKIP_TEARDOWN:-}" ]]; then
         echo "Skipping teardown"
+    fi
+    if command -v rpm &> /dev/null; then
+        run rpm -qa
+    fi
+    if command -v dpkg &> /dev/null; then
+        run dpkg -l
     fi
 }
 

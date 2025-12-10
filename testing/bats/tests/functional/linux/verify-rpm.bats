@@ -10,15 +10,13 @@ load "$BATS_FILE_ROOT/load.bash"
 # bats file_tags=functional,linux,package
 
 setup() {
-   skipIfNotLinux
+    skipIfNotLinux
+    skipIfPackageNotInstalled
     if ! command -v rpm &> /dev/null; then
         skip "Skipping test: no RPM command"
     fi
 
     export PACKAGE_NAME="fluentdo-agent"
-    if ! rpm -qa | grep -q "$PACKAGE_NAME" ; then
-        skip "Skipping test: $PACKAGE_NAME RPM not installed"
-    fi
 }
 
 teardown() {
