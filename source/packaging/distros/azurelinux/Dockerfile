@@ -14,7 +14,7 @@ FROM mcr.microsoft.com/azurelinux/base/core:3.0 as azurelinux-3-base
 ARG CACHE_ID
 RUN --mount=type=cache,target=/var/cache/tdnf,sharing=locked,id=azurelinux-3-${CACHE_ID} \
     tdnf -y update && \
-    tdnf install -y bison cmake cyrus-sasl-devel flex gcc-c++ \
+    tdnf install -y bison cmake cyrus-sasl-devel flex gcc-c++ python3 \
     gnutls-devel make openssl-devel pkgconfig systemd-devel systemd-rpm-macros zlib-devel \
     binutils glibc-devel libyaml-devel libgit2-devel kernel-headers file diffutils gawk rpm-build
 
@@ -29,7 +29,7 @@ COPY --from=multiarch-aarch64 /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64
 ARG CACHE_ID
 RUN --mount=type=cache,target=/var/cache/tdnf,sharing=locked,id=azurelinux-3-arm64-${CACHE_ID} \
     tdnf -y update && \
-    tdnf install -y bison cmake cyrus-sasl-devel flex gcc-c++ \
+    tdnf install -y bison cmake cyrus-sasl-devel flex gcc-c++ python3 \
     gnutls-devel make openssl-devel pkgconfig systemd-devel systemd-rpm-macros zlib-devel \
     binutils glibc-devel libyaml-devel libgit2-devel kernel-headers file diffutils gawk rpm-build
 
