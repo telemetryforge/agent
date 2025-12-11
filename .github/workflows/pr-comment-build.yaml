@@ -1,0 +1,251 @@
+name: Trigger build on PR comment
+# Trigger a build when a comment is made on a PR with /build in the comment body
+# We can do the following builds: linux, windows, macos
+# e.g. /build linux=<targets>
+# e.g. /build windows
+# e.g. /build macos
+# e.g. /build linux=<targets> windows
+# e.g. /build linux=<targets> macos windows
+#
+# Linux targets can be comma-separated list of distros, e.g. ubuntu/20.04,centos/7
+# e.g. /build linux=ubuntu/20.04,centos/7 windows
+# e.g. /build linux=ubuntu/20.04 macos
+# e.g. /build macos windows
+# e.g. /build linux=centos/7
+#
+# If no platform is specified then nothing is done
+on:
+    issue_comment:
+jobs:
+    pr-build-comment:
+        name: Build on PR comment
+        # Ignore comments that are not on PRs (i.e. issues)
+        # Trigger only if /build is present in the comment body
+        if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '/build')}}
+        runs-on: ubuntu-latest
+        outputs:
+            pr-number: ${{ github.event.issue.number }}
+            # Builds should be run (they may fail)
+            should-run: ${{ steps.parse.outputs.should_run }}
+            # Type of build to run
+            build-windows: ${{ steps.parse.outputs.windows }}
+            build-macos: ${{ steps.parse.outputs.macos }}
+            build-linux: ${{ steps.parse.outputs.linux }}
+            # Linux targets matrix to build
+            linux-targets-json: ${{ steps.parse.outputs.linux_targets_json }}
+        steps:
+            - name: Log useful info
+              run: |
+                  echo "PR Number is ${{ github.event.issue.number }}"
+                  echo "Comment ID is ${{ github.event.comment.id }}"
+                  echo "Comment body is $BODY"
+              shell: bash
+              env:
+                BODY: ${{ github.event.comment.body }}
+
+            - name: Debug
+              uses: raven-actions/debug@v1
+
+            - name: Parse /build comment
+              id: parse
+              uses: actions/github-script@v8
+              with:
+                  script: |
+                      const body = (context.payload.comment?.body || '').trim();
+                      const firstLine = body.split('\n')[0].trim();
+                      const out = {
+                        windows: false,
+                        macos: false,
+                        linuxTargets: [],
+                      };
+
+                      // Must start with '/build'
+                      if (!/^\/build\b/i.test(firstLine)) {
+                        core.setOutput('should_run', 'false');
+                        core.setOutput('windows', 'false');
+                        core.setOutput('macos', 'false');
+                        core.setOutput('linux', 'false');
+                        core.setOutput('linux_targets_json', '[]');
+                        return;
+                      }
+
+                      const tail = firstLine.replace(/^\/build\b/i, '').trim();
+                      if (tail.length > 0) {
+                        const tokens = tail.split(/\s+/).filter(Boolean);
+                        for (const raw of tokens) {
+                            const lower = raw.toLowerCase();
+                            if (lower === 'windows') {
+                                out.windows = true;
+                            } else if (lower === 'macos' || lower === 'macosx' || lower === 'osx') {
+                                out.macos = true;
+                            } else if (lower.startsWith('linux=')) {
+                                // Keep original token to preserve any casing/symbols after '='
+                                const rhs = raw.slice(raw.indexOf('=') + 1);
+                                const arr = rhs.split(',').map(s => s.trim()).filter(Boolean);
+                                out.linuxTargets.push(...arr);
+                            }
+                        }
+                      }
+
+                      const shouldRun = out.windows || out.macos || out.linuxTargets.length > 0;
+
+                      core.setOutput('should_run', shouldRun ? 'true' : 'false');
+                      core.setOutput('windows', out.windows ? 'true' : 'false');
+                      core.setOutput('macos', out.macos ? 'true' : 'false');
+                      core.setOutput('linux', out.linuxTargets.length > 0 ? 'true' : 'false');
+                      core.setOutput('linux_targets_json', JSON.stringify(out.linuxTargets));
+
+    pr-build-get-metadata:
+        name: Get build metadata
+        needs: pr-build-comment
+        if: needs.pr-build-comment.outputs.should-run == 'true'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        outputs:
+            version: ${{ steps.set-version.outputs.version }}
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
+              with:
+                  ref: refs/pull/${{ github.event.issue.number }}/merge
+
+            - name: Get the versions to use
+              # Look for the default line in the Dockerfile
+              id: set-version
+              run: |
+                  VERSION=$(grep "ARG FLUENTDO_AGENT_VERSION=" Dockerfile.ubi | cut -d '=' -s -f 2 -)
+                  echo "Using version: $VERSION"
+                  echo "version=$VERSION" >> $GITHUB_OUTPUT
+              shell: bash
+
+    pr-build-windows:
+        name: Build Windows
+        needs:
+            - pr-build-comment
+            - pr-build-get-metadata
+        if: needs.pr-build-comment.outputs.should-run == 'true' && needs.pr-build-comment.outputs.build-windows == 'true'
+        uses: ./.github/workflows/call-build-windows-packages.yaml
+        with:
+            version: ${{ needs.pr-build-get-metadata.outputs.version }}
+            ref: refs/pull/${{ needs.pr-build-comment.outputs.pr-number }}/merge
+
+    pr-build-macos:
+        name: Build macOS
+        needs:
+            - pr-build-comment
+            - pr-build-get-metadata
+        if: needs.pr-build-comment.outputs.should-run == 'true' && needs.pr-build-comment.outputs.build-macos == 'true'
+        uses: ./.github/workflows/call-build-macos-packages.yaml
+        with:
+            version: ${{ needs.pr-build-get-metadata.outputs.version }}
+            ref: refs/pull/${{ needs.pr-build-comment.outputs.pr-number }}/merge
+
+    pr-build-linux:
+        name: Build Linux
+        needs:
+            - pr-build-comment
+            - pr-build-get-metadata
+        if: needs.pr-build-comment.outputs.should-run == 'true' && needs.pr-build-comment.outputs.build-linux != ''
+        uses: ./.github/workflows/call-build-linux-packages.yaml
+        with:
+            version: ${{ needs.pr-build-get-metadata.outputs.version }}
+            ref: refs/pull/${{ needs.pr-build-comment.outputs.pr-number }}/merge
+            target-matrix: ${{ needs.pr-build-comment.outputs.linux-targets-json }}
+
+    pr-build-comment-response:
+        name: Respond to PR comment
+        if: needs.pr-build-comment.outputs.should-run == 'true'
+        needs:
+            - pr-build-comment
+            - pr-build-windows
+            - pr-build-macos
+            - pr-build-linux
+        runs-on: ubuntu-latest
+        steps:
+            - name: Post results as PR comment
+              uses: actions/github-script@v8
+              env:
+                WINDOWS_REQUESTED: ${{ needs.pr-build-comment.outputs.build-windows }}
+                MACOS_REQUESTED: ${{ needs.pr-build-comment.outputs.build-macos }}
+                LINUX_REQUESTED: ${{ needs.pr-build-comment.outputs.build-linux }}
+                LINUX_TARGETS_JSON: ${{ needs.pr-build-comment.outputs.linux-targets-json }}
+                WINDOWS_RESULT: ${{ needs.pr-build-windows.result }}
+                MACOS_RESULT: ${{ needs.pr-build-macos.result }}
+                LINUX_RESULT: ${{ needs.pr-build-linux.result }}
+              with:
+                script: |
+                    const {owner, repo} = context.repo;
+                    const run_id = context.runId;
+
+                    // Gather job URLs
+                    const pages = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+                        owner, repo, run_id, per_page: 100
+                    });
+                    const byName = {};
+                    for (const job of pages) {
+                        for (const j of job.jobs || []) {
+                            // Keep the first occurrence
+                            if (!byName[j.name]) {
+                                byName[j.name] = j.html_url;
+                            }
+                        }
+                    }
+
+                    function statusEmoji(result) {
+                        if (!result) return '➖';
+                        const r = String(result).toLowerCase();
+                        if (r === 'success') return '✅';
+                        if (r === 'failure') return '❌';
+                        if (r === 'cancelled') return '🛑';
+                        if (r === 'skipped') return '⏭️';
+                        return '❓';
+                    }
+
+                    const requested = {
+                        windows: process.env.WINDOWS_REQUESTED === 'true',
+                        macos: process.env.MACOS_REQUESTED === 'true',
+                        linux: process.env.LINUX_REQUESTED === 'true',
+                    };
+
+                    const results = {
+                        windows: process.env.WINDOWS_RESULT || 'skipped',
+                        macos: process.env.MACOS_RESULT || 'skipped',
+                        linux: process.env.LINUX_RESULT || 'skipped',
+                    };
+
+                    const linuxTargets = (() => {
+                        try { return JSON.parse(process.env.LINUX_TARGETS_JSON || '[]'); }
+                        catch { return []; }
+                    })();
+
+                    const rows = [];
+                    if (requested.windows) {
+                        const name = 'Build Windows packages';
+                        const url = byName[name] || `${context.serverUrl}/${owner}/${repo}/actions/runs/${run_id}`;
+                        rows.push(`- Windows: ${statusEmoji(results.windows)} (${results.windows}) — [Job logs](${url})`);
+                    }
+                    if (requested.macos) {
+                        const name = 'Build macOS packages';
+                        const url = byName[name] || `${context.serverUrl}/${owner}/${repo}/actions/runs/${run_id}`;
+                        rows.push(`- macOS: ${statusEmoji(results.macos)} (${results.macos}) — [Job logs](${url})`);
+                    }
+                    if (requested.linux) {
+                        const name = 'Build Linux packages';
+                        const url = byName[name] || `${context.serverUrl}/${owner}/${repo}/actions/runs/${run_id}`;
+                        const targetsStr = linuxTargets.length ? '`' + linuxTargets.join('`, `') + '`' : '_none_';
+                        rows.push(`- Linux: ${statusEmoji(results.linux)} (${results.linux}) — Targets: ${targetsStr} — [Job logs](${url})`);
+                    }
+
+                    const body = [
+                        `Build results for /build on PR #${process.env.ISSUE_NUMBER}:`,
+                        '',
+                        ...rows,
+                    ].join('\n');
+
+                    await github.rest.issues.createComment({
+                        owner,
+                        repo,
+                        issue_number: Number(process.env.ISSUE_NUMBER),
+                        body
+                    });
