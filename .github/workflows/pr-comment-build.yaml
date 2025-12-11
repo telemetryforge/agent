@@ -41,7 +41,7 @@ jobs:
                   echo "Comment body is $BODY"
               shell: bash
               env:
-                BODY: ${{ github.event.comment.body }}
+                  BODY: ${{ github.event.comment.body }}
 
             - name: Debug
               uses: raven-actions/debug@v1
@@ -114,6 +114,7 @@ jobs:
               # Look for the default line in the Dockerfile
               id: set-version
               run: |
+                  set -euo pipefail
                   VERSION=$(grep "ARG FLUENTDO_AGENT_VERSION=" Dockerfile.ubi | cut -d '=' -s -f 2 -)
                   echo "Using version: $VERSION"
                   echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -146,7 +147,7 @@ jobs:
         needs:
             - pr-build-comment
             - pr-build-get-metadata
-        if: needs.pr-build-comment.outputs.should-run == 'true' && needs.pr-build-comment.outputs.build-linux != ''
+        if: needs.pr-build-comment.outputs.should-run == 'true' && needs.pr-build-comment.outputs.build-linux == 'true'
         uses: ./.github/workflows/call-build-linux-packages.yaml
         with:
             version: ${{ needs.pr-build-get-metadata.outputs.version }}
@@ -155,7 +156,7 @@ jobs:
 
     pr-build-comment-response:
         name: Respond to PR comment
-        if: needs.pr-build-comment.outputs.should-run == 'true'
+        if: always()
         needs:
             - pr-build-comment
             - pr-build-windows
@@ -164,88 +165,88 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Post results as PR comment
+              if: needs.pr-build-comment.outputs.should-run == 'true'
               uses: actions/github-script@v8
               env:
-                WINDOWS_REQUESTED: ${{ needs.pr-build-comment.outputs.build-windows }}
-                MACOS_REQUESTED: ${{ needs.pr-build-comment.outputs.build-macos }}
-                LINUX_REQUESTED: ${{ needs.pr-build-comment.outputs.build-linux }}
-                LINUX_TARGETS_JSON: ${{ needs.pr-build-comment.outputs.linux-targets-json }}
-                WINDOWS_RESULT: ${{ needs.pr-build-windows.result }}
-                MACOS_RESULT: ${{ needs.pr-build-macos.result }}
-                LINUX_RESULT: ${{ needs.pr-build-linux.result }}
+                  PR_NUMBER: ${{ needs.pr-build-comment.outputs.pr-number }}
+                  WINDOWS_REQUESTED: ${{ needs.pr-build-comment.outputs.build-windows }}
+                  MACOS_REQUESTED: ${{ needs.pr-build-comment.outputs.build-macos }}
+                  LINUX_REQUESTED: ${{ needs.pr-build-comment.outputs.build-linux }}
+                  LINUX_TARGETS_JSON: ${{ needs.pr-build-comment.outputs.linux-targets-json }}
+                  WINDOWS_RESULT: ${{ needs.pr-build-windows.result }}
+                  MACOS_RESULT: ${{ needs.pr-build-macos.result }}
+                  LINUX_RESULT: ${{ needs.pr-build-linux.result }}
               with:
-                script: |
-                    const {owner, repo} = context.repo;
-                    const run_id = context.runId;
+                  script: |
+                      const {owner, repo} = context.repo;
+                      const run_id = context.runId;
 
-                    // Gather job URLs
-                    const pages = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
-                        owner, repo, run_id, per_page: 100
-                    });
-                    const byName = {};
-                    for (const job of pages) {
-                        for (const j of job.jobs || []) {
-                            // Keep the first occurrence
-                            if (!byName[j.name]) {
-                                byName[j.name] = j.html_url;
-                            }
+                      // Gather job URLs
+                      const byName = {};
+                      for await (const { data } of github.paginate.iterator(
+                        github.rest.actions.listJobsForWorkflowRun,
+                        { owner, repo, run_id, per_page: 100 }
+                      )) {
+                        // data is already an array of jobs
+                        for (const j of data) {
+                            if (!byName[j.name]) byName[j.name] = j.html_url;
                         }
-                    }
+                      }
 
-                    function statusEmoji(result) {
-                        if (!result) return '➖';
-                        const r = String(result).toLowerCase();
-                        if (r === 'success') return '✅';
-                        if (r === 'failure') return '❌';
-                        if (r === 'cancelled') return '🛑';
-                        if (r === 'skipped') return '⏭️';
-                        return '❓';
-                    }
+                      function statusEmoji(result) {
+                          if (!result) return '➖';
+                          const r = String(result).toLowerCase();
+                          if (r === 'success') return '✅';
+                          if (r === 'failure') return '❌';
+                          if (r === 'cancelled') return '🛑';
+                          if (r === 'skipped') return '⏭️';
+                          return '❓';
+                      }
 
-                    const requested = {
-                        windows: process.env.WINDOWS_REQUESTED === 'true',
-                        macos: process.env.MACOS_REQUESTED === 'true',
-                        linux: process.env.LINUX_REQUESTED === 'true',
-                    };
+                      const requested = {
+                          windows: process.env.WINDOWS_REQUESTED === 'true',
+                          macos: process.env.MACOS_REQUESTED === 'true',
+                          linux: process.env.LINUX_REQUESTED === 'true',
+                      };
 
-                    const results = {
-                        windows: process.env.WINDOWS_RESULT || 'skipped',
-                        macos: process.env.MACOS_RESULT || 'skipped',
-                        linux: process.env.LINUX_RESULT || 'skipped',
-                    };
+                      const results = {
+                          windows: process.env.WINDOWS_RESULT || 'skipped',
+                          macos: process.env.MACOS_RESULT || 'skipped',
+                          linux: process.env.LINUX_RESULT || 'skipped',
+                      };
 
-                    const linuxTargets = (() => {
-                        try { return JSON.parse(process.env.LINUX_TARGETS_JSON || '[]'); }
-                        catch { return []; }
-                    })();
+                      const linuxTargets = (() => {
+                          try { return JSON.parse(process.env.LINUX_TARGETS_JSON || '[]'); }
+                          catch { return []; }
+                      })();
 
-                    const rows = [];
-                    if (requested.windows) {
-                        const name = 'Build Windows packages';
-                        const url = byName[name] || `${context.serverUrl}/${owner}/${repo}/actions/runs/${run_id}`;
-                        rows.push(`- Windows: ${statusEmoji(results.windows)} (${results.windows}) — [Job logs](${url})`);
-                    }
-                    if (requested.macos) {
-                        const name = 'Build macOS packages';
-                        const url = byName[name] || `${context.serverUrl}/${owner}/${repo}/actions/runs/${run_id}`;
-                        rows.push(`- macOS: ${statusEmoji(results.macos)} (${results.macos}) — [Job logs](${url})`);
-                    }
-                    if (requested.linux) {
-                        const name = 'Build Linux packages';
-                        const url = byName[name] || `${context.serverUrl}/${owner}/${repo}/actions/runs/${run_id}`;
-                        const targetsStr = linuxTargets.length ? '`' + linuxTargets.join('`, `') + '`' : '_none_';
-                        rows.push(`- Linux: ${statusEmoji(results.linux)} (${results.linux}) — Targets: ${targetsStr} — [Job logs](${url})`);
-                    }
+                      const rows = [];
+                      if (requested.windows) {
+                          const name = 'Build Windows packages';
+                          const url = byName[name] || `${context.serverUrl}/${owner}/${repo}/actions/runs/${run_id}`;
+                          rows.push(`- Windows: ${statusEmoji(results.windows)} (${results.windows}) — [Job logs](${url})`);
+                      }
+                      if (requested.macos) {
+                          const name = 'Build macOS packages';
+                          const url = byName[name] || `${context.serverUrl}/${owner}/${repo}/actions/runs/${run_id}`;
+                          rows.push(`- macOS: ${statusEmoji(results.macos)} (${results.macos}) — [Job logs](${url})`);
+                      }
+                      if (requested.linux) {
+                          const name = 'Build Linux packages';
+                          const url = byName[name] || `${context.serverUrl}/${owner}/${repo}/actions/runs/${run_id}`;
+                          const targetsStr = linuxTargets.length ? '`' + linuxTargets.join('`, `') + '`' : '_none_';
+                          rows.push(`- Linux: ${statusEmoji(results.linux)} (${results.linux}) — Targets: ${targetsStr} — [Job logs](${url})`);
+                      }
 
-                    const body = [
-                        `Build results for /build on PR #${process.env.ISSUE_NUMBER}:`,
-                        '',
-                        ...rows,
-                    ].join('\n');
+                      const body = [
+                          `Build results for /build on PR #${process.env.PR_NUMBER}:`,
+                          '',
+                          ...rows,
+                      ].join('\n');
 
-                    await github.rest.issues.createComment({
-                        owner,
-                        repo,
-                        issue_number: Number(process.env.ISSUE_NUMBER),
-                        body
-                    });
+                      await github.rest.issues.createComment({
+                          owner,
+                          repo,
+                          issue_number: Number(process.env.PR_NUMBER),
+                          body
+                      });
