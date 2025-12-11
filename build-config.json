@@ -23,6 +23,8 @@
     "rockylinux/10",
     "rockylinux/10.arm64v8",
     "mariner/2",
+    "azurelinux/3",
+    "azurelinux/3.arm64v8",
     "debian/buster",
     "debian/buster.arm64v8",
     "debian/bullseye",
