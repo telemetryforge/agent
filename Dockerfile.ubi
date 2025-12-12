@@ -125,8 +125,9 @@ COPY README.md /help.1
 COPY --from=builder /fluent-bit /fluent-bit
 
 # Copy libgit2 and libssh2 runtime libraries from builder
-COPY --from=builder /usr/local/lib64/libgit2.so* /usr/local/lib64/
-COPY --from=builder /usr/local/lib/libssh2.so* /usr/local/lib/
+COPY --from=builder /usr/local/lib64/libgit2.so.*.*.* /usr/local/lib64/
+COPY --from=builder /usr/local/lib/libssh2.so.*.*.* /usr/local/lib/
+# Set up ldconfig and symlinks for the copied libraries
 RUN echo "/usr/local/lib64" > /etc/ld.so.conf.d/local-libs.conf && \
     echo "/usr/local/lib" >> /etc/ld.so.conf.d/local-libs.conf && \
     ldconfig
