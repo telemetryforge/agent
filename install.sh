@@ -41,16 +41,20 @@ NC='\033[0m' # No colour
 
 # Optionally disable all colour output
 if [ -n "${DISABLE_CONTROL_CHARS:-}" ]; then
-	RED=''
-	GREEN=''
-	YELLOW=''
-	BLUE=''
-	MAGENTA=''
-	NC=''
+    RED=''
+    GREEN=''
+    YELLOW=''
+    BLUE=''
+    MAGENTA=''
+    NC=''
 fi
 
 # Any additional options to pass to the package manager
 INSTALL_ADDITIONAL_PARAMETERS=${INSTALL_ADDITIONAL_PARAMETERS:-}
+
+# Override package manager and format (detected automatically otherwise)
+PKG_MANAGER=${PKG_MANAGER:-}
+PKG_FORMAT=${PKG_FORMAT:-}
 
 # ============================================================================
 # Prerequisites Check
@@ -158,45 +162,45 @@ setup_sudo() {
 
 # Detect OS and architecture
 detect_platform() {
-	if [[ -n "$OS_TYPE" ]] && [[ -n "$ARCH_TYPE" ]]; then
-		log "Using specified platform: $OS_TYPE/$ARCH_TYPE"
-	else
-		log "Detecting platform..."
+    if [[ -n "$OS_TYPE" ]] && [[ -n "$ARCH_TYPE" ]]; then
+        log "Using specified platform: $OS_TYPE/$ARCH_TYPE"
+    else
+        log "Detecting platform..."
 
-		OS=$(uname -s)
-		ARCH=$(uname -m)
-		log_debug "Detected uname -s: $OS"
-		log_debug "Detected uname -m: $ARCH"
+        OS=$(uname -s)
+        ARCH=$(uname -m)
+        log_debug "Detected uname -s: $OS"
+        log_debug "Detected uname -m: $ARCH"
 
-		case "$OS" in
-			Linux)
-				OS_TYPE="linux"
-				;;
-			Darwin)
-				OS_TYPE="darwin"
-				;;
-			*)
-				log_error "Unsupported OS: $OS"
-				exit 1
-				;;
-		esac
+        case "$OS" in
+            Linux)
+                OS_TYPE="linux"
+                ;;
+            Darwin)
+                OS_TYPE="darwin"
+                ;;
+            *)
+                log_error "Unsupported OS: $OS"
+                exit 1
+                ;;
+        esac
 
-		case "$ARCH" in
-			x86_64)
-				ARCH_TYPE="amd64"
-				;;
-			aarch64)
-				ARCH_TYPE="arm64"
-				;;
-			arm64)
-				ARCH_TYPE="arm64"
-				;;
-			*)
-				log_error "Unsupported architecture: $ARCH"
-				exit 1
-				;;
-		esac
-	fi
+        case "$ARCH" in
+            x86_64)
+                ARCH_TYPE="amd64"
+                ;;
+            aarch64)
+                ARCH_TYPE="arm64"
+                ;;
+            arm64)
+                ARCH_TYPE="arm64"
+                ;;
+            *)
+                log_error "Unsupported architecture: $ARCH"
+                exit 1
+                ;;
+        esac
+    fi
     log_success "Detected platform: $OS_TYPE/$ARCH_TYPE"
 }
 
@@ -231,7 +235,7 @@ convert_debian_version_to_codename() {
             log_warning "No codename mapping found for Debian version: $version"
             ;;
     esac
-	DISTRO_VERSION=$codename
+    DISTRO_VERSION=$codename
 }
 
 # Detect Linux distribution and package manager
@@ -241,81 +245,97 @@ detect_distro() {
         return
     fi
 
-	if [[ -n "$DISTRO_ID" ]] && [[ -n "$DISTRO_VERSION" ]]; then
-		log "Using specified DISTRO_ID: '$DISTRO_ID', DISTRO_VERSION: '$DISTRO_VERSION'"
-	else
-		log "Detecting Linux distribution..."
+    if [[ -n "$DISTRO_ID" ]] && [[ -n "$DISTRO_VERSION" ]]; then
+        log "Using specified DISTRO_ID: '$DISTRO_ID', DISTRO_VERSION: '$DISTRO_VERSION'"
+    else
+        log "Detecting Linux distribution..."
 
-		if [ -f /etc/os-release ]; then
-			log_debug "Found /etc/os-release"
-			# shellcheck disable=SC1091
-			. /etc/os-release
-			DISTRO_ID="$ID"
-			DISTRO_VERSION="$VERSION_ID"
-			log_debug "Loaded from /etc/os-release: DISTRO_ID=$DISTRO_ID, DISTRO_VERSION=$DISTRO_VERSION"
-		elif [ -f /etc/lsb-release ]; then
-			log_debug "Found /etc/lsb-release"
-			# shellcheck disable=SC1091
-			. /etc/lsb-release
-			DISTRO_ID=$(echo "$DISTRIB_ID" | tr '[:upper:]' '[:lower:]')
-			DISTRO_VERSION="$DISTRIB_RELEASE"
-			log_debug "Loaded from /etc/lsb-release: DISTRO_ID=$DISTRO_ID, DISTRO_VERSION=$DISTRO_VERSION"
-		else
-			log_warning "Could not detect distribution"
-			log_debug "Neither /etc/os-release nor /etc/lsb-release found"
-			return
-		fi
-	fi
+        if [ -f /etc/os-release ]; then
+            log_debug "Found /etc/os-release"
+            # shellcheck disable=SC1091
+            . /etc/os-release
+            DISTRO_ID="$ID"
+            DISTRO_VERSION="$VERSION_ID"
+            log_debug "Loaded from /etc/os-release: DISTRO_ID=$DISTRO_ID, DISTRO_VERSION=$DISTRO_VERSION"
+        elif [ -f /etc/lsb-release ]; then
+            log_debug "Found /etc/lsb-release"
+            # shellcheck disable=SC1091
+            . /etc/lsb-release
+            DISTRO_ID=$(echo "$DISTRIB_ID" | tr '[:upper:]' '[:lower:]')
+            DISTRO_VERSION="$DISTRIB_RELEASE"
+            log_debug "Loaded from /etc/lsb-release: DISTRO_ID=$DISTRO_ID, DISTRO_VERSION=$DISTRO_VERSION"
+        else
+            log_warning "Could not detect distribution"
+            log_debug "Neither /etc/os-release nor /etc/lsb-release found"
+            return
+        fi
+    fi
 
-	# Extract version appropriately based on distribution
-	# Ubuntu uses full X.Y version (e.g., 24.04)
-	# Debian uses codename (e.g., bookworm, bullseye)
-	# RPM-based distros use major version only (e.g., 8, 9)
-	case "$DISTRO_ID" in
-		ubuntu)
-			# Keep full version for Ubuntu (X.Y format)
-			log_debug "Keeping full version for ubuntu: $DISTRO_VERSION"
-			;;
-		debian)
-			# Convert Debian version number to codename
-			convert_debian_version_to_codename "$DISTRO_VERSION"
-			log_debug "Converted Debian version to codename: $DISTRO_VERSION"
-			;;
-		*)
-			# Extract major version only for other distros
-			DISTRO_VERSION=$(echo "$DISTRO_VERSION" | cut -d. -f1)
-			log_debug "Extracted major version for $DISTRO_ID: DISTRO_VERSION=$DISTRO_VERSION"
-			;;
-	esac
+    # Extract version appropriately based on distribution
+    # Ubuntu uses full X.Y version (e.g., 24.04)
+    # Debian uses codename (e.g., bookworm, bullseye)
+    # RPM-based distros use major version only (e.g., 8, 9)
+    case "$DISTRO_ID" in
+        ubuntu)
+            # Keep full version for Ubuntu (X.Y format)
+            log_debug "Keeping full version for ubuntu: $DISTRO_VERSION"
+            ;;
+        debian)
+            # Convert Debian version number to codename
+            convert_debian_version_to_codename "$DISTRO_VERSION"
+            log_debug "Converted Debian version to codename: $DISTRO_VERSION"
+            ;;
+        *)
+            # Extract major version only for other distros
+            DISTRO_VERSION=$(echo "$DISTRO_VERSION" | cut -d. -f1)
+            log_debug "Extracted major version for $DISTRO_ID: DISTRO_VERSION=$DISTRO_VERSION"
+            ;;
+    esac
 
     log_debug "Mapping DISTRO_ID=$DISTRO_ID to package format"
+    local detected_pkg_manager=""
+    local detected_pkg_format=""
     case "$DISTRO_ID" in
         ubuntu|debian)
-            PKG_MANAGER="apt-get"
-            PKG_FORMAT="deb"
+            detected_pkg_manager="apt-get"
+            detected_pkg_format="deb"
             log_debug "Mapped to: PKG_MANAGER=apt-get, PKG_FORMAT=deb"
             ;;
         fedora|rhel|centos|rocky|almalinux|amazonlinux)
-            PKG_MANAGER="yum"
-            PKG_FORMAT="rpm"
+            detected_pkg_manager="yum"
+            detected_pkg_format="rpm"
             log_debug "Mapped to: PKG_MANAGER=yum, PKG_FORMAT=rpm"
             ;;
-		opensuse-leap|suse|sles|opensuse)
-            PKG_MANAGER="zypper"
-            PKG_FORMAT="rpm"
+        opensuse-leap|suse|sles|opensuse)
+            detected_pkg_manager="zypper"
+            detected_pkg_format="rpm"
             log_debug "Mapped to: PKG_MANAGER=zypper, PKG_FORMAT=rpm"
             ;;
         alpine)
-            PKG_MANAGER="apk"
-            PKG_FORMAT="apk"
+            detected_pkg_manager="apk"
+            detected_pkg_format="apk"
             log_debug "Mapped to: PKG_MANAGER=apk, PKG_FORMAT=apk"
             ;;
         *)
             log_warning "Unsupported distribution: $DISTRO_ID"
             log_debug "No mapping found for DISTRO_ID=$DISTRO_ID, using generic format"
-            PKG_FORMAT="generic"
+            detected_pkg_format="generic"
             ;;
     esac
+
+    if [[ -n "${PKG_MANAGER:-}" ]]; then
+        log_debug "Using overridden package manager: $PKG_MANAGER"
+    else
+        PKG_MANAGER="$detected_pkg_manager"
+        log_debug "Using detected package manager: $PKG_MANAGER"
+    fi
+
+    if [[ -n "${PKG_FORMAT:-}" ]]; then
+        log_debug "Using overridden package format: $PKG_FORMAT"
+    else
+        PKG_FORMAT="$detected_pkg_format"
+        log_debug "Using detected package format: $PKG_FORMAT"
+    fi
 
     log_success "Detected distribution: $DISTRO_ID $DISTRO_VERSION (format: $PKG_FORMAT)"
 }
@@ -475,35 +495,35 @@ find_package() {
                         target_os="debian"
                         log_debug "Mapped DISTRO_ID=debian to target_os=$target_os"
                         ;;
-					amazonlinux)
+                    amazonlinux)
                         target_os="amazonlinux"
                         log_debug "Mapped DISTRO_ID=$DISTRO_ID to target_os=$target_os"
                         ;;
                     fedora|rhel|centos)
-						# Versions earlier than 8 should be mapped to centos, otherwise use almalinux
-						target_os="almalinux"
+                        # Versions earlier than 8 should be mapped to centos, otherwise use almalinux
+                        target_os="almalinux"
 
-						# Extract major version for comparison
-						local major_version
-						major_version=$(echo "$DISTRO_VERSION" | cut -d. -f1)
-						log_debug "Extracted major version for comparison: $major_version"
+                        # Extract major version for comparison
+                        local major_version
+                        major_version=$(echo "$DISTRO_VERSION" | cut -d. -f1)
+                        log_debug "Extracted major version for comparison: $major_version"
 
-						if ! [[ "$major_version" =~ ^[0-9]+$ ]]; then
-							log_warning "Major version not a valid integer: $major_version"
-						elif (( major_version < 8 )); then
-							log_debug "CentOS version $major_version (less than 8)"
-							target_os="centos"
-						else
-							log_debug "CentOS version $major_version (8 or greater) uses AlmaLinux by default"
-						fi
+                        if ! [[ "$major_version" =~ ^[0-9]+$ ]]; then
+                            log_warning "Major version not a valid integer: $major_version"
+                        elif (( major_version < 8 )); then
+                            log_debug "CentOS version $major_version (less than 8)"
+                            target_os="centos"
+                        else
+                            log_debug "CentOS version $major_version (8 or greater) uses AlmaLinux by default"
+                        fi
                         log_debug "Mapped DISTRO_ID=$DISTRO_ID to target_os=$target_os"
                         ;;
                     rocky|almalinux)
                         target_os="almalinux"
                         log_debug "Mapped DISTRO_ID=$DISTRO_ID to target_os=$target_os"
                         ;;
-					opensuse-leap|suse|sles|opensuse)
-						target_os="suse"
+                    opensuse-leap|suse|sles|opensuse)
+                        target_os="suse"
                         log_debug "Mapped DISTRO_ID=$DISTRO_ID to target_os=$target_os"
                         ;;
                     alpine)
@@ -530,20 +550,20 @@ find_package() {
             ;;
     esac
 
-	local rpm_arch_type=$arch_type
-	local deb_arch_type=$arch_type
+    local rpm_arch_type=$arch_type
+    local deb_arch_type=$arch_type
     # Map detected architecture to package directory names
     case "$arch_type" in
         amd64|x86_64)
             target_arch_dir_suffix=""
-			rpm_arch_type="x86_64"
-			deb_arch_type="amd64"
+            rpm_arch_type="x86_64"
+            deb_arch_type="amd64"
             log_debug "Mapped arch_type=amd64 to target_arch_dir_suffix=''"
             ;;
         arm64|aarch64)
             target_arch_dir_suffix=".arm64v8"
-			rpm_arch_type="arm64"
-			deb_arch_type="aarch64"
+            rpm_arch_type="arm64"
+            deb_arch_type="aarch64"
             log_debug "Mapped arch_type=arm64 to target_arch_dir_suffix=.arm64v8"
             ;;
         *)
@@ -555,7 +575,7 @@ find_package() {
 
     # Build the expected package directory path
     # Construct candidate directory names for the package
-	# e.g., package-almalinux-8.arm64
+    # e.g., package-almalinux-8.arm64
     # e.g., package-almalinux-8 (for amd64)
     local package_dir="package-${target_os}-${DISTRO_VERSION}${target_arch_dir_suffix}"
 
@@ -597,32 +617,32 @@ find_package() {
     local found_package=""
     local found_dir=""
 
-	log_debug "Trying directory: $package_dir"
-	for filename in "${package_filenames[@]}"; do
-		local package_url="${FLUENTDO_AGENT_URL}/${version}/output/${package_dir}/${filename}"
-		log_debug "Attempting to access: $package_url"
+    log_debug "Trying directory: $package_dir"
+    for filename in "${package_filenames[@]}"; do
+        local package_url="${FLUENTDO_AGENT_URL}/${version}/output/${package_dir}/${filename}"
+        log_debug "Attempting to access: $package_url"
 
-		# Use HEAD request to check if file exists without downloading
-		local http_code
-		http_code=$(curl -s -o /dev/null -w "%{http_code}" -L "$package_url" 2>/dev/null)
-		log_debug "HTTP response code: $http_code"
+        # Use HEAD request to check if file exists without downloading
+        local http_code
+        http_code=$(curl -s -o /dev/null -w "%{http_code}" -L "$package_url" 2>/dev/null)
+        log_debug "HTTP response code: $http_code"
 
-		if [ "$http_code" = "200" ]; then
-			log_debug "Found package at: $package_url"
-			found_package="$filename"
-			found_dir="$package_dir"
-			break 2  # Break out of both loops
-		else
-			log_debug "Not found (HTTP $http_code): $package_url"
-		fi
-	done
+        if [ "$http_code" = "200" ]; then
+            log_debug "Found package at: $package_url"
+            found_package="$filename"
+            found_dir="$package_dir"
+            break 2  # Break out of both loops
+        else
+            log_debug "Not found (HTTP $http_code): $package_url"
+        fi
+    done
 
     if [ -z "$found_package" ]; then
         log_error "No package file found for version=$version, os=$target_os, arch=$arch_type, format=$pkg_format"
         log_error "Attempted paths:"
-		for filename in "${package_filenames[@]}"; do
-			log_error "  ${FLUENTDO_AGENT_URL}/${version}/output/${package_dir}/${filename}"
-		done
+        for filename in "${package_filenames[@]}"; do
+            log_error "  ${FLUENTDO_AGENT_URL}/${version}/output/${package_dir}/${filename}"
+        done
         return 1
     fi
 
@@ -673,10 +693,10 @@ install_package() {
     case "$pkg_format" in
         deb)
             log_debug "Installing .deb package"
-			if ! $SUDO "$PKG_MANAGER" update; then
-				log_warning "Unable to update repositories"
-				log_debug "$SUDO $PKG_MANAGER update failed"
-			fi
+            if ! $SUDO "$PKG_MANAGER" update; then
+                log_warning "Unable to update repositories"
+                log_debug "$SUDO $PKG_MANAGER update failed"
+            fi
             log_debug "Running: $SUDO $PKG_MANAGER install -y $INSTALL_ADDITIONAL_PARAMETERS $package_file"
             # shellcheck disable=SC2086
             if ! $SUDO "$PKG_MANAGER" install -y $INSTALL_ADDITIONAL_PARAMETERS "$package_file"; then
@@ -745,10 +765,10 @@ main() {
     log_debug "Created log directory: $(dirname "$LOG_FILE")"
     echo "Installation started at $(date)" >> "$LOG_FILE"
 
-	# Setup sudo based on privilege level
+    # Setup sudo based on privilege level
     setup_sudo
 
-	# Check for required tools
+    # Check for required tools
     if ! check_required_tools; then
         log_error "Prerequisites check failed"
         exit 1
@@ -818,29 +838,29 @@ main() {
         exit 1
     fi
 
-	if [ "$DOWNLOAD_ONLY" != true ]; then
-		# Install package
-		if ! install_package "$package_file" "$PKG_FORMAT"; then
-			log_error "Installation failed"
-			exit 1
-		fi
+    if [ "$DOWNLOAD_ONLY" != true ]; then
+        # Install package
+        if ! install_package "$package_file" "$PKG_FORMAT"; then
+            log_error "Installation failed"
+            exit 1
+        fi
 
-		# Verify installation
-		if ! verify_installation; then
-			log_warning "Verification encountered issues, but installation may still be complete"
-			log_debug "verify_installation returned non-zero status"
-		fi
+        # Verify installation
+        if ! verify_installation; then
+            log_warning "Verification encountered issues, but installation may still be complete"
+            log_debug "verify_installation returned non-zero status"
+        fi
 
-		echo ""
-		log_success "FluentDo Agent installation completed successfully!"
-		echo ""
-		log "Next steps:"
-		echo "  1. Configure the agent: /etc/fluent-bit/fluent-bit.conf"
-		echo "  2. Start the agent: systemctl start fluent-bit"
-		echo "  3. Enable at startup: systemctl enable fluent-bit"
-	else
-		log_success "Package downloaded successfully: $package_file"
-	fi
+        echo ""
+        log_success "FluentDo Agent installation completed successfully!"
+        echo ""
+        log "Next steps:"
+        echo "  1. Configure the agent: /etc/fluent-bit/fluent-bit.conf"
+        echo "  2. Start the agent: systemctl start fluent-bit"
+        echo "  3. Enable at startup: systemctl enable fluent-bit"
+    else
+        log_success "Package downloaded successfully: $package_file"
+    fi
     echo ""
     log "Documentation: https://fluent.do/docs/agent"
     echo ""
@@ -887,12 +907,21 @@ Examples:
     $0 -d
 
 Environment Variables:
-    FLUENTDO_AGENT_URL          Override packages URL (default: $FLUENTDO_AGENT_URL)
-    LOG_FILE                    Override log file location (default: $LOG_FILE)
-    DOWNLOAD_DIR                Override download directory (default: $DOWNLOAD_DIR)
-    SUDO                        Override sudo command (default: sudo, set to empty to disable)
-    DISABLE_SUDO                Set to 1 to explicitly disable sudo (default: 0)
-    DEBUG                       Enable debug output (default: 0)
+    FLUENTDO_AGENT_URL          	Override packages URL (default: $FLUENTDO_AGENT_URL)
+    LOG_FILE                    	Override log file location (default: $LOG_FILE)
+    DOWNLOAD_DIR                	Override download directory (default: $DOWNLOAD_DIR)
+    SUDO                        	Override sudo command (default: sudo, set to empty to disable)
+    DISABLE_SUDO                	Set to 1 to explicitly disable sudo (default: 0)
+    DEBUG                       	Enable debug output (default: 0)
+
+    INSTALL_ADDITIONAL_PARAMETERS	Additional parameters to pass to the package manager during installation (default: none)
+    PKG_MANAGER                 	Override detected package manager (default will be yum/apt-get/apk/zypper depending on distro)
+    PKG_FORMAT                  	Override detected package format (default will be deb/rpm/apk depending on distro)
+
+    OS_TYPE                     	Override detected OS type (e.g., linux, darwin), useful for downloading specific packages
+    ARCH_TYPE                   	Override detected architecture type (e.g., amd64, arm64)
+    DISTRO_ID                   	Override detected Linux distribution ID (e.g., ubuntu, debian, almalinux)
+    DISTRO_VERSION              	Override detected Linux distribution version (e.g., 20.04, 8)
 
 EOF
 }
@@ -905,11 +934,11 @@ DOWNLOAD_ONLY=false
 log "Parsing command line arguments: $*"
 while [[ $# -gt 0 ]]; do
     case $1 in
-		--debug)
-			DEBUG="1"
-			log_debug "Debug mode enabled via command line"
-			shift
-			;;
+        --debug)
+            DEBUG="1"
+            log_debug "Debug mode enabled via command line"
+            shift
+            ;;
         -v|--version)
             FLUENTDO_AGENT_VERSION="$2"
             log_debug "Version specified: $FLUENTDO_AGENT_VERSION"
