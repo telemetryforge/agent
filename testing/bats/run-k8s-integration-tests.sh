@@ -12,12 +12,16 @@ while [ -L "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
   [[ $SOURCE != /* ]] && SOURCE=$SCRIPT_DIR/$SOURCE
 done
 SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
+REPO_ROOT=${REPO_ROOT:-"$SCRIPT_DIR/../.."}
 
-# Set up KIND and load the image then run tests
+# Set up KIND and build/load the image then run tests
+
+# Allow overriding container runtime, default to docker
+export CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
 
 export FLUENTDO_AGENT_IMAGE=${FLUENTDO_AGENT_IMAGE:-ghcr.io/fluentdo/agent/ubi}
+# Set this to `local` to build and use a local image
 export FLUENTDO_AGENT_TAG=${FLUENTDO_AGENT_TAG:-main}
-export CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
 
 CONTAINER_IMAGE="${FLUENTDO_AGENT_IMAGE}:${FLUENTDO_AGENT_TAG}"
 KIND_CLUSTER_NAME=${KIND_CLUSTER_NAME:-kind}
@@ -28,12 +32,21 @@ echo "INFO: Using container image: $CONTAINER_IMAGE"
 echo "INFO: Using KIND cluster name: $KIND_CLUSTER_NAME"
 echo "INFO: Using KIND node image: $KIND_NODE_IMAGE"
 
-# Always pull the latest image
-if ! "$CONTAINER_RUNTIME" pull "$CONTAINER_IMAGE"; then
-	echo "ERROR: Image does not exist"
+# Always attempt to pull the latest image unless we are using a local image
+if [[ "$FLUENTDO_AGENT_TAG" == "local" ]]; then
+	# Build the local image if needed, assume if FLUENTDO_AGENT_IMAGE ends in "ubi" we build the Dockerfile.ubi
+	if [[ "$FLUENTDO_AGENT_IMAGE" == *"ubi" ]]; then
+		echo "INFO: Building local UBI image"
+		"$CONTAINER_RUNTIME" build -t "$CONTAINER_IMAGE" -f "$REPO_ROOT"/Dockerfile.ubi "$REPO_ROOT"
+	else
+		echo "INFO: Building local Debian image"
+		"$CONTAINER_RUNTIME" build -t "$CONTAINER_IMAGE" -f "$REPO_ROOT"/Dockerfile.debian "$REPO_ROOT"
+	fi
+elif ! "$CONTAINER_RUNTIME" pull "$CONTAINER_IMAGE"; then
+	echo "ERROR: Remote image does not exist"
 	exit 1
 else
-	echo "INFO: Image exists"
+	echo "INFO: Remote image exists and latest version pulled"
 fi
 
 if ! command -v bats &> /dev/null ; then
