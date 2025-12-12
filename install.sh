@@ -52,6 +52,10 @@ fi
 # Any additional options to pass to the package manager
 INSTALL_ADDITIONAL_PARAMETERS=${INSTALL_ADDITIONAL_PARAMETERS:-}
 
+# Override package manager and format (detected automatically otherwise)
+PKG_MANAGER=${PKG_MANAGER:-}
+PKG_FORMAT=${PKG_FORMAT:-}
+
 # ============================================================================
 # Prerequisites Check
 # ============================================================================
@@ -289,33 +293,49 @@ detect_distro() {
 	esac
 
     log_debug "Mapping DISTRO_ID=$DISTRO_ID to package format"
+	local detected_pkg_manager=""
+	local detected_pkg_format=""
     case "$DISTRO_ID" in
         ubuntu|debian)
-            PKG_MANAGER="apt-get"
-            PKG_FORMAT="deb"
+            detected_pkg_manager="apt-get"
+            detected_pkg_format="deb"
             log_debug "Mapped to: PKG_MANAGER=apt-get, PKG_FORMAT=deb"
             ;;
         fedora|rhel|centos|rocky|almalinux|amazonlinux)
-            PKG_MANAGER="yum"
-            PKG_FORMAT="rpm"
+            detected_pkg_manager="yum"
+            detected_pkg_format="rpm"
             log_debug "Mapped to: PKG_MANAGER=yum, PKG_FORMAT=rpm"
             ;;
 		opensuse-leap|suse|sles|opensuse)
-            PKG_MANAGER="zypper"
-            PKG_FORMAT="rpm"
+            detected_pkg_manager="zypper"
+            detected_pkg_format="rpm"
             log_debug "Mapped to: PKG_MANAGER=zypper, PKG_FORMAT=rpm"
             ;;
         alpine)
-            PKG_MANAGER="apk"
-            PKG_FORMAT="apk"
+            detected_pkg_manager="apk"
+            detected_pkg_format="apk"
             log_debug "Mapped to: PKG_MANAGER=apk, PKG_FORMAT=apk"
             ;;
         *)
             log_warning "Unsupported distribution: $DISTRO_ID"
             log_debug "No mapping found for DISTRO_ID=$DISTRO_ID, using generic format"
-            PKG_FORMAT="generic"
+            detected_pkg_format="generic"
             ;;
     esac
+
+	if [[ -n "${PKG_MANAGER:-}" ]]; then
+		log_debug "Using overridden package manager: $PKG_MANAGER"
+	else
+		PKG_MANAGER="$detected_pkg_manager"
+		log_debug "Using detected package manager: $PKG_MANAGER"
+	fi
+
+	if [[ -n "${PKG_FORMAT:-}" ]]; then
+		log_debug "Using overridden package format: $PKG_FORMAT"
+	else
+		PKG_FORMAT="$detected_pkg_format"
+		log_debug "Using detected package format: $PKG_FORMAT"
+	fi
 
     log_success "Detected distribution: $DISTRO_ID $DISTRO_VERSION (format: $PKG_FORMAT)"
 }
