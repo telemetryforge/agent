@@ -162,7 +162,7 @@ jobs:
         shell: bash
 
       - name: Upload ${{ matrix.target }} digest
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.target }}-digests-${{ steps.output-name.outputs.sanitised_image_base }}-${{ matrix.platform }}
           path: digests/*
