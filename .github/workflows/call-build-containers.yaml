@@ -162,7 +162,7 @@ jobs:
         shell: bash
 
       - name: Upload ${{ matrix.target }} digest
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.target }}-digests-${{ steps.output-name.outputs.sanitised_image_base }}-${{ matrix.platform }}
           path: digests/*
@@ -244,7 +244,7 @@ jobs:
         shell: bash
 
       - name: Download digests for all architectures of ${{ steps.output-name.outputs.sanitised_image_base }}
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           pattern: production-digests-${{ steps.output-name.outputs.sanitised_image_base }}-*
           path: digests/
