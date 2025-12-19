@@ -181,7 +181,7 @@ jobs:
         working-directory: source/build
 
       - name: Upload build packages
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: package-windows-${{ matrix.config.arch }}
           path: |
