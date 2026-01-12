@@ -84,9 +84,9 @@ jobs:
                   echo NEW_TAG="$GENERATED_VERSION"
                   echo NEW_TAG="$GENERATED_VERSION" >> $GITHUB_ENV
 
-                  echo BRANCH="release/${MAJOR}.${MINOR}-lts"
-                  echo BASE_BRANCH="$BRANCH"
-                  echo BASE_BRANCH="$BRANCH" >> $GITHUB_ENV
+                  BASE_BRANCH="release/${MAJOR}.${MINOR}-lts"
+                  echo "BASE_BRANCH=$BASE_BRANCH"
+                  echo "BASE_BRANCH=$BASE_BRANCH" >> $GITHUB_ENV
               shell: bash
 
             - name: Fallback to set mainline tag based on date
@@ -114,8 +114,9 @@ jobs:
                   fi
 
                   if [[ -z "${BASE_BRANCH:-}" ]]; then
-                    echo BASE_BRANCH="main"
-                    echo BASE_BRANCH="main" >> $GITHUB_ENV
+                    BASE_BRANCH="main"
+                    echo "BASE_BRANCH=$BASE_BRANCH"
+                    echo "BASE_BRANCH=$BASE_BRANCH" >> $GITHUB_ENV
                   fi
               shell: bash
 
