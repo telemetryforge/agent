@@ -184,7 +184,7 @@ static struct flb_config_map config_map[] = {
      "Agent name (defaults to hostname)"
     },
     {
-     FLB_CONFIG_MAP_STR, "agent_kind", "telemetryforge",
+     FLB_CONFIG_MAP_STR, "agent_kind", "fluentdo",
      0, FLB_TRUE, offsetof(struct flb_telemetryforge, agent_kind),
      /* Ensure we update the default once ready: https://github.com/telemetryforge/agent/issues/183 */
      "Agent kind: 'fluentbit', 'fluentdo' or 'telemetryforge' (default: 'fluentdo')"
