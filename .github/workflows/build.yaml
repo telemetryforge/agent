@@ -474,16 +474,3 @@ jobs:
     with:
       agent-version: ${{ needs.get-meta.outputs.version }}
       oss-version: ${{ needs.get-meta.outputs.oss-version }}
-
-  update-homebrew:
-    name: Update homebrew on release
-    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-    needs:
-      - get-meta
-      - release
-      - build-macos
-    uses: telemetryforge/homebrew-telemetryforge-agent/.github/workflows/call-update-homebrew.yaml@main
-    with:
-      version: ${{ github.ref_name }}
-    secrets:
-      github-token: ${{ secrets.GITHUB_TOKEN }}
