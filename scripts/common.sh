@@ -21,6 +21,6 @@ function setup_git() {
 		exit 1
 	elif ! git config user.name; then
 		git config --global user.email "ci@fluent.do"
-		git config --global user.name "Fluent Do CI"
+		git config --global user.name "Telemetry Forge CI"
 	fi
 }

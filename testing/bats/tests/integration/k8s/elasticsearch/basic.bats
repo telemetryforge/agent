@@ -49,8 +49,8 @@ function teardown() {
 
     helm upgrade --install  --create-namespace --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" fluent/fluent-bit \
         --values "${BATS_TEST_DIRNAME}/resources/helm/fluentbit-basic.yaml" \
-        --set image.repository="$FLUENTDO_AGENT_IMAGE" \
-        --set image.tag="$FLUENTDO_AGENT_TAG" \
+        --set image.repository="$TELEMETRY_FORGE_AGENT_IMAGE" \
+        --set image.tag="$TELEMETRY_FORGE_AGENT_TAG" \
         --set securityContext.runAsUser=0 \
         --timeout "${HELM_TIMEOUT:-5m0s}" \
         --wait

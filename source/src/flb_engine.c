@@ -772,7 +772,7 @@ int flb_engine_start(struct flb_config *config)
         return -1;
     }
 
-    flb_info("[fluentdo agent] version=%s, commit=%.10s, pid=%i",
+    flb_info("[telemetryforge agent] version=%s, commit=%.10s, pid=%i",
              FLB_VERSION_STR, FLB_GIT_HASH, getpid());
 
 #ifdef FLB_SYSTEM_WINDOWS

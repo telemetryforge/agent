@@ -11,8 +11,8 @@ load "$BATS_FILE_ROOT/load.bash"
 
 setup() {
     skipIfNotLinux
-    export INSTALL_PREFIX="/opt/fluentdo-agent"
-    export PACKAGE_NAME="fluentdo-agent"
+    export INSTALL_PREFIX="/opt/telemetryforge-agent"
+    export PACKAGE_NAME="telemetryforge-agent"
 
     # Ensure we skip tests in the container
     skipIfPackageNotInstalled
@@ -34,19 +34,19 @@ teardown() {
 # /etc/fluent-bit/fluent-bit.conf
 # /etc/fluent-bit/parsers.conf
 # /etc/fluent-bit/plugins.conf
-# /opt/fluentdo-agent/bin/fluent-bit
+# /opt/telemetryforge-agent/bin/fluent-bit
 # [/usr]/lib/systemd/system/fluent-bit.service
 
 # ============================================================================
 # Installation Directory Tests
 # ============================================================================
 
-@test "Installation directory /opt/fluentdo-agent exists" {
-    [ -d "/opt/fluentdo-agent" ]
+@test "Installation directory /opt/telemetryforge-agent exists" {
+    [ -d "/opt/telemetryforge-agent" ]
 }
 
-@test "bin directory exists at /opt/fluentdo-agent/bin" {
-    [ -d "/opt/fluentdo-agent/bin" ]
+@test "bin directory exists at /opt/telemetryforge-agent/bin" {
+    [ -d "/opt/telemetryforge-agent/bin" ]
 }
 
 # Negative test for hyphenated directory which should not be present
@@ -58,7 +58,7 @@ teardown() {
 # Binary Tests
 # ============================================================================
 
-@test "Main binary exists at /opt/fluentdo-agent/bin/fluent-bit" {
+@test "Main binary exists at /opt/telemetryforge-agent/bin/fluent-bit" {
     assert_file_exists "$INSTALL_PREFIX/bin/fluent-bit"
 }
 
@@ -128,17 +128,17 @@ teardown() {
 
 @test "Systemd service file contains correct description" {
     skipIfCentos6
-    grep -q "Description=FluentDo Agent" \
+    grep -q "Description=Telemetry Forge Agent" \
         /lib/systemd/system/fluent-bit.service 2>/dev/null || \
-    grep -q "Description=FluentDo Agent" \
+    grep -q "Description=Telemetry Forge Agent" \
         /usr/lib/systemd/system/fluent-bit.service 2>/dev/null
 }
 
 @test "Systemd service file points to correct executable" {
     skipIfCentos6
-    grep -q "ExecStart=/opt/fluentdo-agent/bin/fluent-bit" \
+    grep -q "ExecStart=/opt/telemetryforge-agent/bin/fluent-bit" \
         /lib/systemd/system/fluent-bit.service 2>/dev/null || \
-    grep -q "ExecStart=/opt/fluentdo-agent/bin/fluent-bit" \
+    grep -q "ExecStart=/opt/telemetryforge-agent/bin/fluent-bit" \
         /usr/lib/systemd/system/fluent-bit.service 2>/dev/null
 }
 

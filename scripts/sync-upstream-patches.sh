@@ -2,12 +2,12 @@
 set -euo pipefail
 
 # =============================================================================
-# FluentDo Agent - Upstream Patch Sync Tool
+# Telemetry Forge Agent - Upstream Patch Sync Tool
 # =============================================================================
 # This script helps sync specific commits from upstream Fluent Bit releases
-# to your FluentDo Agent source tree using git patches.
+# to your Telemetry Forge Agent source tree using git patches.
 #
-# Since FluentDo source tree has no git relationship with upstream,
+# Since Telemetry Forge source tree has no git relationship with upstream,
 # we use patch files to apply changes selectively.
 # =============================================================================
 
@@ -52,7 +52,7 @@ SKIP_CATEGORIES=""  # Comma-separated list of categories to skip
 
 usage() {
     cat << EOF
-${CYAN}FluentDo Upstream Patch Sync Tool${NC}
+${CYAN}Telemetry Forge Upstream Patch Sync Tool${NC}
 
 ${GREEN}Usage:${NC}
     $0 --from VERSION --to VERSION [options]
@@ -565,7 +565,7 @@ show_summary() {
 # Main execution
 main() {
     log "${CYAN}╔══════════════════════════════════════════════════════╗${NC}"
-    log "${CYAN}║        FluentDo Upstream Patch Sync Tool             ║${NC}"
+    log "${CYAN}║        Telemetry Forge Upstream Patch Sync Tool      ║${NC}"
     log "${CYAN}╚══════════════════════════════════════════════════════╝${NC}"
     echo
 

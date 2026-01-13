@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 load "$HELPERS_ROOT/test-helpers.bash"
 
-ensure_variables_set BATS_SUPPORT_ROOT BATS_ASSERT_ROOT BATS_FILE_ROOT FLUENTDO_AGENT_VERSION FLUENTDO_AGENT_URL
+ensure_variables_set BATS_SUPPORT_ROOT BATS_ASSERT_ROOT BATS_FILE_ROOT TELEMETRY_FORGE_AGENT_VERSION TELEMETRY_FORGE_AGENT_URL
 
 load "$BATS_SUPPORT_ROOT/load.bash"
 load "$BATS_ASSERT_ROOT/load.bash"
@@ -9,7 +9,7 @@ load "$BATS_FILE_ROOT/load.bash"
 
 # bats file_tags=integration,linux
 
-# BATS tests for verifying FluentDo Agent package downloads
+# BATS tests for verifying Telemetry Forge Agent package downloads
 
 setupFile() {
     skipIfNotLinux
@@ -29,13 +29,13 @@ setupFile() {
 }
 
 # Test that URL is set
-@test "integration: FLUENTDO_AGENT_URL is set" {
-    [ -n "$FLUENTDO_AGENT_URL" ]
+@test "integration: TELEMETRY_FORGE_AGENT_URL is set" {
+    [ -n "$TELEMETRY_FORGE_AGENT_URL" ]
 }
 
 # Test that we can fetch the top-level index
-@test "integration: can access index at $FLUENTDO_AGENT_URL/index.html" {
-    response=$(curl -s -o /dev/null -w "%{http_code}" "$FLUENTDO_AGENT_URL/index.html")
+@test "integration: can access index at $TELEMETRY_FORGE_AGENT_URL/index.html" {
+    response=$(curl -s -o /dev/null -w "%{http_code}" "$TELEMETRY_FORGE_AGENT_URL/index.html")
     [ "$response" = "200" ]
 }
 
@@ -47,7 +47,7 @@ setupFile() {
 
     run "$install_script" -h
     assert_success
-    assert_output --partial 'FluentDo Agent Installer'
+    assert_output --partial 'Telemetry Forge Agent Installer'
 }
 
 function download_package_test() {

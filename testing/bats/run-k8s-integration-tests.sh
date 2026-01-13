@@ -19,11 +19,11 @@ REPO_ROOT=${REPO_ROOT:-"$SCRIPT_DIR/../.."}
 # Allow overriding container runtime, default to docker
 export CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
 
-export FLUENTDO_AGENT_IMAGE=${FLUENTDO_AGENT_IMAGE:-ghcr.io/fluentdo/agent/ubi}
+export TELEMETRY_FORGE_AGENT_IMAGE=${TELEMETRY_FORGE_AGENT_IMAGE:-ghcr.io/telemetryforge/agent/ubi}
 # Set this to `local` to build and use a local image
-export FLUENTDO_AGENT_TAG=${FLUENTDO_AGENT_TAG:-main}
+export TELEMETRY_FORGE_AGENT_TAG=${TELEMETRY_FORGE_AGENT_TAG:-main}
 
-CONTAINER_IMAGE="${FLUENTDO_AGENT_IMAGE}:${FLUENTDO_AGENT_TAG}"
+CONTAINER_IMAGE="${TELEMETRY_FORGE_AGENT_IMAGE}:${TELEMETRY_FORGE_AGENT_TAG}"
 KIND_CLUSTER_NAME=${KIND_CLUSTER_NAME:-kind}
 KIND_VERSION=${KIND_VERSION:-v1.34.0}
 KIND_NODE_IMAGE=${KIND_NODE_IMAGE:-kindest/node:$KIND_VERSION}
@@ -33,9 +33,9 @@ echo "INFO: Using KIND cluster name: $KIND_CLUSTER_NAME"
 echo "INFO: Using KIND node image: $KIND_NODE_IMAGE"
 
 # Always attempt to pull the latest image unless we are using a local image
-if [[ "$FLUENTDO_AGENT_TAG" == "local" ]]; then
-	# Build the local image if needed, assume if FLUENTDO_AGENT_IMAGE ends in "ubi" we build the Dockerfile.ubi
-	if [[ "$FLUENTDO_AGENT_IMAGE" == *"ubi" ]]; then
+if [[ "$TELEMETRY_FORGE_AGENT_TAG" == "local" ]]; then
+	# Build the local image if needed, assume if TELEMETRY_FORGE_AGENT_IMAGE ends in "ubi" we build the Dockerfile.ubi
+	if [[ "$TELEMETRY_FORGE_AGENT_IMAGE" == *"ubi" ]]; then
 		echo "INFO: Building local UBI image"
 		"$CONTAINER_RUNTIME" build -t "$CONTAINER_IMAGE" -f "$REPO_ROOT"/Dockerfile.ubi "$REPO_ROOT"
 	else

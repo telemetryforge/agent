@@ -312,7 +312,7 @@ COPY . ./
 WORKDIR /tmp/fluent-bit/build/
 # CMake configuration variables
 ARG CFLAGS="-std=gnu99"
-ARG CMAKE_INSTALL_PREFIX=/opt/fluentdo-agent/
+ARG CMAKE_INSTALL_PREFIX=/opt/telemetryforge-agent/
 ARG CMAKE_INSTALL_SYSCONFDIR=/etc/
 
 ENV CFLAGS=$CFLAGS

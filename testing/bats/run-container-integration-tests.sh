@@ -13,8 +13,8 @@ while [ -L "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 
-export FLUENTDO_AGENT_IMAGE=${FLUENTDO_AGENT_IMAGE:?}
-export FLUENTDO_AGENT_TAG=${FLUENTDO_AGENT_TAG:?}
+export TELEMETRY_FORGE_AGENT_IMAGE=${TELEMETRY_FORGE_AGENT_IMAGE:?}
+export TELEMETRY_FORGE_AGENT_TAG=${TELEMETRY_FORGE_AGENT_TAG:?}
 export CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
 
 "$SCRIPT_DIR"/run-bats.sh --filter-tags 'integration,containers' --recursive "$SCRIPT_DIR/tests"

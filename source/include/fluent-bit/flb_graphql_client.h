@@ -29,7 +29,8 @@
 
 /* Agent kinds */
 #define FLB_GRAPHQL_AGENT_KIND_FLUENTBIT "FLUENTBIT"
-#define FLB_GRAPHQL_AGENT_KIND_FLUENTDO  "FLUENTDO"
+#define FLB_GRAPHQL_AGENT_KIND_FLUENTDO "FLUENTDO"
+#define FLB_GRAPHQL_AGENT_KIND_TELEMETRY_FORGE  "TELEMETRY_FORGE"
 
 /* Agent status */
 #define FLB_GRAPHQL_AGENT_STATUS_RUNNING "RUNNING"
@@ -100,7 +101,7 @@ struct flb_graphql_label_id {
 /* Query agents input parameters */
 struct flb_graphql_query_agents_input {
     const char *org_id;          /* Required */
-    const char *kind;            /* Optional: FLUENTBIT or FLUENTDO */
+    const char *kind;            /* Optional: FLUENTBIT, FLUENTDO or TELEMETRY_FORGE */
     const char *name;            /* Optional */
     int name_exact;              /* Optional: exact name match */
     const char *version;         /* Optional */
@@ -117,7 +118,7 @@ struct flb_graphql_query_agents_input {
 
 /* Create agent input parameters */
 struct flb_graphql_create_agent_input {
-    const char *kind;            /* Required: FLUENTBIT or FLUENTDO */
+    const char *kind;            /* Required: FLUENTBIT, FLUENTDO or TELEMETRY_FORGE */
     const char *name;            /* Required */
     const char *version;         /* Required */
     const char *config;          /* Required */

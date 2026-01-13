@@ -42,16 +42,17 @@
 #endif
 #include <time.h>
 
-#define FLUENTDO_DEFAULT_URL "https://api.fluent.do/graphql"
-#define FLUENTDO_DEFAULT_INTERVAL 60
-#define FLUENTDO_SESSION_FILE "session"
+/* Ensure we update the default once ready: https://github.com/telemetryforge/agent/issues/183 */
+#define TELEMETRY_FORGE_DEFAULT_URL "https://api.fluent.do/graphql"
+#define TELEMETRY_FORGE_DEFAULT_INTERVAL 60
+#define TELEMETRY_FORGE_SESSION_FILE "session"
 
 /* Macro for stringifying build metadata */
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
 /* Plugin context */
-struct flb_in_fluentdo {
+struct flb_in_telemetryforge {
     struct flb_graphql_client *graphql_client;
     struct flb_input_instance *ins;
 
@@ -176,7 +177,7 @@ static struct mk_list *parse_labels(struct flb_input_instance *ins,
 }
 
 /* Load session from file store */
-static int load_session(struct flb_in_fluentdo *ctx)
+static int load_session(struct flb_in_telemetryforge *ctx)
 {
     int ret;
     int i;
@@ -239,7 +240,7 @@ static int load_session(struct flb_in_fluentdo *ctx)
 }
 
 /* Save session to file store */
-static int save_session(struct flb_in_fluentdo *ctx)
+static int save_session(struct flb_in_telemetryforge *ctx)
 {
     int ret;
     msgpack_sbuffer mp_sbuf;
@@ -256,7 +257,7 @@ static int save_session(struct flb_in_fluentdo *ctx)
 
     /* Create new session file with size hint */
     ctx->fs_file = flb_fstore_file_create(ctx->fs, ctx->fs_stream,
-                                          FLUENTDO_SESSION_FILE, 1024);
+                                          TELEMETRY_FORGE_SESSION_FILE, 1024);
     if (!ctx->fs_file) {
         flb_plg_error(ctx->ins, "could not create session file");
         return -1;
@@ -298,7 +299,7 @@ static int save_session(struct flb_in_fluentdo *ctx)
 }
 
 /* Initialize file store */
-static int store_init(struct flb_in_fluentdo *ctx)
+static int store_init(struct flb_in_telemetryforge *ctx)
 {
     struct flb_fstore_file *fsf;
 
@@ -314,7 +315,7 @@ static int store_init(struct flb_in_fluentdo *ctx)
     }
 
     /* Create stream */
-    ctx->fs_stream = flb_fstore_stream_create(ctx->fs, "fluentdo");
+    ctx->fs_stream = flb_fstore_stream_create(ctx->fs, "telemetryforge");
     if (!ctx->fs_stream) {
         flb_plg_error(ctx->ins, "could not create storage stream");
         return -1;
@@ -322,8 +323,8 @@ static int store_init(struct flb_in_fluentdo *ctx)
 
     /* Look for existing session file */
     fsf = flb_fstore_file_get(ctx->fs, ctx->fs_stream,
-                              FLUENTDO_SESSION_FILE,
-                              strlen(FLUENTDO_SESSION_FILE));
+                              TELEMETRY_FORGE_SESSION_FILE,
+                              strlen(TELEMETRY_FORGE_SESSION_FILE));
     if (fsf) {
         ctx->fs_file = fsf;
         load_session(ctx);
@@ -374,8 +375,8 @@ static uint64_t collect_output_bytes(struct flb_config *config)
     return total;
 }
 
-/* Send metrics to FluentDo API */
-static int send_metrics(struct flb_in_fluentdo *ctx, struct flb_config *config)
+/* Send metrics to Telemetry Forge API */
+static int send_metrics(struct flb_in_telemetryforge *ctx, struct flb_config *config)
 {
     int ret;
     uint64_t input_bytes;
@@ -433,10 +434,10 @@ static int send_metrics(struct flb_in_fluentdo *ctx, struct flb_config *config)
 }
 
 /* Collector callback - called periodically */
-static int cb_fluentdo_collect(struct flb_input_instance *ins,
+static int cb_telemetryforge_collect(struct flb_input_instance *ins,
                                struct flb_config *config, void *in_context)
 {
-    struct flb_in_fluentdo *ctx = in_context;
+    struct flb_in_telemetryforge *ctx = in_context;
 
     flb_plg_debug(ins, "metrics collector triggered");
 
@@ -449,12 +450,12 @@ static int cb_fluentdo_collect(struct flb_input_instance *ins,
 }
 
 /* Callback for plugin initialization */
-static int cb_fluentdo_init(struct flb_input_instance *ins,
+static int cb_telemetryforge_init(struct flb_input_instance *ins,
                             struct flb_config *config,
                             void *data)
 {
     int ret;
-    struct flb_in_fluentdo *ctx;
+    struct flb_in_telemetryforge *ctx;
     struct flb_graphql_create_agent_input input;
     struct flb_graphql_create_agent_result result;
     struct flb_graphql_client *update_client;
@@ -465,7 +466,7 @@ static int cb_fluentdo_init(struct flb_input_instance *ins,
     const char *distro = NULL;
     const char *package_type = NULL;
 
-    ctx = flb_calloc(1, sizeof(struct flb_in_fluentdo));
+    ctx = flb_calloc(1, sizeof(struct flb_in_telemetryforge));
     if (!ctx) {
         flb_errno();
         return -1;
@@ -481,18 +482,20 @@ static int cb_fluentdo_init(struct flb_input_instance *ins,
 
     /* Set default interval if not provided */
     if (ctx->interval_sec <= 0) {
-        ctx->interval_sec = FLUENTDO_DEFAULT_INTERVAL;
+        ctx->interval_sec = TELEMETRY_FORGE_DEFAULT_INTERVAL;
     }
 
     /* Set default agent_kind to fluentdo if not provided */
     if (!ctx->agent_kind) {
+        /* Ensure we update the default once ready: https://github.com/telemetryforge/agent/issues/183 */
         ctx->agent_kind = flb_strdup("fluentdo");
     }
 
     /* Validate agent_kind */
     if (strcasecmp(ctx->agent_kind, "fluentbit") != 0 &&
-        strcasecmp(ctx->agent_kind, "fluentdo") != 0) {
-        flb_plg_error(ins, "invalid agent_kind: %s (must be 'fluentbit' or 'fluentdo')",
+        strcasecmp(ctx->agent_kind, "fluentdo") != 0 &&
+        strcasecmp(ctx->agent_kind, "telemetryforge") != 0) {
+        flb_plg_error(ins, "invalid agent_kind: %s (must be 'fluentbit', 'fluentdo' or 'telemetryforge')",
                       ctx->agent_kind);
         flb_free(ctx);
         return -1;
@@ -528,14 +531,14 @@ static int cb_fluentdo_init(struct flb_input_instance *ins,
         commit_hash = "unknown";
 #endif
 
-#ifdef FLUENTDO_AGENT_DISTRO
-        build_distro = TOSTRING(FLUENTDO_AGENT_DISTRO);
+#ifdef TELEMETRY_FORGE_AGENT_DISTRO
+        build_distro = TOSTRING(TELEMETRY_FORGE_AGENT_DISTRO);
 #else
         build_distro = "unknown";
 #endif
 
-#ifdef FLUENTDO_AGENT_PACKAGE_TYPE
-        build_package_type = TOSTRING(FLUENTDO_AGENT_PACKAGE_TYPE);
+#ifdef TELEMETRY_FORGE_AGENT_PACKAGE_TYPE
+        build_package_type = TOSTRING(TELEMETRY_FORGE_AGENT_PACKAGE_TYPE);
 #else
         build_package_type = "unknown";
 #endif
@@ -597,6 +600,8 @@ static int cb_fluentdo_init(struct flb_input_instance *ins,
 
         /* Prepare registration input */
         input.kind = (strcasecmp(ctx->agent_kind, "fluentbit") == 0) ?
+        /* Ensure we update the default once ready: https://github.com/telemetryforge/agent/issues/183
+                     FLB_GRAPHQL_AGENT_KIND_FLUENTBIT : FLB_GRAPHQL_AGENT_KIND_TELEMETRY_FORGE;*/
                      FLB_GRAPHQL_AGENT_KIND_FLUENTBIT : FLB_GRAPHQL_AGENT_KIND_FLUENTDO;
         input.name = ctx->agent_name;
         input.version = version;
@@ -606,14 +611,14 @@ static int cb_fluentdo_init(struct flb_input_instance *ins,
         input.labels = ctx->labels;
 
         /* Set build metadata if available */
-#ifdef FLUENTDO_AGENT_DISTRO
-        input.distro = TOSTRING(FLUENTDO_AGENT_DISTRO);
+#ifdef TELEMETRY_FORGE_AGENT_DISTRO
+        input.distro = TOSTRING(TELEMETRY_FORGE_AGENT_DISTRO);
 #else
         input.distro = NULL;
 #endif
 
-#ifdef FLUENTDO_AGENT_PACKAGE_TYPE
-        input.package_type = TOSTRING(FLUENTDO_AGENT_PACKAGE_TYPE);
+#ifdef TELEMETRY_FORGE_AGENT_PACKAGE_TYPE
+        input.package_type = TOSTRING(TELEMETRY_FORGE_AGENT_PACKAGE_TYPE);
 #else
         input.package_type = NULL;
 #endif
@@ -683,12 +688,12 @@ static int cb_fluentdo_init(struct flb_input_instance *ins,
         /* Update agent config and labels using agent token */
         if (config_content || (ctx->labels && mk_list_size(ctx->labels) > 0)) {
             /* Set build metadata if available */
-#ifdef FLUENTDO_AGENT_DISTRO
-            distro = TOSTRING(FLUENTDO_AGENT_DISTRO);
+#ifdef TELEMETRY_FORGE_AGENT_DISTRO
+            distro = TOSTRING(TELEMETRY_FORGE_AGENT_DISTRO);
 #endif
 
-#ifdef FLUENTDO_AGENT_PACKAGE_TYPE
-            package_type = TOSTRING(FLUENTDO_AGENT_PACKAGE_TYPE);
+#ifdef TELEMETRY_FORGE_AGENT_PACKAGE_TYPE
+            package_type = TOSTRING(TELEMETRY_FORGE_AGENT_PACKAGE_TYPE);
 #endif
 
             /* Create GraphQL client with agent token for update */
@@ -723,7 +728,7 @@ static int cb_fluentdo_init(struct flb_input_instance *ins,
     /* Set up periodic collector */
     flb_plg_debug(ins, "setting up collector with interval=%d seconds", ctx->interval_sec);
     ret = flb_input_set_collector_time(ins,
-                                       cb_fluentdo_collect,
+                                       cb_telemetryforge_collect,
                                        ctx->interval_sec, 0,
                                        config);
     if (ret == -1) {
@@ -748,9 +753,9 @@ static int cb_fluentdo_init(struct flb_input_instance *ins,
 }
 
 /* Callback for plugin cleanup */
-static int cb_fluentdo_exit(void *data, struct flb_config *config)
+static int cb_telemetryforge_exit(void *data, struct flb_config *config)
 {
-    struct flb_in_fluentdo *ctx = data;
+    struct flb_in_telemetryforge *ctx = data;
     struct mk_list *head, *tmp;
     struct flb_graphql_label *label;
 
@@ -793,57 +798,58 @@ static int cb_fluentdo_exit(void *data, struct flb_config *config)
 /* Plugin configuration map */
 static struct flb_config_map config_map[] = {
     {
-     FLB_CONFIG_MAP_STR, "api_url", FLUENTDO_DEFAULT_URL,
-     0, FLB_TRUE, offsetof(struct flb_in_fluentdo, api_url),
-     "FluentDo Manager GraphQL API endpoint URL"
+     FLB_CONFIG_MAP_STR, "api_url", TELEMETRY_FORGE_DEFAULT_URL,
+     0, FLB_TRUE, offsetof(struct flb_in_telemetryforge, api_url),
+     "Telemetry Forge Manager GraphQL API endpoint URL"
     },
     {
      FLB_CONFIG_MAP_STR, "api_token", NULL,
-     0, FLB_TRUE, offsetof(struct flb_in_fluentdo, api_token),
-     "FluentDo Manager API token for registration"
+     0, FLB_TRUE, offsetof(struct flb_in_telemetryforge, api_token),
+     "Telemetry Forge Manager API token for registration"
     },
     {
      FLB_CONFIG_MAP_STR, "agent_name", NULL,
-     0, FLB_TRUE, offsetof(struct flb_in_fluentdo, agent_name),
+     0, FLB_TRUE, offsetof(struct flb_in_telemetryforge, agent_name),
      "Agent name (defaults to hostname)"
     },
     {
      FLB_CONFIG_MAP_STR, "agent_kind", "fluentdo",
-     0, FLB_TRUE, offsetof(struct flb_in_fluentdo, agent_kind),
-     "Agent kind: 'fluentbit' or 'fluentdo' (default: 'fluentdo')"
+     0, FLB_TRUE, offsetof(struct flb_in_telemetryforge, agent_kind),
+     /* Ensure we update the default once ready: https://github.com/telemetryforge/agent/issues/183 */
+     "Agent kind: 'fluentbit', 'fluentdo' or 'telemetryforge' (default: 'fluentdo')"
     },
     {
      FLB_CONFIG_MAP_INT, "interval_sec", "60",
-     0, FLB_TRUE, offsetof(struct flb_in_fluentdo, interval_sec),
+     0, FLB_TRUE, offsetof(struct flb_in_telemetryforge, interval_sec),
      "Interval in seconds for metrics reporting"
     },
     {
      FLB_CONFIG_MAP_STR, "store_path", NULL,
-     0, FLB_TRUE, offsetof(struct flb_in_fluentdo, store_path),
+     0, FLB_TRUE, offsetof(struct flb_in_telemetryforge, store_path),
      "Path to store session state (agent_id and token)"
     },
     {
      FLB_CONFIG_MAP_STR, "proxy", NULL,
-     0, FLB_FALSE, offsetof(struct flb_in_fluentdo, proxy),
+     0, FLB_FALSE, offsetof(struct flb_in_telemetryforge, proxy),
      "Specify an HTTP Proxy in format http://host:port"
     },
     {
      FLB_CONFIG_MAP_STR, "label", NULL,
-     FLB_CONFIG_MAP_MULT, FLB_TRUE, offsetof(struct flb_in_fluentdo, label_list),
+     FLB_CONFIG_MAP_MULT, FLB_TRUE, offsetof(struct flb_in_telemetryforge, label_list),
      "Agent labels in key=value format (can be specified multiple times)"
     },
     {0}
 };
 
 /* Plugin registration */
-struct flb_input_plugin in_fluentdo_plugin = {
-    .name         = "fluentdo",
-    .description  = "FluentDo Manager Agent Integration with Metrics",
-    .cb_init      = cb_fluentdo_init,
+struct flb_input_plugin in_telemetryforge_plugin = {
+    .name         = "telemetryforge",
+    .description  = "Telemetry Forge Manager Agent Integration with Metrics",
+    .cb_init      = cb_telemetryforge_init,
     .cb_pre_run   = NULL,
-    .cb_collect   = cb_fluentdo_collect,
+    .cb_collect   = cb_telemetryforge_collect,
     .cb_flush_buf = NULL,
-    .cb_exit      = cb_fluentdo_exit,
+    .cb_exit      = cb_telemetryforge_exit,
     .config_map   = config_map,
     .flags        = 0
 };

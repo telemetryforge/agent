@@ -19,21 +19,21 @@ PATCH_LIST=${PATCH_LIST:-$PATCH_DIR/patches-agent.files}
 CUSTOM_DIR=${CUSTOM_DIR:-$REPO_ROOT/custom}
 
 # Change via ./scripts/update-version.sh only
-export FLUENTDO_AGENT_VERSION=${FLUENTDO_AGENT_VERSION:-26.1.3}
+export TELEMETRY_FORGE_AGENT_VERSION=${TELEMETRY_FORGE_AGENT_VERSION:-26.1.3}
 
 # Handle version string with or without a v prefix - we just want semver
-if [[ "$FLUENTDO_AGENT_VERSION" =~ ^v?([0-9]+\.[0-9]+\.[0-9]+)$ ]] ; then
-    FLUENTDO_AGENT_VERSION=${BASH_REMATCH[1]}
-    echo "Valid FluentDo agent version string: $FLUENTDO_AGENT_VERSION"
+if [[ "$TELEMETRY_FORGE_AGENT_VERSION" =~ ^v?([0-9]+\.[0-9]+\.[0-9]+)$ ]] ; then
+    TELEMETRY_FORGE_AGENT_VERSION=${BASH_REMATCH[1]}
+    echo "Valid Telemetry Forge agent version string: $TELEMETRY_FORGE_AGENT_VERSION"
 else
-    echo "ERROR: Invalid FluentDo agent semver string: $FLUENTDO_AGENT_VERSION"
+    echo "ERROR: Invalid Telemetry Forge agent semver string: $TELEMETRY_FORGE_AGENT_VERSION"
     exit 1
 fi
 
 # shellcheck disable=SC1091
 source "$SCRIPT_DIR"/common.sh
 
-echo "Setting up $FLUENTDO_AGENT_VERSION in directory: $SOURCE_DIR"
+echo "Setting up $TELEMETRY_FORGE_AGENT_VERSION in directory: $SOURCE_DIR"
 
 # Source is maintained directly in the repository, no cloning needed
 if [[ ! -d "$SOURCE_DIR" ]]; then
@@ -68,27 +68,27 @@ fi
 FLB_CMAKE="$SOURCE_DIR"/CMakeLists.txt
 
 # Compose new version: it must be in the format X.Y.Z, e.g. 22.4.1 or 22.4.1-rc1
-CFB_MAJOR=$(echo "$FLUENTDO_AGENT_VERSION" | cut -d. -f1)
-CFB_MINOR=$(echo "$FLUENTDO_AGENT_VERSION" | cut -d. -f2)
-CFB_PATCH=$(echo "$FLUENTDO_AGENT_VERSION" | cut -d. -f3)
+CFB_MAJOR=$(echo "$TELEMETRY_FORGE_AGENT_VERSION" | cut -d. -f1)
+CFB_MINOR=$(echo "$TELEMETRY_FORGE_AGENT_VERSION" | cut -d. -f2)
+CFB_PATCH=$(echo "$TELEMETRY_FORGE_AGENT_VERSION" | cut -d. -f3)
 
 # Cope with custom versions
 CFB_PATCH_EXTRA=''
 if [[ "$CFB_PATCH" == *-* ]]; then
-    CFB_PATCH=$(echo "$FLUENTDO_AGENT_VERSION" | cut -d. -f3 | cut -d- -f1)
-    CFB_PATCH_EXTRA=$(echo "$FLUENTDO_AGENT_VERSION" | cut -d. -f3 | cut -d- -f2)
+    CFB_PATCH=$(echo "$TELEMETRY_FORGE_AGENT_VERSION" | cut -d. -f3 | cut -d- -f1)
+    CFB_PATCH_EXTRA=$(echo "$TELEMETRY_FORGE_AGENT_VERSION" | cut -d. -f3 | cut -d- -f2)
 fi
 
 if [[ -z "$CFB_MAJOR" ]]; then
-    echo "ERROR: CFB_MAJOR is empty, invalid version: $FLUENTDO_AGENT_VERSION"
+    echo "ERROR: CFB_MAJOR is empty, invalid version: $TELEMETRY_FORGE_AGENT_VERSION"
     exitCode=1
 fi
 if [[ -z "$CFB_MINOR" ]]; then
-    echo "ERROR: CFB_MINOR is empty, invalid version: $FLUENTDO_AGENT_VERSION"
+    echo "ERROR: CFB_MINOR is empty, invalid version: $TELEMETRY_FORGE_AGENT_VERSION"
     exitCode=1
 fi
 if [[ -z "$CFB_PATCH" ]]; then
-    echo "ERROR: CFB_PATCH is empty, invalid version: $FLUENTDO_AGENT_VERSION"
+    echo "ERROR: CFB_PATCH is empty, invalid version: $TELEMETRY_FORGE_AGENT_VERSION"
     exitCode=1
 fi
 
@@ -120,10 +120,10 @@ if [[ -n "$CPACK_PACKAGE_NAME_SUFFIX" ]] && [[ $CPACK_PACKAGE_NAME_SUFFIX != -* 
 fi
 echo "CPACK_PACKAGE_NAME_SUFFIX: $CPACK_PACKAGE_NAME_SUFFIX"
 
-sed_wrapper -i "s/CPACK_PACKAGE_NAME \"fluent-bit\"/CPACK_PACKAGE_NAME \"fluentdo-agent${CPACK_PACKAGE_NAME_SUFFIX}\"/g" "$FLB_CMAKE"
+sed_wrapper -i "s/CPACK_PACKAGE_NAME \"fluent-bit\"/CPACK_PACKAGE_NAME \"telemetryforge-agent${CPACK_PACKAGE_NAME_SUFFIX}\"/g" "$FLB_CMAKE"
 
-sed_wrapper -i "s/CPACK_PACKAGE_VENDOR \"Fluent Bit\"/CPACK_PACKAGE_VENDOR \"FluentDo\"/g" "$FLB_CMAKE"
-sed_wrapper -i "s/Eduardo Silva <eduardo.silva@chronosphere.io>/Fluent Do <info@fluent.do>/g" "$FLB_CMAKE"
-sed_wrapper -i "s/Chronosphere Inc./FluentDo <https:\/\/fluent.do>/g" "$FLB_CMAKE"
+sed_wrapper -i "s/CPACK_PACKAGE_VENDOR \"Fluent Bit\"/CPACK_PACKAGE_VENDOR \"Telemetry Forge\"/g" "$FLB_CMAKE"
+sed_wrapper -i "s/Eduardo Silva <eduardo.silva@chronosphere.io>/Telemetry Forge <info@fluent.do>/g" "$FLB_CMAKE"
+sed_wrapper -i "s/Chronosphere Inc./Telemetry Forge <https:\/\/telemetryforge.io>/g" "$FLB_CMAKE"
 
 # Source is maintained directly, no need to remove git directories

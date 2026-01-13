@@ -137,7 +137,7 @@ COPY . ./
 
 WORKDIR /tmp/fluent-bit/build/
 # CMake configuration variables
-ARG CMAKE_INSTALL_PREFIX=/opt/fluentdo-agent/
+ARG CMAKE_INSTALL_PREFIX=/opt/telemetryforge-agent/
 ARG CMAKE_INSTALL_SYSCONFDIR=/etc/
 
 RUN cmake -DCMAKE_INSTALL_PREFIX="$CMAKE_INSTALL_PREFIX" \

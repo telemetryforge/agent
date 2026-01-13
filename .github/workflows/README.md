@@ -1,8 +1,8 @@
 # GitHub Actions CI/CD Documentation
 
-This directory contains the GitHub Actions workflows and reusable actions for the FluentDo Agent project. The CI/CD pipeline automates building, testing, packaging, and releasing the agent across multiple platforms.
+This directory contains the GitHub Actions workflows and reusable actions for the Agent project. The CI/CD pipeline automates building, testing, packaging, and releasing the agent across multiple platforms.
 
-[![Coverage Status](https://coveralls.io/repos/github/FluentDo/agent/badge.svg)](https://coveralls.io/github/FluentDo/agent)
+[![Coverage Status](https://coveralls.io/repos/github/telemetryforge/agent/badge.svg)](https://coveralls.io/github/telemetryforge/agent)
 
 ## Table of Contents
 
@@ -72,7 +72,7 @@ The CI/CD pipeline is designed to:
 - Push of version tags (`v*`)
 - Manual workflow dispatch
 
-**Purpose:** Main CI/CD workflow that orchestrates building, testing, and releasing the FluentDo Agent.
+**Purpose:** Main CI/CD workflow that orchestrates building, testing, and releasing the Agent.
 
 **Jobs:**
 
@@ -100,7 +100,7 @@ The CI/CD pipeline is designed to:
 
 **Outputs:**
 
-- Container images pushed to `ghcr.io/fluentdo/agent`
+- Container images pushed to `ghcr.io/telemetryforge/agent`
 - Linux packages (DEB, RPM)
 - Windows packages (EXE, MSI, ZIP)
 - macOS packages (PKG)
@@ -196,7 +196,7 @@ The CI/CD pipeline is designed to:
 
 **Inputs:**
 
-- `image` - Full image name (default: `ghcr.io/fluentdo/agent`)
+- `image` - Full image name (default: `ghcr.io/telemetryforge/agent`)
 - `image-tag` - Image tag to test (required)
 - `ref` - Repository reference to use (default: `main`)
 
@@ -548,8 +548,8 @@ The CI/CD pipeline is designed to:
 
 **Key Features:**
 
-- UBI image promotion to `ghcr.io/fluentdo/agent:version`
-- Debian image promotion to `ghcr.io/fluentdo/agent:version-slim`
+- UBI image promotion to `ghcr.io/telemetryforge/agent:version`
+- Debian image promotion to `ghcr.io/telemetryforge/agent:version-slim`
 - Red Hat certification submission
 - Skopeo for multi-arch image copying
 - Preflight validation before submission
@@ -873,9 +873,9 @@ Example structure:
 
 Common environment variables used across workflows:
 
-- `FLUENTDO_AGENT_VERSION` - Version being built
-- `FLUENTDO_AGENT_IMAGE` - Container image name
-- `FLUENTDO_AGENT_TAG` - Container image tag
+- `TELEMETRY_FORGE_AGENT_VERSION` - Version being built
+- `TELEMETRY_FORGE_AGENT_IMAGE` - Container image name
+- `TELEMETRY_FORGE_AGENT_TAG` - Container image tag
 - `FLUENT_BIT_BINARY` - Path to Fluent Bit binary for testing
 - `FLB_NIGHTLY_BUILD` - Nightly build information
 - `VCPKG_BUILD_TYPE` - vcpkg build type (Windows)
@@ -970,6 +970,6 @@ When adding new workflows:
 
 For issues or questions:
 
-- GitHub Issues: <https://github.com/FluentDo/agent/issues>
+- GitHub Issues: <https://github.com/telemetryforge/agent/issues>
 - Documentation: <https://fluent.do>
 - Email: <info@fluent.do>

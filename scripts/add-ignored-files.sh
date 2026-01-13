@@ -24,7 +24,7 @@ do
     [[ ! -f "$ignoredFile" ]] && continue
 
     actualFile=${ignoredFile##"$SOURCE_DIR"/}
-    url="https://raw.githubusercontent.com/FluentDo/fluent-bit/refs/tags/$FLUENT_BIT_VERSION/$actualFile"
+    url="https://raw.githubusercontent.com/fluent/fluent-bit/refs/tags/$FLUENT_BIT_VERSION/$actualFile"
 
     if curl -sfILo/dev/null "$url"; then
       echo "Adding $actualFile"

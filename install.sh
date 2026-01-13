@@ -1,24 +1,24 @@
 #!/bin/bash
 
-# FluentDo Agent Installer
+# Telemetry Forge Agent Installer
 #
-# Downloads and installs the FluentDo Agent from packages.fluent.do
+# Downloads and installs the Telemetry Forge Agent from packages.fluent.do
 # You can also download direct from https://packages.fluent.do/index.html
 #
 # All packages follow the following URL format:
-# https://packages.fluent.do/<FLUENTDO_AGENT_VERSION>/output/<OS + ARCH>/<PACKAGE NAME>
+# https://packages.fluent.do/<TELEMETRY_FORGE_AGENT_VERSION>/output/<OS + ARCH>/<PACKAGE NAME>
 # e.g.
-# https://packages.fluent.do/25.10.1/output/package-debian-bookworm.arm64v8/fluentdo-agent_25.10.1_arm64.deb
-# https://packages.fluent.do/25.10.1/output/package-almalinux-8/fluentdo-agent-25.10.1-1.x86_64.rpm
+# https://packages.fluent.do/26.1.3/output/package-debian-bookworm.arm64v8/telemetryforge-agent_26.1.3_arm64.deb
+# https://packages.fluent.do/26.1.3/output/package-almalinux-8/telemetryforge-agent-26.1.3-1.x86_64.rpm
 
 set -e
 
 # The URL to get packages from
-FLUENTDO_AGENT_URL="${FLUENTDO_AGENT_URL:-https://packages.fluent.do}"
+TELEMETRY_FORGE_AGENT_URL="${TELEMETRY_FORGE_AGENT_URL:-https://packages.fluent.do}"
 # Any logs from this script
-LOG_FILE="${LOG_FILE:-$PWD/fluentdo-agent-install.log}"
+LOG_FILE="${LOG_FILE:-$PWD/telemetryforge-agent-install.log}"
 # The output binary to test
-FLUENTDO_AGENT_BINARY=${FLUENTDO_AGENT_BINARY:-/opt/fluentdo-agent/bin/fluent-bit}
+TELEMETRY_FORGE_AGENT_BINARY=${TELEMETRY_FORGE_AGENT_BINARY:-/opt/telemetryforge-agent/bin/fluent-bit}
 # Where to download files
 DOWNLOAD_DIR=${DOWNLOAD_DIR:-$(mktemp -d)}
 
@@ -346,14 +346,14 @@ detect_distro() {
 
 # Fetch available versions from packages.fluent.do
 fetch_available_versions() {
-    log "Fetching available versions from $FLUENTDO_AGENT_URL..."
+    log "Fetching available versions from $TELEMETRY_FORGE_AGENT_URL..."
 
     local versions_response
     # Fetch the response
-    versions_response=$(curl -s -L "$FLUENTDO_AGENT_URL/" 2>/dev/null || echo "")
+    versions_response=$(curl -s -L "$TELEMETRY_FORGE_AGENT_URL/" 2>/dev/null || echo "")
 
     if [ -z "$versions_response" ]; then
-        log_error "Failed to fetch versions from $FLUENTDO_AGENT_URL"
+        log_error "Failed to fetch versions from $TELEMETRY_FORGE_AGENT_URL"
         log_debug "curl returned empty response"
         return 1
     fi
@@ -382,7 +382,7 @@ fetch_available_versions() {
     fi
 
     if [ -z "$AVAILABLE_VERSIONS" ]; then
-        log_error "No versions found at $FLUENTDO_AGENT_URL"
+        log_error "No versions found at $TELEMETRY_FORGE_AGENT_URL"
         log_debug "Response preview (first 500 chars):"
         log_debug "$(echo "$versions_response" | head -c 500)"
         return 1
@@ -410,7 +410,7 @@ get_latest_version() {
 # List available versions
 list_versions() {
     echo ""
-    echo -e "${BLUE}Available FluentDo Agent Versions:${NC}"
+    echo -e "${BLUE}Available Agent Versions:${NC}"
     echo ""
     local count=0
     while IFS= read -r version; do
@@ -585,29 +585,29 @@ find_package() {
 
     case "$pkg_format" in
         deb)
-            # Debian package naming: fluentdo-agent_<version>_<arch>.deb
+            # Debian package naming: telemetryforge-agent_<version>_<arch>.deb
             package_filenames=(
-                "fluentdo-agent_${version}_${arch_type}.deb"
-                "fluentdo-agent_${version}_${deb_arch_type}.deb"
-                "fluentdo-agent-${version}_${arch_type}.deb"
-                "fluentdo-agent-${version}_${deb_arch_type}.deb"
+                "telemetryforge-agent_${version}_${arch_type}.deb"
+                "telemetryforge-agent_${version}_${deb_arch_type}.deb"
+                "telemetryforge-agent-${version}_${arch_type}.deb"
+                "telemetryforge-agent-${version}_${deb_arch_type}.deb"
             )
             log_debug "Looking for .deb files with patterns: ${package_filenames[*]}"
             ;;
         rpm)
-            # RPM package naming: fluentdo-agent-<version>-1.<arch>.rpm
+            # RPM package naming: telemetryforge-agent-<version>-1.<arch>.rpm
             package_filenames=(
-                "fluentdo-agent-${version}-1.${arch_type}.rpm"
-                "fluentdo-agent-${version}-1.${rpm_arch_type}.rpm"
-                "fluentdo-agent-${version}-1.noarch.rpm"
+                "telemetryforge-agent-${version}-1.${arch_type}.rpm"
+                "telemetryforge-agent-${version}-1.${rpm_arch_type}.rpm"
+                "telemetryforge-agent-${version}-1.noarch.rpm"
             )
             log_debug "Looking for .rpm files with patterns: ${package_filenames[*]}"
             ;;
         apk)
-            # Alpine package naming: fluentdo-agent-<version>-r0_<arch>.apk
+            # Alpine package naming: telemetryforge-agent-<version>-r0_<arch>.apk
             package_filenames=(
-                "fluentdo-agent-${version}-r0.${arch_type}.apk"
-                "fluentdo-agent-${version}.${arch_type}.apk"
+                "telemetryforge-agent-${version}-r0.${arch_type}.apk"
+                "telemetryforge-agent-${version}.${arch_type}.apk"
             )
             log_debug "Looking for .apk files with patterns: ${package_filenames[*]}"
             ;;
@@ -619,7 +619,7 @@ find_package() {
 
     log_debug "Trying directory: $package_dir"
     for filename in "${package_filenames[@]}"; do
-        local package_url="${FLUENTDO_AGENT_URL}/${version}/output/${package_dir}/${filename}"
+        local package_url="${TELEMETRY_FORGE_AGENT_URL}/${version}/output/${package_dir}/${filename}"
         log_debug "Attempting to access: $package_url"
 
         # Use HEAD request to check if file exists without downloading
@@ -641,7 +641,7 @@ find_package() {
         log_error "No package file found for version=$version, os=$target_os, arch=$arch_type, format=$pkg_format"
         log_error "Attempted paths:"
         for filename in "${package_filenames[@]}"; do
-            log_error "  ${FLUENTDO_AGENT_URL}/${version}/output/${package_dir}/${filename}"
+            log_error "  ${TELEMETRY_FORGE_AGENT_URL}/${version}/output/${package_dir}/${filename}"
         done
         return 1
     fi
@@ -662,7 +662,7 @@ download_package() {
     log "Downloading package: $package_path"
     log_debug "Output file: $output_file"
 
-    local url="${FLUENTDO_AGENT_URL}/${package_path}"
+    local url="${TELEMETRY_FORGE_AGENT_URL}/${package_path}"
     log_debug "Download URL: $url"
 
     if ! curl -L -f -o "$output_file" "$url"; then
@@ -734,15 +734,15 @@ install_package() {
 # Verify installation
 verify_installation() {
     log "Verifying installation..."
-    log_debug "Verifying with binary: ${FLUENTDO_AGENT_BINARY}"
+    log_debug "Verifying with binary: ${TELEMETRY_FORGE_AGENT_BINARY}"
 
-    if "${FLUENTDO_AGENT_BINARY}" --help &> /dev/null; then
+    if "${TELEMETRY_FORGE_AGENT_BINARY}" --help &> /dev/null; then
         local version
-        version=$("${FLUENTDO_AGENT_BINARY}" --version 2>/dev/null || echo "unknown")
-        log_success "FluentDo Agent is installed (version: $version)"
+        version=$("${TELEMETRY_FORGE_AGENT_BINARY}" --version 2>/dev/null || echo "unknown")
+        log_success "Telemetry Forge Agent is installed (version: $version)"
         return 0
     else
-        log_warning "FluentDo Agent command not found at: ${FLUENTDO_AGENT_BINARY}"
+        log_warning "Telemetry Forge Agent command not found at: ${TELEMETRY_FORGE_AGENT_BINARY}"
         return 1
     fi
 }
@@ -753,8 +753,8 @@ verify_installation() {
 
 # Main installation flow
 main() {
-    log "Starting FluentDo Agent installation..."
-    log "Packages URL: $FLUENTDO_AGENT_URL"
+    log "Starting Telemetry Forge Agent installation..."
+    log "Packages URL: $TELEMETRY_FORGE_AGENT_URL"
     log_debug "Debug mode: $DEBUG"
     log_debug "Log file: $LOG_FILE"
     log_debug "Download directory: $DOWNLOAD_DIR"
@@ -793,9 +793,9 @@ main() {
 
     # Determine version to install
     local install_version
-    if [ -n "${FLUENTDO_AGENT_VERSION:-}" ]; then
-        log "Using specified version: $FLUENTDO_AGENT_VERSION"
-        install_version="$FLUENTDO_AGENT_VERSION"
+    if [ -n "${TELEMETRY_FORGE_AGENT_VERSION:-}" ]; then
+        log "Using specified version: $TELEMETRY_FORGE_AGENT_VERSION"
+        install_version="$TELEMETRY_FORGE_AGENT_VERSION"
     elif [ "$INTERACTIVE" = "true" ]; then
         log_debug "Interactive mode enabled"
         if ! select_version; then
@@ -830,7 +830,7 @@ main() {
 
     log "Found package: $package_path"
 
-    local package_file="$DOWNLOAD_DIR/fluentdo-agent.${PKG_FORMAT}"
+    local package_file="$DOWNLOAD_DIR/telemetryforge-agent.${PKG_FORMAT}"
     log_debug "Package file destination: $package_file"
 
     if ! download_package "$package_path" "$package_file"; then
@@ -852,7 +852,7 @@ main() {
         fi
 
         echo ""
-        log_success "FluentDo Agent installation completed successfully!"
+        log_success "Telemetry Forge Agent installation completed successfully!"
         echo ""
         log "Next steps:"
         echo "  1. Configure the agent: /etc/fluent-bit/fluent-bit.conf"
@@ -862,7 +862,8 @@ main() {
         log_success "Package downloaded successfully: $package_file"
     fi
     echo ""
-    log "Documentation: https://fluent.do/docs/agent"
+	# Ensure we update once domain is ready: https://github.com/telemetryforge/agent/issues/184
+    log "Documentation: https://docs.fluent.do"
     echo ""
 }
 
@@ -873,14 +874,14 @@ main() {
 # Show usage
 usage() {
     cat << EOF
-FluentDo Agent Installer
+Telemetry Forge Agent Installer
 
 Usage: $0 [OPTIONS]
 
 Options:
     -v, --version VERSION       Install specific version (default: latest)
     -i, --interactive           Interactively select version
-    -u, --url URL               Use custom packages URL (default: $FLUENTDO_AGENT_URL)
+    -u, --url URL               Use custom packages URL (default: $TELEMETRY_FORGE_AGENT_URL)
     -l, --log-file FILE         Log file path (default: $LOG_FILE)
     -f, --force                 Force installation on unsupported distributions
     -d, --download              Download the package only
@@ -907,7 +908,7 @@ Examples:
     $0 -d
 
 Environment Variables:
-    FLUENTDO_AGENT_URL          	Override packages URL (default: $FLUENTDO_AGENT_URL)
+    TELEMETRY_FORGE_AGENT_URL          	Override packages URL (default: $TELEMETRY_FORGE_AGENT_URL)
     LOG_FILE                    	Override log file location (default: $LOG_FILE)
     DOWNLOAD_DIR                	Override download directory (default: $DOWNLOAD_DIR)
     SUDO                        	Override sudo command (default: sudo, set to empty to disable)
@@ -940,8 +941,8 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         -v|--version)
-            FLUENTDO_AGENT_VERSION="$2"
-            log_debug "Version specified: $FLUENTDO_AGENT_VERSION"
+            TELEMETRY_FORGE_AGENT_VERSION="$2"
+            log_debug "Version specified: $TELEMETRY_FORGE_AGENT_VERSION"
             shift 2
             ;;
         -i|--interactive)
@@ -950,8 +951,8 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         -u|--url)
-            FLUENTDO_AGENT_URL="$2"
-            log_debug "Custom URL specified: $FLUENTDO_AGENT_URL"
+            TELEMETRY_FORGE_AGENT_URL="$2"
+            log_debug "Custom URL specified: $TELEMETRY_FORGE_AGENT_URL"
             shift 2
             ;;
         -l|--log-file)

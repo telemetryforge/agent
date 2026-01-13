@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # =============================================================================
-# FluentDo Agent - Create Sync PR Tool
+# Telemetry Forge Agent - Create Sync PR Tool
 # =============================================================================
 # This script creates a GitHub PR for upstream sync commits
 # =============================================================================
@@ -39,7 +39,7 @@ AUTO_MERGE=false
 
 usage() {
     cat << EOF
-${CYAN}FluentDo Create Sync PR Tool${NC}
+${CYAN}Telemetry Forge Create Sync PR Tool${NC}
 
 ${GREEN}Usage:${NC}
     $0 --from VERSION --to VERSION [options]
@@ -231,13 +231,13 @@ collect_commits() {
 
 # Generate PR body
 generate_pr_body() {
-    local pr_body_file="/tmp/fluentdo-pr-body.md"
+    local pr_body_file="/tmp/telemetryforge-pr-body.md"
 
     cat > "$pr_body_file" << EOF
 ## Summary
-Syncs FluentDo Agent with upstream Fluent Bit from ${FROM_VERSION} to ${TO_VERSION}
+Syncs Telemetry Forge Agent with upstream Fluent Bit from ${FROM_VERSION} to ${TO_VERSION}
 
-This PR applies upstream patches to keep FluentDo Agent in sync with Fluent Bit while preserving our customizations.
+This PR applies upstream patches to keep Telemetry Forge Agent in sync with Fluent Bit while preserving our customizations.
 
 ## Changes Applied
 
@@ -259,11 +259,11 @@ fi)
 ## Testing Checklist
 - [ ] Build passes (\`cd source && cmake . && make\`)
 - [ ] Unit tests pass
-- [ ] No regressions in FluentDo features
+- [ ] No regressions in Telemetry Forge features
 - [ ] Security hardening preserved
 - [ ] Custom plugins functional
 
-## FluentDo Customizations Verified
+## Telemetry Forge Customizations Verified
 - [ ] Branding remains intact
 - [ ] Version scheme correct (YY.MM.PATCH)
 - [ ] Custom features working
@@ -382,7 +382,7 @@ create_pr() {
 # Main execution
 main() {
     log "${CYAN}╔══════════════════════════════════════════════════════╗${NC}"
-    log "${CYAN}║         FluentDo Create Sync PR Tool                 ║${NC}"
+    log "${CYAN}║         Telemetry Forge Create Sync PR Tool          ║${NC}"
     log "${CYAN}╚══════════════════════════════════════════════════════╝${NC}"
     echo
 

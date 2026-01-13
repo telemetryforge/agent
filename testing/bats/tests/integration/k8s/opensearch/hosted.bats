@@ -42,8 +42,8 @@ function createYAMLConfig() {
     createYAMLConfig
     helm upgrade --install  --create-namespace --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" fluent/fluent-bit \
         -f ${BATS_TEST_DIRNAME}/resources/helm/fluentbit-hosted.yaml \
-        --set image.repository="$FLUENTDO_AGENT_IMAGE" \
-        --set image.tag="$FLUENTDO_AGENT_TAG" \
+        --set image.repository="$TELEMETRY_FORGE_AGENT_IMAGE" \
+        --set image.tag="$TELEMETRY_FORGE_AGENT_TAG" \
         --set securityContext.runAsUser=0 \
         --timeout "${HELM_TIMEOUT:-10m0s}" \
         --wait
