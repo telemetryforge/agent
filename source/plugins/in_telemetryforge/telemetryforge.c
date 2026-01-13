@@ -600,7 +600,8 @@ static int cb_telemetryforge_init(struct flb_input_instance *ins,
 
         /* Prepare registration input */
         input.kind = (strcasecmp(ctx->agent_kind, "fluentbit") == 0) ?
-        /* Ensure we update the default once ready: https://github.com/telemetryforge/agent/issues/183 */
+        /* Ensure we update the default once ready: https://github.com/telemetryforge/agent/issues/183
+                     FLB_GRAPHQL_AGENT_KIND_FLUENTBIT : FLB_GRAPHQL_AGENT_KIND_TELEMETRY_FORGE;*/
                      FLB_GRAPHQL_AGENT_KIND_FLUENTBIT : FLB_GRAPHQL_AGENT_KIND_FLUENTDO;
         input.name = ctx->agent_name;
         input.version = version;

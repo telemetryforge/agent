@@ -862,7 +862,8 @@ main() {
         log_success "Package downloaded successfully: $package_file"
     fi
     echo ""
-    log "Documentation: https://telemetryforge.io/docs/agent"
+	# Ensure we update once domain is ready: https://github.com/telemetryforge/agent/issues/184
+    log "Documentation: https://docs.fluent.do"
     echo ""
 }
 
