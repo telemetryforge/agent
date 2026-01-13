@@ -42,6 +42,7 @@
 #endif
 #include <time.h>
 
+/* Ensure we update the default once ready: https://github.com/telemetryforge/agent/issues/183 */
 #define TELEMETRY_FORGE_DEFAULT_URL "https://api.fluent.do/graphql"
 #define TELEMETRY_FORGE_DEFAULT_INTERVAL 60
 #define TELEMETRY_FORGE_SESSION_FILE "session"
@@ -484,15 +485,17 @@ static int cb_telemetryforge_init(struct flb_input_instance *ins,
         ctx->interval_sec = TELEMETRY_FORGE_DEFAULT_INTERVAL;
     }
 
-    /* Set default agent_kind to telemetryforge if not provided */
+    /* Set default agent_kind to fluentdo if not provided */
     if (!ctx->agent_kind) {
-        ctx->agent_kind = flb_strdup("telemetryforge");
+        /* Ensure we update the default once ready: https://github.com/telemetryforge/agent/issues/183 */
+        ctx->agent_kind = flb_strdup("fluentdo");
     }
 
     /* Validate agent_kind */
     if (strcasecmp(ctx->agent_kind, "fluentbit") != 0 &&
+        strcasecmp(ctx->agent_kind, "fluentdo") != 0 &&
         strcasecmp(ctx->agent_kind, "telemetryforge") != 0) {
-        flb_plg_error(ins, "invalid agent_kind: %s (must be 'fluentbit' or 'telemetryforge')",
+        flb_plg_error(ins, "invalid agent_kind: %s (must be 'fluentbit', 'fluentdo' or 'telemetryforge')",
                       ctx->agent_kind);
         flb_free(ctx);
         return -1;
@@ -597,6 +600,7 @@ static int cb_telemetryforge_init(struct flb_input_instance *ins,
 
         /* Prepare registration input */
         input.kind = (strcasecmp(ctx->agent_kind, "fluentbit") == 0) ?
+        /* Ensure we update the default once ready: https://github.com/telemetryforge/agent/issues/183 */
                      FLB_GRAPHQL_AGENT_KIND_FLUENTBIT : FLB_GRAPHQL_AGENT_KIND_FLUENTDO;
         input.name = ctx->agent_name;
         input.version = version;
@@ -810,7 +814,8 @@ static struct flb_config_map config_map[] = {
     {
      FLB_CONFIG_MAP_STR, "agent_kind", "telemetryforge",
      0, FLB_TRUE, offsetof(struct flb_in_telemetryforge, agent_kind),
-     "Agent kind: 'fluentbit', 'fluentdo' or 'telemetryforge' (default: 'telemetryforge')"
+     /* Ensure we update the default once ready: https://github.com/telemetryforge/agent/issues/183 */
+     "Agent kind: 'fluentbit', 'fluentdo' or 'telemetryforge' (default: 'fluentdo')"
     },
     {
      FLB_CONFIG_MAP_INT, "interval_sec", "60",

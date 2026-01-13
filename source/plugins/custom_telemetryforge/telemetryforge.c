@@ -35,6 +35,7 @@
 #include <unistd.h>
 #endif
 
+/* Ensure we update the default once ready: https://github.com/telemetryforge/agent/issues/183 */
 #define TELEMETRY_FORGE_DEFAULT_URL "https://api.fluent.do/graphql"
 
 /* Cross-platform default session store path */
@@ -89,9 +90,10 @@ static int cb_telemetryforge_init(struct flb_custom_instance *ins,
         return -1;
     }
 
-    /* Set default agent_kind to telemetryforge if not provided */
+    /* Set default agent_kind to fluentdo if not provided */
     if (!ctx->agent_kind) {
-        ctx->agent_kind = flb_strdup("telemetryforge");
+        /* Ensure we update the default once ready: https://github.com/telemetryforge/agent/issues/183 */
+        ctx->agent_kind = flb_strdup("fluentdo");
     }
 
     /* Set default interval if not provided */
@@ -184,7 +186,8 @@ static struct flb_config_map config_map[] = {
     {
      FLB_CONFIG_MAP_STR, "agent_kind", "telemetryforge",
      0, FLB_TRUE, offsetof(struct flb_telemetryforge, agent_kind),
-     "Agent kind: 'fluentbit' or 'telemetryforge' (default: 'telemetryforge')"
+     /* Ensure we update the default once ready: https://github.com/telemetryforge/agent/issues/183 */
+     "Agent kind: 'fluentbit', 'fluentdo' or 'telemetryforge' (default: 'fluentdo')"
     },
     {
      FLB_CONFIG_MAP_INT, "metrics_interval", "60",
