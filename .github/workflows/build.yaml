@@ -62,7 +62,7 @@ jobs:
         # Look for the default line in the Dockerfile
         id: set-version
         run: |
-          VERSION=$(grep "ARG FLUENTDO_AGENT_VERSION=" Dockerfile.ubi | cut -d '=' -s -f 2 -)
+          VERSION=$(grep "ARG TELEMETRY_FORGE_AGENT_VERSION=" Dockerfile.ubi | cut -d '=' -s -f 2 -)
           # For releases we use the tag
           if [[ '${{ steps.set-build-type.outputs.build-type }}' == 'release' ]]; then
               TAG_NAME=${GITHUB_REF#refs/tags/}
@@ -106,8 +106,8 @@ jobs:
       fail-fast: false
       matrix:
         image-base:
-          - "ghcr.io/fluentdo/agent/ubi"
-          - "ghcr.io/fluentdo/agent/debian"
+          - "ghcr.io/telemetryforge/agent/ubi"
+          - "ghcr.io/telemetryforge/agent/debian"
     permissions:
       contents: read
       packages: write
@@ -174,8 +174,8 @@ jobs:
       ref: ${{ github.ref }}
       nightly-build-info: ${{ needs.get-meta.outputs.date }}
 
-  # We want to copy the UBI image to ghcr.io/fluentdo/agent:version and
-  # the distroless image to ghcr.io/fluentdo/agent:version-slim
+  # We want to copy the UBI image to ghcr.io/telemetryforge/agent:version and
+  # the distroless image to ghcr.io/telemetryforge/agent:version-slim
   copy-common-images:
     # Only run for releases to reduce unnecessary load on the registry
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}
@@ -211,8 +211,8 @@ jobs:
       fail-fast: false
       matrix:
         image-base:
-          - "ghcr.io/fluentdo/agent/ubi"
-          - "ghcr.io/fluentdo/agent/debian"
+          - "ghcr.io/telemetryforge/agent/ubi"
+          - "ghcr.io/telemetryforge/agent/debian"
 
   test-packages:
     name: Test packages
@@ -248,7 +248,7 @@ jobs:
       - build-image
       - test-containers
       # TODO: remove once failures are resolved to ensure auto-release job still goes ahead with latest commit
-      # https://github.com/FluentDo/agent/issues/73
+      # https://github.com/telemetryforge/agent/issues/73
       # - test-packages
       # Add additional jobs here as required that must complete
     runs-on: ubuntu-latest
@@ -284,8 +284,8 @@ jobs:
       contents: write
       id-token: write
     env:
-      UBI_IMAGE_NAME: ghcr.io/fluentdo/agent/ubi
-      DISTROLESS_IMAGE_NAME: ghcr.io/fluentdo/agent/debian
+      UBI_IMAGE_NAME: ghcr.io/telemetryforge/agent/ubi
+      DISTROLESS_IMAGE_NAME: ghcr.io/telemetryforge/agent/debian
       TAG: ${{ needs.build-image.outputs.version }}
     steps:
       - uses: actions/checkout@v6
@@ -378,15 +378,15 @@ jobs:
             --remove-signatures \
             --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
             "docker://${{ env.UBI_IMAGE_NAME }}:${{ env.TAG }}" \
-            "oci-archive:output/fluentdo-agent-container.tar"
+            "oci-archive:output/telemetryforge-agent-container.tar"
           skopeo copy \
             --all \
             --remove-signatures \
             --src-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
             "docker://${{ env.DISTROLESS_IMAGE_NAME }}:${{ env.TAG }}" \
-            "oci-archive:output/fluentdo-agent-container-slim.tar"
-          tar -czvf output/fluentdo-agent-container.tar.gz output/fluentdo-agent-container.tar output/fluentdo-agent-container-slim.tar
-          rm -f output/fluentdo-agent-container.tar output/fluentdo-agent-container-slim.tar
+            "oci-archive:output/telemetryforge-agent-container-slim.tar"
+          tar -czvf output/telemetryforge-agent-container.tar.gz output/telemetryforge-agent-container.tar output/telemetryforge-agent-container-slim.tar
+          rm -f output/telemetryforge-agent-container.tar output/telemetryforge-agent-container-slim.tar
         shell: bash
 
       - name: Construct release info
@@ -426,7 +426,7 @@ jobs:
         with:
           append_body: true
           body: |
-            Fluent Do Agent release for ${{ github.ref_name }} version
+            Telemetry Forge Agent release for ${{ github.ref_name }} version
 
             Version: ${{ needs.get-meta.outputs.version }}
             OSS Version: ${{ needs.get-meta.outputs.oss-version }}
@@ -443,7 +443,7 @@ jobs:
             *.spdx
             output/*.json
             deliverables.tar.gz
-            output/fluentdo-agent-container.tar.gz
+            output/telemetryforge-agent-container.tar.gz
             output/package-macos-*
             output/package-windows-*
           fail_on_unmatched_files: false
@@ -462,7 +462,7 @@ jobs:
         uses: google-github-actions/upload-cloud-storage@v3
         with:
           path: output/
-          destination: fluentdo-agent-${{ needs.get-meta.outputs.build-type }}/${{ needs.get-meta.outputs.version }}/
+          destination: telemetryforge-agent-${{ needs.get-meta.outputs.build-type }}/${{ needs.get-meta.outputs.version }}/
 
   update-docs:
     needs:
@@ -470,7 +470,7 @@ jobs:
       - release
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}
     name: Update documentation on release
-    uses: fluentdo/documentation/.github/workflows/call-add-mapping-version.yaml@main
+    uses: telemetryforge/documentation/.github/workflows/call-add-mapping-version.yaml@main
     with:
       agent-version: ${{ needs.get-meta.outputs.version }}
       oss-version: ${{ needs.get-meta.outputs.oss-version }}
@@ -482,7 +482,7 @@ jobs:
       - get-meta
       - release
       - build-macos
-    uses: fluentdo/homebrew-fluentdo-agent/.github/workflows/call-update-homebrew.yaml@main
+    uses: telemetryforge/homebrew-telemetryforge-agent/.github/workflows/call-update-homebrew.yaml@main
     with:
       version: ${{ github.ref_name }}
     secrets:

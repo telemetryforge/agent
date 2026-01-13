@@ -26,7 +26,7 @@ function skipIfNotLinux() {
 }
 
 function skipIfPackageNotInstalled() {
-	if [[ "${FLUENTDO_AGENT_PACKAGE_INSTALLED:-}" != "true" ]]; then
+	if [[ "${TELEMETRY_FORGE_AGENT_PACKAGE_INSTALLED:-}" != "true" ]]; then
 		skip 'Skipping test: package not installed'
 	fi
 }
@@ -65,11 +65,11 @@ function skipIfNotMacOS() {
 }
 
 function skipIfNotContainer() {
-	if [ -z "${FLUENTDO_AGENT_IMAGE}" ]; then
-        skip "Skipping test: FLUENTDO_AGENT_IMAGE not set"
+	if [ -z "${TELEMETRY_FORGE_AGENT_IMAGE}" ]; then
+        skip "Skipping test: TELEMETRY_FORGE_AGENT_IMAGE not set"
     fi
-    if [ -z "${FLUENTDO_AGENT_TAG}" ]; then
-        fail "FLUENTDO_AGENT_TAG not set"
+    if [ -z "${TELEMETRY_FORGE_AGENT_TAG}" ]; then
+        fail "TELEMETRY_FORGE_AGENT_TAG not set"
     fi
 	CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
 	# All container tests assume Docker is available and can run containers

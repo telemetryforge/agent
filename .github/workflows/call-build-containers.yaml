@@ -16,7 +16,7 @@ on:
         description: The base name to use for images.
         required: false
         type: string
-        default: "ghcr.io/fluentdo/agent"
+        default: "ghcr.io/telemetryforge/agent"
       definition:
         description: The Dockerfile definition to use.
         required: false
@@ -26,7 +26,7 @@ on:
         description: The Dockerhub username to use for authenticated pulls.
         required: false
         type: string
-        default: "fluentdo"
+        default: "telemetryforge"
       amd-runner-label:
         description: The label to use for the runner (if not specified then the default ubuntu-latest or equivalent is used).
         required: false
@@ -76,7 +76,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          repository: FluentDo/agent
+          repository: telemetryforge/agent
           ref: ${{ inputs.ref }}
           fetch-depth: 0
 
@@ -84,7 +84,7 @@ jobs:
         run: ./scripts/setup-code.sh
         shell: bash
         env:
-          FLUENTDO_AGENT_VERSION: ${{ inputs.version }}
+          TELEMETRY_FORGE_AGENT_VERSION: ${{ inputs.version }}
 
       - name: Deltas
         run: git diff
@@ -120,15 +120,15 @@ jobs:
           labels: |
             build-date={{date 'YYYYMMDD-HHmmss'}}
             version=${{ inputs.version }}
-            io.k8s.description=FluentDo Agent is a stable, secure by default, OSS (Apache-licensed) downstream distribution of Fluent Bit with predictable releases and long-term supported versions for 24 months.
-            io.k8s.display-name=FluentDo Agent
-            io.openshift.tags=observability,logging,log-aggregation,fluentdo,fluent-bit
-            url=https://fluent.do
-            vendor=FluentDo at https://fluent.do
-            maintainer=FluentDo via info@fluent.do
-            name=FluentDo Agent
-            description=FluentDo Agent is a stable, secure by default, OSS (Apache-licensed) downstream distribution of Fluent Bit with predictable releases and long-term supported versions for 24 months.
-            summary=FluentDo Agent is an Enterprise hardened version of Fluent Bit
+            io.k8s.description=Telemetry Forge Agent is a stable, secure by default, OSS (Apache-licensed) downstream distribution of Fluent Bit with predictable releases and long-term supported versions for 24 months.
+            io.k8s.display-name=Telemetry Forge Agent
+            io.openshift.tags=observability,logging,log-aggregation,telemetryforge,fluent-bit
+            url=https://telemetryforge.io
+            vendor=Telemetry Forge at https://telemetryforge.io
+            maintainer=Telemetry Forge via info@fluent.do
+            name=Telemetry Forge Agent
+            description=Telemetry Forge Agent is a stable, secure by default, OSS (Apache-licensed) downstream distribution of Fluent Bit with predictable releases and long-term supported versions for 24 months.
+            summary=Telemetry Forge Agent is an Enterprise hardened version of Fluent Bit
 
       - name: Build and push by digest the standard ${{ matrix.target }} image
         id: production
@@ -143,7 +143,7 @@ jobs:
           # Make sure we push our custom labels to the image
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            FLUENTDO_AGENT_VERSION=${{ inputs.version }}
+            TELEMETRY_FORGE_AGENT_VERSION=${{ inputs.version }}
           provenance: false
 
       - name: Export ${{ matrix.target }} digest
@@ -199,7 +199,7 @@ jobs:
           platforms: linux/amd64
           target: test
           build-args: |
-            FLUENTDO_AGENT_VERSION=${{ inputs.version }}
+            TELEMETRY_FORGE_AGENT_VERSION=${{ inputs.version }}
           provenance: false
           push: true
           tags: ${{ steps.meta-test.outputs.tags }}

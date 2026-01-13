@@ -16,7 +16,7 @@ setup() {
         skip "Skipping test: no RPM command"
     fi
 
-    export PACKAGE_NAME="fluentdo-agent"
+    export PACKAGE_NAME="telemetryforge-agent"
 }
 
 teardown() {
@@ -28,7 +28,7 @@ teardown() {
     fi
 }
 
-@test "RPM package provides fluentdo-agent" {
+@test "RPM package provides telemetryforge-agent" {
     run rpm -qa
     assert_success
     assert_output --partial "$PACKAGE_NAME"
@@ -43,7 +43,7 @@ teardown() {
 @test "RPM package files are correctly installed" {
     run rpm -ql "$PACKAGE_NAME"
     assert_success
-    assert_output --partial '/opt/fluentdo-agent/bin/fluent-bit'
+    assert_output --partial '/opt/telemetryforge-agent/bin/fluent-bit'
 }
 
 @test "RPM systemd service is installed" {

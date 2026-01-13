@@ -19,15 +19,15 @@ function teardown() {
     [ -x "$FLUENT_BIT_BINARY" ]
 }
 
-@test "verify FLUENTDO_AGENT_VERSION is set and valid" {
-    [ -n "${FLUENTDO_AGENT_VERSION:-}" ]
-    [[ "$FLUENTDO_AGENT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+@test "verify TELEMETRY_FORGE_AGENT_VERSION is set and valid" {
+    [ -n "${TELEMETRY_FORGE_AGENT_VERSION:-}" ]
+    [[ "$TELEMETRY_FORGE_AGENT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
 }
 
 @test "verify version" {
     run "$FLUENT_BIT_BINARY" --version
     [ "$status" -eq 0 ]
-    [[ "$output" =~ FluentDo\ Agent\ v$FLUENTDO_AGENT_VERSION ]]
+    [[ "$output" =~ Telemetry\ Forge\ Agent\ v$TELEMETRY_FORGE_AGENT_VERSION ]]
 }
 
 @test "verify help" {

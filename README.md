@@ -1,18 +1,18 @@
 <p align="center">
-  <img src="extras/fluentdo-agent-logo.jpeg" alt="FluentDo Agent" height="200">
+  <img src="extras/agent-logo.jpeg" alt="Telemetry Forge Agent" height="200">
 </p>
 
 <p align="center">
   <a href="https://docs.fluent.do"><img src="https://img.shields.io/badge/docs-docs.fluent.do-blue" alt="Documentation"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License"></a>
-  <a href="https://github.com/FluentDo/agent/releases"><img src="https://img.shields.io/github/v/release/FluentDo/agent?sort=semver" alt="Release"></a>
-  <a href="https://fluent.do/support"><img src="https://img.shields.io/badge/LTS-24%20months-green" alt="LTS"></a>
+  <a href="https://github.com/telemetryforge/agent/releases"><img src="https://img.shields.io/github/v/release/telemetryforge/agent?sort=semver" alt="Release"></a>
+  <a href="https://telemetry.io/support"><img src="https://img.shields.io/badge/LTS-24%20months-green" alt="LTS"></a>
   <a href="https://join.slack.com/share/enQtOTU4MDk0MTQ0OTYzNi03MTY5MTc2Y2I0Y2JhY2QxNzc5MDNkNDdhNTRhNTgzNjkwMDc4Mzk1YTRhZWUzNTE4ZjM3OTljOTA4MzAxYjBl"><img src="https://img.shields.io/badge/slack-join-brightgreen" alt="Slack"></a>
 </p>
 
-## What is [FluentDo](https://fluent.do) Agent?
+## What is the [Telemetry Forge](https://telemetryforge.io) Agent?
 
-[FluentDo](https://fluent.do) Agent is a **hardened, stable, secure by default, OSS (Apache-licensed) downstream distribution of Fluent Bit** with predictable releases and long-term supported versions for 24 months.
+The [Telemetry Forge](https://telemetryforge.io) Agent is a **hardened, stable, secure by default, OSS (Apache-licensed) downstream distribution of Fluent Bit** with predictable releases and long-term supported versions for 24 months.
 
 It also has built-in functionality for:
 
@@ -26,11 +26,11 @@ It also has built-in functionality for:
 ### Version Support Matrix
 
 | Version | Release Date | Type | End of Support | Status | Branch |
-|---------|--------------|------|----------------|--------|--------|
-| **[26.10](https://github.com/orgs/FluentDo/projects/4)** | Oct 2026 | LTS | Oct 2028 | 🟡 Planned ||
-| **[26.04](https://github.com/orgs/FluentDo/projects/4)** | Apr 2026 | LTS | Apr 2028 | 🟢 Active | `main` |
-| **[25.10](https://github.com/orgs/FluentDo/projects/3)** | Oct 2025 | LTS | Oct 2027 | 🟢 Active | `release/25.10-lts` |
-| 25.07 | Jul 2025 | Regular | Jan 2026 | 🟢 Active ||
+| ------- | ------------ | ---- | -------------- | ------ | ------ |
+| **[26.10](https://github.com/orgs/telemetryforge/projects/4)** | Oct 2026 | LTS | Oct 2028 | 🟡 Planned | |
+| **[26.04](https://github.com/orgs/telemetryforge/projects/4)** | Apr 2026 | LTS | Apr 2028 | 🟢 Active | `main` |
+| **[25.10](https://github.com/orgs/telemetryforge/projects/3)** | Oct 2025 | LTS | Oct 2027 | 🟢 Active | `release/25.10-lts` |
+| 25.07 | Jul 2025 | Regular | Jan 2026 | 🟢 Active | |
 
 Main releases follow a date-based format with `Year.Month.Week` forming the version.
 Once it transitions to an LTS release then we maintain the major and minor versions from then on, only incrementing the patch version.
@@ -38,7 +38,7 @@ Once it transitions to an LTS release then we maintain the major and minor versi
 ### Release Schedule
 
 | Release Type | Frequency | Description |
-|-------------|-----------|-------------|
+| ------------ | --------- | ----------- |
 | **LTS Release** | Twice yearly (April, October) | Long-term support for 24 months |
 | **Regular Release** | Quarterly | 6-month support cycle |
 | **Security Updates** | Weekly | CVE patches and critical fixes |
@@ -47,7 +47,7 @@ Once it transitions to an LTS release then we maintain the major and minor versi
 
 ---
 
-### Why [FluentDo](https://fluent.do) Agent?
+### Why use our agent?
 
 - ✅ **Smaller footprint** - Optimized for production deployments
   - Only production-essential plugins included
@@ -86,8 +86,8 @@ Once it transitions to an LTS release then we maintain the major and minor versi
 ### Docker
 
 ```bash
-docker run --rm -it -v /var/log/containers:/var/log/containers:ro ghcr.io/fluentdo/agent/ubi:main -c /fluent-bit/etc/fluent-bit.yaml
-docker run --rm -it -v /var/log/containers:/var/log/containers:ro ghcr.io/fluentdo/agent/debian:main -c /fluent-bit/etc/fluent-bit.yaml
+docker run --rm -it -v /var/log/containers:/var/log/containers:ro ghcr.io/telemetryforge/agent/ubi:main -c /fluent-bit/etc/fluent-bit.yaml
+docker run --rm -it -v /var/log/containers:/var/log/containers:ro ghcr.io/telemetryforge/agent/debian:main -c /fluent-bit/etc/fluent-bit.yaml
 ```
 
 Ensure any files mounted are readable via the container user ([`cat Dockerfile.ubi|grep USER`](./Dockerfile.ubi)).
@@ -98,16 +98,10 @@ To specify a different configuration just mount it in as well and pass it on the
 
 All packages are available for download at <https://packages.fluent.do>.
 
-Linux packages are available for download and installation or using a simple install script:
+Linux and macOS packages are available for download and installation or using a simple install script:
 
 ```bash
-curl -sSfL https://raw.githubusercontent.com/FluentDo/agent/refs/heads/main/install.sh | bash
-```
-
-For macOS a brew tap recipe is provided:
-
-```bash
-brew install fluentdo/tap/agent
+curl -sSfL https://raw.githubusercontent.com/telemetryforge/agent/refs/heads/main/install.sh | bash
 ```
 
 Windows packages are also available for download in various formats (ZIP, EXE or MSI).
@@ -117,7 +111,7 @@ Windows packages are also available for download in various formats (ZIP, EXE or
 To compile for a specific target, run the container-based build using the upstream [`source/packaging/build.sh`](./source/packaging/build.sh) script with the specified distribution you want to build for:
 
 ```bash
-git clone https://github.com/FluentDo/agent.git
+git clone https://github.com/telemetryforge/agent.git
 cd agent
 ./source/packaging/build.sh -d rockylinux/9
 ```
@@ -125,7 +119,7 @@ cd agent
 To build the UBI or distroless containers:
 
 ```bash
-git clone https://github.com/FluentDo/agent.git
+git clone https://github.com/telemetryforge/agent.git
 cd agent
 docker build -f Dockerfile.ubi .
 docker build -f Dockerfile.debian .
@@ -134,7 +128,7 @@ docker build -f Dockerfile.debian .
 To compile natively (requires relevant dependencies installed):
 
 ```bash
-git clone https://github.com/FluentDo/agent.git
+git clone https://github.com/telemetryforge/agent.git
 cd agent
 cd source/build
 cmake ..
@@ -153,7 +147,7 @@ make
 
 - **[Documentation](https://docs.fluent.do)** - Complete documentation and guides
 - **[Downloads](https://fluent.do/downloads)** - Pre-built packages and containers
-- **[Release Notes](https://github.com/FluentDo/agent/releases)** - Version history and changelogs
+- **[Release Notes](https://github.com/telemetryforge/agent/releases)** - Version history and changelogs
 - **[OSS Fluent Bit Docs](https://docs.fluentbit.io)** - Core documentation reference
 
 ---
@@ -161,7 +155,7 @@ make
 ## Community & Support
 
 - **[Slack](https://join.slack.com/share/enQtOTU4MDk0MTQ0OTYzNi03MTY5MTc2Y2I0Y2JhY2QxNzc5MDNkNDdhNTRhNTgzNjkwMDc4Mzk1YTRhZWUzNTE4ZjM3OTljOTA4MzAxYjBl)** - Join our community chat
-- **[GitHub Issues](https://github.com/FluentDo/agent/issues)** - Bug reports and feature requests
+- **[GitHub Issues](https://github.com/telemetryforge/agent/issues)** - Bug reports and feature requests
 - **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to the project
 - **[Commercial Support](https://fluent.do)** - Enterprise support with SLA
 
@@ -198,17 +192,18 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 
 ## Copyright
 
-Copyright © [FluentDo](https://fluent.do) Contributors. See [NOTICE](NOTICE) for details.
+Copyright © [Telemetry Forge](https://telemetryforge.io) Contributors. See [NOTICE](NOTICE) for details.
 
 ## Acknowledgments
 
-[FluentDo](https://fluent.do) Agent is built on top of [Fluent Bit](https://fluentbit.io). We are grateful to the Fluent Bit community and all contributors who make this possible ❤️
+Our agent is built on top of [Fluent Bit](https://fluentbit.io).
+We are grateful to the Fluent Bit community and all contributors who make this possible ❤️
 
 ---
 
 <p align="center">
-  <a href="https://fluent.do">Website</a> •
+  <a href="https://telemetryforge.io">Website</a> •
   <a href="https://docs.fluent.do">Docs</a> •
-  <a href="https://twitter.com/fluentdo">Twitter</a> •
-  <a href="https://fluent.do">Support</a>
+  <a href="https://twitter.com/telemetryforge">Twitter</a> •
+  <a href="https://telemetryforge.io">Support</a>
 </p>

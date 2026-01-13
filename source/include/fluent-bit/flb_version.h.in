@@ -32,7 +32,7 @@
 #define STR_HELPER(s)      #s
 #define STR(s)             STR_HELPER(s)
 
-/* FluentDo Agent Version */
+/* Telemetry Forge Agent Version */
 #define FLB_VERSION_MAJOR   @FLB_VERSION_MAJOR@
 #define FLB_VERSION_MINOR   @FLB_VERSION_MINOR@
 #define FLB_VERSION_PATCH   @FLB_VERSION_PATCH@
@@ -45,10 +45,10 @@
 static inline void flb_version()
 {
 #ifdef FLB_NIGHTLY_BUILD
-    printf("FluentDo Agent v%s | NIGHTLY_BUILD=%s - DO NOT USE IN PRODUCTION!\n",
+    printf("Telemetry Forge Agent v%s | NIGHTLY_BUILD=%s - DO NOT USE IN PRODUCTION!\n",
            FLB_VERSION_STR, STR(FLB_NIGHTLY_BUILD));
 #else
-    printf("FluentDo Agent v%s\n", FLB_VERSION_STR);
+    printf("Telemetry Forge Agent v%s\n", FLB_VERSION_STR);
 #endif
     printf("Git commit: %s\n", FLB_GIT_HASH);
 
@@ -57,8 +57,8 @@ static inline void flb_version()
 
 static inline void flb_version_banner()
 {
-    /* FluentDo Agent - Enterprise-ready downstream distribution */
-    fprintf(stderr, "FluentDo Agent v%s\n", FLB_VERSION_STR);
+    /* Telemetry Forge Agent - Enterprise-ready downstream distribution */
+    fprintf(stderr, "Telemetry Forge Agent v%s\n", FLB_VERSION_STR);
     fprintf(stderr, "* A stable, secure by default and enterprise ready\n");
     fprintf(stderr, "* downstream distribution of Fluent Bit\n");
     fprintf(stderr, "* https://docs.fluent.do\n\n");

@@ -32,8 +32,8 @@ function teardown() {
 @test "integration: upstream add kubernetes pod labels to records" {
     run helm upgrade --install  --create-namespace --namespace "$NAMESPACE" "$HELM_RELEASE_NAME" fluent/fluent-bit \
         --values "${BATS_TEST_DIRNAME}/resources/fluentbit-pod-labels.yaml" \
-        --set image.repository="$FLUENTDO_AGENT_IMAGE" \
-        --set image.tag="$FLUENTDO_AGENT_TAG" \
+        --set image.repository="$TELEMETRY_FORGE_AGENT_IMAGE" \
+        --set image.tag="$TELEMETRY_FORGE_AGENT_TAG" \
         --set securityContext.runAsUser=0 \
         --set env[0].name=NAMESPACE,env[0].value="${NAMESPACE}" \
         --set env[1].name=NODE_IP,env[1].valueFrom.fieldRef.fieldPath=status.hostIP \

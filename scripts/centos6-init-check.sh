@@ -31,8 +31,8 @@ done
 
 if [[ -f "${WORKDIR}/etc/init.d/fluent-bit" ]]; then
 	echo "INFO: Found fluent-bit init.d script"
-elif [[ -f "${WORKDIR}/etc/init.d/fluentdo-agent" ]]; then
-	echo "INFO: Found fluentdo-agent init.d script"
+elif [[ -f "${WORKDIR}/etc/init.d/telemetryforge-agent" ]]; then
+	echo "INFO: Found telemetryforge-agent init.d script"
 else
 	echo "ERROR: Unable to find init.d script"
 	ls -lRh "$WORKDIR"

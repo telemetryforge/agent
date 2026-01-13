@@ -122,7 +122,7 @@ COPY . ./
 
 WORKDIR /source/fluent-bit/build/
 # CMake configuration variables
-ARG CMAKE_INSTALL_PREFIX=/opt/fluentdo-agent/
+ARG CMAKE_INSTALL_PREFIX=/opt/telemetryforge-agent/
 ARG CMAKE_INSTALL_SYSCONFDIR=/etc/
 # Ensure we enable sysvinit set up
 ARG FLB_CPACK_SYSVINIT=On

@@ -16,7 +16,7 @@ setup() {
         skip "Skipping test: no dpkg command"
     fi
 
-    export PACKAGE_NAME="fluentdo-agent"
+    export PACKAGE_NAME="telemetryforge-agent"
 }
 
 teardown() {
@@ -37,11 +37,11 @@ teardown() {
 @test "DEB package version is correct" {
     run dpkg -s "$PACKAGE_NAME"
     assert_success
-    assert_output --partial "Version: $FLUENTDO_AGENT_VERSION"
+    assert_output --partial "Version: $TELEMETRY_FORGE_AGENT_VERSION"
     assert_output --partial 'Status: install ok installed'
 }
 
-@test "DEB package provides fluentdo-agent" {
+@test "DEB package provides telemetryforge-agent" {
     run apt-cache policy "$PACKAGE_NAME"
     assert_success
 }

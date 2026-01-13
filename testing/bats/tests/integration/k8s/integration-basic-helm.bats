@@ -33,8 +33,8 @@ function teardown() {
     # Run with YAML configuration overrides
     # We need to run as root to create a DB file in /var/log
     run helm upgrade --install "$HELM_RELEASE_NAME" fluent/fluent-bit \
-        --set image.repository="$FLUENTDO_AGENT_IMAGE" \
-        --set image.tag="$FLUENTDO_AGENT_TAG" \
+        --set image.repository="$TELEMETRY_FORGE_AGENT_IMAGE" \
+        --set image.tag="$TELEMETRY_FORGE_AGENT_TAG" \
         --set existingConfigMap=$CONFIGMAP_NAME \
         --set args[0]='--workdir=/fluent-bit/etc' \
         --set args[1]='--config=/fluent-bit/etc/conf/fluent-bit.yaml' \

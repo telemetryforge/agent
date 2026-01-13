@@ -43,15 +43,15 @@ ENV FLUENTBIT_VERSION=$FLUENT_BIT_VERSION
 ARG FLB_NIGHTLY_BUILD
 ENV FLB_NIGHTLY_BUILD=$FLB_NIGHTLY_BUILD
 
-ARG FLUENTDO_AGENT_VERSION=26.1.3
-ENV FLUENTDO_AGENT_VERSION=${FLUENTDO_AGENT_VERSION}
+ARG TELEMETRY_FORGE_AGENT_VERSION=26.1.3
+ENV TELEMETRY_FORGE_AGENT_VERSION=${TELEMETRY_FORGE_AGENT_VERSION}
 
 # Build metadata
-ARG FLUENTDO_AGENT_DISTRO=debian/trixie
-ENV FLUENTDO_AGENT_DISTRO=$FLUENTDO_AGENT_DISTRO
+ARG TELEMETRY_FORGE_AGENT_DISTRO=debian/trixie
+ENV TELEMETRY_FORGE_AGENT_DISTRO=$TELEMETRY_FORGE_AGENT_DISTRO
 
-ARG FLUENTDO_AGENT_PACKAGE_TYPE=CONTAINER
-ENV FLUENTDO_AGENT_PACKAGE_TYPE=$FLUENTDO_AGENT_PACKAGE_TYPE
+ARG TELEMETRY_FORGE_AGENT_PACKAGE_TYPE=CONTAINER
+ENV TELEMETRY_FORGE_AGENT_PACKAGE_TYPE=$TELEMETRY_FORGE_AGENT_PACKAGE_TYPE
 
 # Copy any local source files as needed
 WORKDIR /source/
@@ -59,17 +59,17 @@ COPY source/ /source/
 
 # Some components assume a git repository is present, so we create one otherwise it fails
 RUN git init -q /source/ && \
-    git config user.name "Fluent Do Agent Builder" && \
+    git config user.name "Telemetry Forge Agent Builder" && \
     git config user.email "info@fluent.do" && \
     git add -A && \
-    git commit -q -a -m "Initial commit for Fluent Do Agent"
+    git commit -q -a -m "Initial commit for Telemetry Forge Agent"
 
 # Install and create all necessary directories
-RUN mkdir -p /fluent-bit/bin /fluent-bit/etc /fluent-bit/log /opt/fluentdo-agent/etc/
+RUN mkdir -p /fluent-bit/bin /fluent-bit/etc /fluent-bit/log /opt/telemetryforge-agent/etc/
 COPY source/conf/ /fluent-bit/etc/
-COPY source/conf/ /opt/fluentdo-agent/etc/
+COPY source/conf/ /opt/telemetryforge-agent/etc/
 COPY config/ /fluent-bit/etc/
-COPY config/ /opt/fluentdo-agent/etc/
+COPY config/ /opt/telemetryforge-agent/etc/
 
 # Separate layers now for configure and build to allow local caching
 FROM source-builder AS builder
@@ -89,9 +89,9 @@ RUN cmake -DCMAKE_BUILD_TYPE=Release \
     -DFLB_TESTS_INTERNAL=Off \
     -DFLB_TESTS_RUNTIME=Off \
     -DFLB_NIGHTLY_BUILD="$FLB_NIGHTLY_BUILD" \
-    -DFLUENTDO_AGENT_VERSION="$FLUENTDO_AGENT_VERSION" \
-    -DFLUENTDO_AGENT_DISTRO="$FLUENTDO_AGENT_DISTRO" \
-    -DFLUENTDO_AGENT_PACKAGE_TYPE="$FLUENTDO_AGENT_PACKAGE_TYPE" \
+    -DTELEMETRY_FORGE_AGENT_VERSION="$TELEMETRY_FORGE_AGENT_VERSION" \
+    -DTELEMETRY_FORGE_AGENT_DISTRO="$TELEMETRY_FORGE_AGENT_DISTRO" \
+    -DTELEMETRY_FORGE_AGENT_PACKAGE_TYPE="$TELEMETRY_FORGE_AGENT_PACKAGE_TYPE" \
     -DFLB_LOG_NO_CONTROL_CHARS=On \
     -DFLB_CORO_STACK_SIZE=131072 \
     -DFLB_IN_EXEC=Off \
@@ -109,7 +109,7 @@ RUN [ -n "$MAKE_EXTRA_ARGS" ] && make ${MAKE_EXTRA_ARGS} || make -j "$(getconf _
 
 # Generate schema and include as part of the container image
 RUN /fluent-bit/bin/fluent-bit -J > /fluent-bit/etc/schema.json && \
-    cp -f /fluent-bit/etc/schema.json /opt/fluentdo-agent/etc/schema.json
+    cp -f /fluent-bit/etc/schema.json /opt/telemetryforge-agent/etc/schema.json
 
 # Simple example of how to properly extract packages for reuse in distroless
 # Taken from: https://github.com/GoogleContainerTools/distroless/issues/863
@@ -185,10 +185,10 @@ RUN find /dpkg/ -type d -empty -delete && \
 FROM gcr.io/distroless/cc-debian13 AS production
 
 ARG FLUENT_BIT_VERSION
-ARG FLUENTDO_AGENT_VERSION
+ARG TELEMETRY_FORGE_AGENT_VERSION
 
 ENV FLUENTBIT_VERSION=$FLUENT_BIT_VERSION
-ENV FLUENTDO_AGENT_VERSION=$FLUENTDO_AGENT_VERSION
+ENV TELEMETRY_FORGE_AGENT_VERSION=$TELEMETRY_FORGE_AGENT_VERSION
 
 EXPOSE 2020
 
@@ -207,21 +207,21 @@ COPY --from=builder /etc/ssl/certs /etc/ssl/certs
 
 # Finally the binaries as most likely to change
 COPY --from=builder /fluent-bit /fluent-bit
-COPY --from=builder /opt/fluentdo-agent /opt/fluentdo-agent
+COPY --from=builder /opt/telemetryforge-agent /opt/telemetryforge-agent
 
 # Set up a common base image for debug and test to avoid duplication
 FROM builder AS debug-test-base
 COPY --from=qemu-arm32 /usr/bin/qemu-arm-static /usr/bin/
 COPY --from=qemu-arm64 /usr/bin/qemu-aarch64-static /usr/bin/
 
-COPY --from=production /opt/fluentdo-agent /opt/fluentdo-agent
+COPY --from=production /opt/telemetryforge-agent /opt/telemetryforge-agent
 COPY --from=production /fluent-bit /fluent-bit
 
 ARG FLUENT_BIT_VERSION
-ARG FLUENTDO_AGENT_VERSION
+ARG TELEMETRY_FORGE_AGENT_VERSION
 
 ENV FLUENTBIT_VERSION=$FLUENT_BIT_VERSION
-ENV FLUENTDO_AGENT_VERSION=$FLUENTDO_AGENT_VERSION
+ENV TELEMETRY_FORGE_AGENT_VERSION=$TELEMETRY_FORGE_AGENT_VERSION
 
 # Support running integration tests using BATS
 FROM bats/bats:1.13.0 AS bats

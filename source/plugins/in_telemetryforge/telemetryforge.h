@@ -17,13 +17,10 @@
  *  limitations under the License.
  */
 
-#ifndef FLB_CUSTOM_FLUENTDO_H
-#define FLB_CUSTOM_FLUENTDO_H
+#ifndef FLB_IN_TELEMETRY_FORGE_H
+#define FLB_IN_TELEMETRY_FORGE_H
 
 #include <fluent-bit/flb_info.h>
-#include <fluent-bit/flb_custom.h>
-#include <fluent-bit/flb_config.h>
-#include <fluent-bit/flb_upstream.h>
-#include <fluent-bit/flb_graphql_client.h>
+#include <fluent-bit/flb_input.h>
 
 #endif

@@ -53,15 +53,15 @@ ENV FLUENTBIT_VERSION=$FLUENT_BIT_VERSION
 ARG FLB_NIGHTLY_BUILD
 ENV FLB_NIGHTLY_BUILD=$FLB_NIGHTLY_BUILD
 
-ARG FLUENTDO_AGENT_VERSION=26.1.3
-ENV FLUENTDO_AGENT_VERSION=${FLUENTDO_AGENT_VERSION}
+ARG TELEMETRY_FORGE_AGENT_VERSION=26.1.3
+ENV TELEMETRY_FORGE_AGENT_VERSION=${TELEMETRY_FORGE_AGENT_VERSION}
 
 # Build metadata
-ARG FLUENTDO_AGENT_DISTRO=ubi/9.5
-ENV FLUENTDO_AGENT_DISTRO=$FLUENTDO_AGENT_DISTRO
+ARG TELEMETRY_FORGE_AGENT_DISTRO=ubi/9.5
+ENV TELEMETRY_FORGE_AGENT_DISTRO=$TELEMETRY_FORGE_AGENT_DISTRO
 
-ARG FLUENTDO_AGENT_PACKAGE_TYPE=CONTAINER
-ENV FLUENTDO_AGENT_PACKAGE_TYPE=$FLUENTDO_AGENT_PACKAGE_TYPE
+ARG TELEMETRY_FORGE_AGENT_PACKAGE_TYPE=CONTAINER
+ENV TELEMETRY_FORGE_AGENT_PACKAGE_TYPE=$TELEMETRY_FORGE_AGENT_PACKAGE_TYPE
 
 # Copy any local source files as needed
 WORKDIR /source/
@@ -69,10 +69,10 @@ COPY source/ /source/
 
 # Some components assume a git repository is present, so we create one otherwise it fails
 RUN git init -q /source/ && \
-    git config user.name "Fluent Do Agent Builder" && \
+    git config user.name "Telemetry Forge Agent Builder" && \
     git config user.email "info@fluent.do" && \
     git add -A && \
-    git commit -q -a -m "Initial commit for Fluent Do Agent"
+    git commit -q -a -m "Initial commit for Telemetry Forge Agent"
 
 # Install and create all necessary directories
 RUN mkdir -p /fluent-bit/bin /fluent-bit/etc /fluent-bit/log
@@ -92,7 +92,7 @@ RUN cmake -DCMAKE_BUILD_TYPE=Release \
     -DFLB_TESTS_INTERNAL=Off \
     -DFLB_TESTS_RUNTIME=Off \
     -DFLB_NIGHTLY_BUILD="$FLB_NIGHTLY_BUILD" \
-    -DFLUENTDO_AGENT_VERSION="$FLUENTDO_AGENT_VERSION" \
+    -DTELEMETRY_FORGE_AGENT_VERSION="$TELEMETRY_FORGE_AGENT_VERSION" \
     -DFLB_LOG_NO_CONTROL_CHARS=On \
     -DFLB_CORO_STACK_SIZE=131072 \
     ${CMAKE_EXTRA_ARGS} \
@@ -132,33 +132,33 @@ RUN echo "/usr/local/lib64" > /etc/ld.so.conf.d/local-libs.conf && \
     echo "/usr/local/lib" >> /etc/ld.so.conf.d/local-libs.conf && \
     ldconfig
 
-RUN mkdir -p /opt/fluentdo-agent/etc
-COPY config/ /opt/fluentdo-agent/etc/
+RUN mkdir -p /opt/telemetryforge-agent/etc
+COPY config/ /opt/telemetryforge-agent/etc/
 COPY config/ /fluent-bit/etc/
 
 # Generate schema and include as part of the container image
 RUN /fluent-bit/bin/fluent-bit -J > /fluent-bit/etc/schema.json && \
-    /fluent-bit/bin/fluent-bit -J > /opt/fluentdo-agent/etc/schema.json
+    /fluent-bit/bin/fluent-bit -J > /opt/telemetryforge-agent/etc/schema.json
 
 ARG FLUENT_BIT_VERSION
-ARG FLUENTDO_AGENT_VERSION
+ARG TELEMETRY_FORGE_AGENT_VERSION
 
 ENV FLUENTBIT_VERSION=$FLUENT_BIT_VERSION
-ENV FLUENTDO_AGENT_VERSION=$FLUENTDO_AGENT_VERSION
+ENV TELEMETRY_FORGE_AGENT_VERSION=$TELEMETRY_FORGE_AGENT_VERSION
 
 # We need to override any base image labels
-LABEL vendor='FluentDo at https://fluent.do'
-LABEL maintainer='FluentDo via info@fluent.do'
-LABEL name='FluentDo Agent'
-LABEL io.k8s.display-name='FluentDo Agent'
-LABEL summary='FluentDo Agent is an Enterprise hardened version of Fluent Bit'
-LABEL url='https://fluent.do'
-LABEL io.openshift.tags='observability,logging,log-aggregation,fluentdo,fluent-bit'
-LABEL version=${FLUENTDO_AGENT_VERSION}
-LABEL io.k8s.description='FluentDo Agent is a stable, secure by default, OSS (Apache-licensed) downstream distribution of Fluent Bit with predictable releases and long-term supported versions for 24 months.'
+LABEL vendor='Telemetry Forge at https://telemetryforge.io'
+LABEL maintainer='Telemetry Forge via info@fluent.do'
+LABEL name='Telemetry Forge Agent'
+LABEL io.k8s.display-name='Telemetry Forge Agent'
+LABEL summary='Telemetry Forge Agent is an Enterprise hardened version of Fluent Bit'
+LABEL url='https://telemetryforge.io'
+LABEL io.openshift.tags='observability,logging,log-aggregation,telemetryforge,fluent-bit'
+LABEL version=${TELEMETRY_FORGE_AGENT_VERSION}
+LABEL io.k8s.description='Telemetry Forge Agent is a stable, secure by default, OSS (Apache-licensed) downstream distribution of Fluent Bit with predictable releases and long-term supported versions for 24 months.'
 
 # Run as non-root user - pick a random one
-RUN useradd -u 9876 -m -s /bin/false fluentdo-agent
+RUN useradd -u 9876 -m -s /bin/false telemetryforge-agent
 
 USER 9876
 
@@ -189,7 +189,7 @@ FROM builder AS debug
 # hadolint ignore=DL3041
 RUN dnf install -y gdb go-toolset procps && dnf clean all
 
-COPY --from=production /opt/fluentdo-agent /opt/fluentdo-agent
+COPY --from=production /opt/telemetryforge-agent /opt/telemetryforge-agent
 COPY --from=production /fluent-bit /fluent-bit
 
 ENTRYPOINT [ "bash" ]

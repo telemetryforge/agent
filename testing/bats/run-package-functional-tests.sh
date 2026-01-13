@@ -16,11 +16,11 @@ SCRIPT_DIR=$(cd -P "$(dirname "$SOURCE")" >/dev/null 2>&1 && pwd)
 export CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
 export BASE_IMAGE=${BASE_IMAGE:-dokken/centos-6}
 export DISTRO=${DISTRO:-centos/6}
-export FLUENT_BIT_BINARY=${FLUENT_BIT_BINARY:-/opt/fluentdo-agent/bin/fluent-bit}
+export FLUENT_BIT_BINARY=${FLUENT_BIT_BINARY:-/opt/telemetryforge-agent/bin/fluent-bit}
 
 # Only used if no packages downloaded and running manually (not in CI)
-export FLUENTDO_AGENT_URL=${FLUENTDO_AGENT_URL:-https://staging.fluent.do}
-export FLUENTDO_AGENT_VERSION=${FLUENTDO_AGENT_VERSION:-26.1.3}
+export TELEMETRY_FORGE_AGENT_URL=${TELEMETRY_FORGE_AGENT_URL:-https://staging.fluent.do}
+export TELEMETRY_FORGE_AGENT_VERSION=${TELEMETRY_FORGE_AGENT_VERSION:-26.1.3}
 
 # Location of packages to test
 export DOWNLOAD_DIR=${DOWNLOAD_DIR:-$PWD/downloads}
@@ -50,7 +50,7 @@ if [[ $FOUND_FILES == false ]]; then
 		exit 1
 	else
 		echo "INFO: Package to use is not present in $DOWNLOAD_DIR so will download now"
-		echo "INFO: e.g. cd $DOWNLOAD_DIR && curl -sSfLO https://${FLUENTDO_AGENT_URL}/${FLUENTDO_AGENT_VERSION}/output/package-almalinux-8/fluentdo-agent-${FLUENTDO_AGENT_VERSION}.x86_64.rpm"
+		echo "INFO: e.g. cd $DOWNLOAD_DIR && curl -sSfLO https://${TELEMETRY_FORGE_AGENT_URL}/${TELEMETRY_FORGE_AGENT_VERSION}/output/package-almalinux-8/telemetryforge-agent-${TELEMETRY_FORGE_AGENT_VERSION}.x86_64.rpm"
 
 		# Set up overrides for install script
 		# almalinux/8 becomes DISTRO_ID=almalinux, DISTRO_VERSION=8
@@ -77,7 +77,7 @@ echo "INFO: running test container 'bats/test/$DISTRO'"
 "${CONTAINER_RUNTIME}" run --rm -t \
 	-v "$DOWNLOAD_DIR:/downloads:ro" \
 	-e FLUENT_BIT_BINARY="$FLUENT_BIT_BINARY" \
-	-e FLUENTDO_AGENT_PACKAGE_INSTALLED=true \
+	-e TELEMETRY_FORGE_AGENT_PACKAGE_INSTALLED=true \
 	"bats/test/$DISTRO"
 
 echo "INFO: All tests complete"

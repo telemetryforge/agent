@@ -247,8 +247,8 @@ if(LIBGIT2_FOUND)
   REGISTER_CUSTOM_PLUGIN("custom_git_config")
 endif()
 
-REGISTER_CUSTOM_PLUGIN("custom_fluentdo")
-REGISTER_IN_PLUGIN("in_fluentdo")
+REGISTER_CUSTOM_PLUGIN("custom_telemetryforge")
+REGISTER_IN_PLUGIN("in_telemetryforge")
 
 REGISTER_IN_PLUGIN("in_blob")
 

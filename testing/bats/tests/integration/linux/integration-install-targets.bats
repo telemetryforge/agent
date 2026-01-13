@@ -9,7 +9,7 @@ load "$BATS_FILE_ROOT/load.bash"
 
 # bats file_tags=integration,linux
 
-# BATS tests for verifying FluentDo Agent package installation via containers
+# BATS tests for verifying Telemetry Forge Agent package installation via containers
 
 setupFile() {
     skipIfNotLinux
@@ -24,7 +24,7 @@ setupFile() {
             sed -i -e "s|^#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-Base.repo && \
             /install.sh --debug'
     assert_success
-    assert_output --partial 'FluentDo Agent installation completed successfully!'
+    assert_output --partial 'Telemetry Forge Agent installation completed successfully!'
     refute_output --partial '[ERROR]'
 }
 
@@ -35,7 +35,7 @@ setupFile() {
     run ${CONTAINER_RUNTIME:-docker} run --rm -t -v "${install_script}:/install.sh:ro" \
         almalinux:8 /bin/sh -c '/install.sh --debug'
     assert_success
-    assert_output --partial 'FluentDo Agent installation completed successfully!'
+    assert_output --partial 'Telemetry Forge Agent installation completed successfully!'
     refute_output --partial '[ERROR]'
 }
 
@@ -47,7 +47,7 @@ setupFile() {
         almalinux:9 /bin/sh -c 'yum install -y epel-release && \
             /install.sh --debug'
     assert_success
-    assert_output --partial 'FluentDo Agent installation completed successfully!'
+    assert_output --partial 'Telemetry Forge Agent installation completed successfully!'
     refute_output --partial '[ERROR]'
 }
 
@@ -59,7 +59,7 @@ setupFile() {
         almalinux:10 /bin/sh -c 'yum install -y epel-release && \
             /install.sh --debug'
     assert_success
-    assert_output --partial 'FluentDo Agent installation completed successfully!'
+    assert_output --partial 'Telemetry Forge Agent installation completed successfully!'
     refute_output --partial '[ERROR]'
 }
 
@@ -70,7 +70,7 @@ setupFile() {
     run ${CONTAINER_RUNTIME:-docker} run --rm -t -v "${install_script}:/install.sh:ro" \
         ubuntu:22.04 /bin/sh -c 'apt-get update && apt-get install -y curl && /install.sh --debug'
     assert_success
-    assert_output --partial 'FluentDo Agent installation completed successfully!'
+    assert_output --partial 'Telemetry Forge Agent installation completed successfully!'
     refute_output --partial '[ERROR]'
 }
 
@@ -81,7 +81,7 @@ setupFile() {
     run ${CONTAINER_RUNTIME:-docker} run --rm -t -v "${install_script}:/install.sh:ro" \
         ubuntu:24.04 /bin/sh -c 'apt-get update && apt-get install -y curl && /install.sh --debug'
     assert_success
-    assert_output --partial 'FluentDo Agent installation completed successfully!'
+    assert_output --partial 'Telemetry Forge Agent installation completed successfully!'
     refute_output --partial '[ERROR]'
 }
 
@@ -92,7 +92,7 @@ setupFile() {
     run ${CONTAINER_RUNTIME:-docker} run --rm -t -v "${install_script}:/install.sh:ro" \
         debian:bookworm /bin/sh -c 'apt-get update && apt-get install -y curl && /install.sh --debug'
     assert_success
-    assert_output --partial 'FluentDo Agent installation completed successfully!'
+    assert_output --partial 'Telemetry Forge Agent installation completed successfully!'
     refute_output --partial '[ERROR]'
 }
 
@@ -103,6 +103,6 @@ setupFile() {
     run ${CONTAINER_RUNTIME:-docker} run --rm -t -v "${install_script}:/install.sh:ro" \
         debian:trixie /bin/sh -c 'apt-get update && apt-get install -y curl && /install.sh --debug'
     assert_success
-    assert_output --partial 'FluentDo Agent installation completed successfully!'
+    assert_output --partial 'Telemetry Forge Agent installation completed successfully!'
     refute_output --partial '[ERROR]'
 }

@@ -100,7 +100,7 @@ jobs:
             CMAKE_BUILD_TYPE=Debug
             CMAKE_EXPORT_COMPILE_COMMANDS=On
 
-            FLUENTDO_AGENT_TESTS=On
+            TELEMETRY_FORGE_AGENT_TESTS=On
             FLB_TESTS_INTERNAL=On
             FLB_TESTS_RUNTIME=On
 
@@ -138,7 +138,7 @@ jobs:
           gcovr --object-directory . --root .. --gcov-ignore-parse-errors --gcov-ignore-errors \
             --sort uncovered-percent \
             --xml=cobertura.xml \
-            --html=coverage.html --html-title='FluentDo Agent Test Coverage Report' \
+            --html=coverage.html --html-title='Agent Test Coverage Report' \
             --json=coverage.json \
             --txt=coverage.txt \
             --print-summary

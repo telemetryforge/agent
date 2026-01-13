@@ -14,16 +14,16 @@ done
 SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 
 export FLUENT_BIT_BINARY=${FLUENT_BIT_BINARY:-/fluent-bit/bin/fluent-bit}
-export FLUENTDO_AGENT_VERSION=${FLUENTDO_AGENT_VERSION:-26.1.3}
-export FLUENTDO_AGENT_URL="${FLUENTDO_AGENT_URL:-https://staging.fluent.do}"
+export TELEMETRY_FORGE_AGENT_VERSION=${TELEMETRY_FORGE_AGENT_VERSION:-26.1.3}
+export TELEMETRY_FORGE_AGENT_URL="${TELEMETRY_FORGE_AGENT_URL:-https://staging.fluent.do}"
 
 echo "INFO: Testing with binary '$FLUENT_BIT_BINARY'"
-echo "INFO: Testing with version '$FLUENTDO_AGENT_VERSION'"
-echo "INFO: Testing with URL '$FLUENTDO_AGENT_URL'"
+echo "INFO: Testing with version '$TELEMETRY_FORGE_AGENT_VERSION'"
+echo "INFO: Testing with URL '$TELEMETRY_FORGE_AGENT_URL'"
 
 # Optional variables for container/k8s tests
-# FLUENTDO_AGENT_IMAGE=...
-# FLUENTDO_AGENT_TAG=...
+# TELEMETRY_FORGE_AGENT_IMAGE=...
+# TELEMETRY_FORGE_AGENT_TAG=...
 
 # Attempt to auto-parallelise when available, only across files
 if [[ -z "${BATS_PARALLEL_BINARY_NAME:-}" ]]; then

@@ -13,7 +13,7 @@ while [ -L "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 
-export FLUENT_BIT_BINARY=${FLUENT_BIT_BINARY:-/opt/fluentdo-agent/bin/fluent-bit}
+export FLUENT_BIT_BINARY=${FLUENT_BIT_BINARY:-/opt/telemetryforge-agent/bin/fluent-bit}
 
 "$SCRIPT_DIR"/run-bats.sh --filter-tags 'integration,!container,!k8s' --recursive "$SCRIPT_DIR/tests"
 echo "INFO: All tests complete"
