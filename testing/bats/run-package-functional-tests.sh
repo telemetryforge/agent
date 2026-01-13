@@ -50,7 +50,7 @@ if [[ $FOUND_FILES == false ]]; then
 		exit 1
 	else
 		echo "INFO: Package to use is not present in $DOWNLOAD_DIR so will download now"
-		echo "INFO: e.g. cd $DOWNLOAD_DIR && curl -sSfLO https://${TELEMETRY_FORGE_AGENT_URL}/${TELEMETRY_FORGE_AGENT_VERSION}/output/package-almalinux-8/telemetryforge-agent-${TELEMETRY_FORGE_AGENT_VERSION}.x86_64.rpm"
+		echo "INFO: e.g. cd $DOWNLOAD_DIR && curl -sSfLO ${TELEMETRY_FORGE_AGENT_URL}/${TELEMETRY_FORGE_AGENT_VERSION}/output/package-almalinux-8/telemetryforge-agent-${TELEMETRY_FORGE_AGENT_VERSION}.x86_64.rpm"
 
 		# Set up overrides for install script
 		# almalinux/8 becomes DISTRO_ID=almalinux, DISTRO_VERSION=8
