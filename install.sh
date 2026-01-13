@@ -8,8 +8,8 @@
 # All packages follow the following URL format:
 # https://packages.fluent.do/<TELEMETRY_FORGE_AGENT_VERSION>/output/<OS + ARCH>/<PACKAGE NAME>
 # e.g.
-# https://packages.fluent.do/25.10.1/output/package-debian-bookworm.arm64v8/telemetryforge-agent_25.10.1_arm64.deb
-# https://packages.fluent.do/25.10.1/output/package-almalinux-8/telemetryforge-agent-25.10.1-1.x86_64.rpm
+# https://packages.fluent.do/26.1.3/output/package-debian-bookworm.arm64v8/telemetryforge-agent_26.1.3_arm64.deb
+# https://packages.fluent.do/26.1.3/output/package-almalinux-8/telemetryforge-agent-26.1.3-1.x86_64.rpm
 
 set -e
 
