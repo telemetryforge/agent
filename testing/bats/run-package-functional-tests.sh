@@ -20,7 +20,7 @@ export FLUENT_BIT_BINARY=${FLUENT_BIT_BINARY:-/opt/telemetryforge-agent/bin/flue
 
 # Only used if no packages downloaded and running manually (not in CI)
 export TELEMETRY_FORGE_AGENT_URL=${TELEMETRY_FORGE_AGENT_URL:-https://staging.telemetryforge.io}
-export TELEMETRY_FORGE_AGENT_VERSION=${TELEMETRY_FORGE_AGENT_VERSION:-26.1.3}
+export TELEMETRY_FORGE_AGENT_VERSION=${TELEMETRY_FORGE_AGENT_VERSION:-26.2.1}
 
 # Location of packages to test
 export DOWNLOAD_DIR=${DOWNLOAD_DIR:-$PWD/downloads}

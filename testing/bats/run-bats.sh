@@ -14,7 +14,7 @@ done
 SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 
 export FLUENT_BIT_BINARY=${FLUENT_BIT_BINARY:-/fluent-bit/bin/fluent-bit}
-export TELEMETRY_FORGE_AGENT_VERSION=${TELEMETRY_FORGE_AGENT_VERSION:-26.1.3}
+export TELEMETRY_FORGE_AGENT_VERSION=${TELEMETRY_FORGE_AGENT_VERSION:-26.2.1}
 export TELEMETRY_FORGE_AGENT_URL="${TELEMETRY_FORGE_AGENT_URL:-https://staging.telemetryforge.io}"
 
 echo "INFO: Testing with binary '$FLUENT_BIT_BINARY'"
