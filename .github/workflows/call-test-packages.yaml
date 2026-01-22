@@ -33,7 +33,7 @@ on:
         description: The Dockerhub token to use for authenticated pulls (not pushes).
         required: true
 env:
-  TELEMETRY_FORGE_AGENT_VERSION: ${{ inputs.version }}
+  FLUENTDO_AGENT_VERSION: ${{ inputs.version }}
 jobs:
   # This job converts the JSON build-matrix coming in to a matrix of test jobs.
   # We convert using the following rules:
@@ -175,7 +175,7 @@ jobs:
             package-type: deb
             package: package-ubuntu-24.04
             name: ubuntu
-            binary: /opt/telemetryforge-agent/bin/fluent-bit
+            binary: /opt/fluentdo-agent/bin/fluent-bit
           # - runner: windows-latest
           #   package-type: msi
           #   package: package-windows

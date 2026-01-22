@@ -84,7 +84,7 @@ jobs:
         run: ./scripts/setup-code.sh
         shell: bash
         env:
-          TELEMETRY_FORGE_AGENT_VERSION: ${{ inputs.version }}
+          FLUENTDO_AGENT_VERSION: ${{ inputs.version }}
 
       - name: Deltas
         run: git diff
@@ -143,7 +143,7 @@ jobs:
           # Make sure we push our custom labels to the image
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            TELEMETRY_FORGE_AGENT_VERSION=${{ inputs.version }}
+            FLUENTDO_AGENT_VERSION=${{ inputs.version }}
           provenance: false
 
       - name: Export ${{ matrix.target }} digest
@@ -198,7 +198,7 @@ jobs:
           # We only build for amd64 as the test image is only used for running BATS tests
           platforms: linux/amd64
           target: test
-          build-args: |
+            FLUENTDO_AGENT_VERSION=${{ inputs.version }}
             TELEMETRY_FORGE_AGENT_VERSION=${{ inputs.version }}
           provenance: false
           push: true

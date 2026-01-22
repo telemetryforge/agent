@@ -115,7 +115,7 @@ jobs:
               id: set-version
               run: |
                   set -euo pipefail
-                  VERSION=$(grep "ARG TELEMETRY_FORGE_AGENT_VERSION=" Dockerfile.ubi | cut -d '=' -s -f 2 -)
+                  VERSION=$(grep "ARG FLUENTDO_AGENT_VERSION=" Dockerfile.ubi | cut -d '=' -s -f 2 -)
                   echo "Using version: $VERSION"
                   echo "version=$VERSION" >> $GITHUB_OUTPUT
               shell: bash
