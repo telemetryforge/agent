@@ -5,7 +5,7 @@ on:
       image:
         description: The full image name to test.
         required: false
-        default: "ghcr.io/fluentdo/agent"
+        default: "ghcr.io/telemetryforge/agent"
         type: string
       image-tag:
         description: The image tag to test.
@@ -28,7 +28,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          repository: FluentDo/agent
+          repository: telemetryforge/agent
           ref: ${{ github.event.inputs.ref || github.ref }}
       - name: Extract the configuration from the JSON file
         id: set-meta

@@ -10,8 +10,8 @@ on:
             github-token:
                 required: true
 env:
-    UBI_IMAGE_NAME: ghcr.io/fluentdo/agent/ubi
-    DISTROLESS_IMAGE_NAME: ghcr.io/fluentdo/agent/debian
+    UBI_IMAGE_NAME: ghcr.io/telemetryforge/agent/ubi
+    DISTROLESS_IMAGE_NAME: ghcr.io/telemetryforge/agent/debian
 jobs:
     promote-ghcr-images:
         name: Promote container images to top-level ghcr.io registries
@@ -20,7 +20,7 @@ jobs:
             contents: read
             packages: write
         env:
-            OUTPUT_IMAGE_NAME: ghcr.io/fluentdo/agent
+            OUTPUT_IMAGE_NAME: ghcr.io/telemetryforge/agent
             TAG: ${{ inputs.version }}
         steps:
             - name: Log in to the Container registry
@@ -72,7 +72,7 @@ jobs:
             id-token: write
         env:
           # We must match up the official image we have used for publishing upstream
-          RHEL_SOURCE_IMAGE: ghcr.io/fluentdo/agent
+          RHEL_SOURCE_IMAGE: ghcr.io/telemetryforge/agent
         needs:
           # We must use the top-level image here - see above
           - promote-ghcr-images

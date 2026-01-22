@@ -19,7 +19,7 @@ on:
         description: The Dockerhub username to use for authenticated pulls.
         required: false
         type: string
-        default: "fluentdo"
+        default: "telemetryforge"
       amd-runner-label:
         description: The label to use for the runner.
         required: false
@@ -33,7 +33,7 @@ on:
         description: The Dockerhub token to use for authenticated pulls (not pushes).
         required: true
 env:
-  FLUENTDO_AGENT_VERSION: ${{ inputs.version }}
+  TELEMETRY_FORGE_AGENT_VERSION: ${{ inputs.version }}
 jobs:
   # This job converts the JSON build-matrix coming in to a matrix of test jobs.
   # We convert using the following rules:
@@ -114,7 +114,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          repository: FluentDo/agent
+          repository: telemetryforge/agent
           ref: ${{ inputs.ref }}
 
       - name: Log in to Dockerhub
@@ -175,7 +175,7 @@ jobs:
             package-type: deb
             package: package-ubuntu-24.04
             name: ubuntu
-            binary: /opt/fluentdo-agent/bin/fluent-bit
+            binary: /opt/telemetryforge-agent/bin/fluent-bit
           # - runner: windows-latest
           #   package-type: msi
           #   package: package-windows
@@ -187,7 +187,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          repository: FluentDo/agent
+          repository: telemetryforge/agent
           ref: ${{ inputs.ref }}
 
       # Must be removed on Namespace runners
@@ -222,7 +222,6 @@ jobs:
         run: |
           sudo apt-get update
           find "$PWD/downloads/" -name '*.deb' -exec sh -c 'i="$1";echo "$i";sudo apt-get install -y "$i"' shell {} \;
-          ls -lRh /opt/fluent*
         shell: bash
 
       - name: Install package
@@ -235,3 +234,21 @@ jobs:
       - name: Run integration tests
         run: ./testing/bats/run-package-integration-tests.sh
         shell: bash
+
+      - name: Debug linux binary
+        if: runner.os == 'Linux'
+        continue-on-error: true
+        run: |
+          ls -lRh /opt
+          ls -lRh "${{ matrix.binary }}" || true
+          "${{ matrix.binary }}" --version || true
+        shell: bash
+
+      - name: Debug windows binary
+        if: runner.os == 'Windows'
+        continue-on-error: true
+        run: |
+          $binaryPath = "${{ matrix.binary }}"
+          Get-Item -Path $binaryPath | Format-List -Property *
+          & $binaryPath --version
+        shell: pwsh
