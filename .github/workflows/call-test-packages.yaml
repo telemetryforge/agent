@@ -222,7 +222,6 @@ jobs:
         run: |
           sudo apt-get update
           find "$PWD/downloads/" -name '*.deb' -exec sh -c 'i="$1";echo "$i";sudo apt-get install -y "$i"' shell {} \;
-          ls -lRh /opt/fluent*
         shell: bash
 
       - name: Install package
@@ -235,3 +234,21 @@ jobs:
       - name: Run integration tests
         run: ./testing/bats/run-package-integration-tests.sh
         shell: bash
+
+      - name: Debug linux binary
+        if: runner.os == 'Linux'
+        continue-on-error: true
+        run: |
+          ls -lRh /opt
+          ls -lRh "${{ matrix.binary }}" || true
+          "${{ matrix.binary }}" --version || true
+        shell: bash
+
+      - name: Debug windows binary
+        if: runner.os == 'Windows'
+        continue-on-error: true
+        run: |
+          $binaryPath = "${{ matrix.binary }}"
+          Get-Item -Path $binaryPath | Format-List -Property *
+          & $binaryPath --version
+        shell: pwsh

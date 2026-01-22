@@ -125,7 +125,7 @@ jobs:
             io.openshift.tags=observability,logging,log-aggregation,telemetryforge,fluent-bit
             url=https://telemetryforge.io
             vendor=Telemetry Forge at https://telemetryforge.io
-            maintainer=Telemetry Forge via info@fluent.do
+            maintainer=Telemetry Forge via info@telemetryforge.io
             name=Telemetry Forge Agent
             description=Telemetry Forge Agent is a stable, secure by default, OSS (Apache-licensed) downstream distribution of Fluent Bit with predictable releases and long-term supported versions for 24 months.
             summary=Telemetry Forge Agent is an Enterprise hardened version of Fluent Bit

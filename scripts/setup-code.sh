@@ -123,7 +123,7 @@ echo "CPACK_PACKAGE_NAME_SUFFIX: $CPACK_PACKAGE_NAME_SUFFIX"
 sed_wrapper -i "s/CPACK_PACKAGE_NAME \"fluent-bit\"/CPACK_PACKAGE_NAME \"telemetryforge-agent${CPACK_PACKAGE_NAME_SUFFIX}\"/g" "$FLB_CMAKE"
 
 sed_wrapper -i "s/CPACK_PACKAGE_VENDOR \"Fluent Bit\"/CPACK_PACKAGE_VENDOR \"Telemetry Forge\"/g" "$FLB_CMAKE"
-sed_wrapper -i "s/Eduardo Silva <eduardo.silva@chronosphere.io>/Telemetry Forge <info@fluent.do>/g" "$FLB_CMAKE"
+sed_wrapper -i "s/Eduardo Silva <eduardo.silva@chronosphere.io>/Telemetry Forge <info@telemetryforge.io>/g" "$FLB_CMAKE"
 sed_wrapper -i "s/Chronosphere Inc./Telemetry Forge <https:\/\/telemetryforge.io>/g" "$FLB_CMAKE"
 
 # Source is maintained directly, no need to remove git directories

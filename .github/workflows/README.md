@@ -971,5 +971,5 @@ When adding new workflows:
 For issues or questions:
 
 - GitHub Issues: <https://github.com/telemetryforge/agent/issues>
-- Documentation: <https://fluent.do>
-- Email: <info@fluent.do>
+- Documentation: <https://telemetryforge.io>
+- Email: <info@telemetryforge.io>

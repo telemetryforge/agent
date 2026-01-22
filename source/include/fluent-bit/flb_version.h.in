@@ -61,7 +61,7 @@ static inline void flb_version_banner()
     fprintf(stderr, "Telemetry Forge Agent v%s\n", FLB_VERSION_STR);
     fprintf(stderr, "* A stable, secure by default and enterprise ready\n");
     fprintf(stderr, "* downstream distribution of Fluent Bit\n");
-    fprintf(stderr, "* https://docs.fluent.do\n\n");
+    fprintf(stderr, "* https://docs.telemetryforge.io\n\n");
 }
 
 #endif

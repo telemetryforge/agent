@@ -20,7 +20,7 @@ function setup_git() {
 		echo "ERROR: no git executable found"
 		exit 1
 	elif ! git config user.name; then
-		git config --global user.email "ci@fluent.do"
+		git config --global user.email "ci@telemetryforge.io"
 		git config --global user.name "Telemetry Forge CI"
 	fi
 }

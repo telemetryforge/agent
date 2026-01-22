@@ -70,7 +70,7 @@ COPY source/ /source/
 # Some components assume a git repository is present, so we create one otherwise it fails
 RUN git init -q /source/ && \
     git config user.name "Telemetry Forge Agent Builder" && \
-    git config user.email "info@fluent.do" && \
+    git config user.email "info@telemetryforge.io" && \
     git add -A && \
     git commit -q -a -m "Initial commit for Telemetry Forge Agent"
 
@@ -148,7 +148,7 @@ ENV TELEMETRY_FORGE_AGENT_VERSION=$TELEMETRY_FORGE_AGENT_VERSION
 
 # We need to override any base image labels
 LABEL vendor='Telemetry Forge at https://telemetryforge.io'
-LABEL maintainer='Telemetry Forge via info@fluent.do'
+LABEL maintainer='Telemetry Forge via info@telemetryforge.io'
 LABEL name='Telemetry Forge Agent'
 LABEL io.k8s.display-name='Telemetry Forge Agent'
 LABEL summary='Telemetry Forge Agent is an Enterprise hardened version of Fluent Bit'
