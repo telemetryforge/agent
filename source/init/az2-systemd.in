@@ -1,6 +1,6 @@
 [Unit]
 Description=Telemetry Forge Agent is an enterprise-hardened distribution of Fluent Bit
-Documentation=https://fluent.do/
+Documentation=https://telemetryforge.io/
 Requires=network.target
 After=network.target
 Requires=sethostname.service

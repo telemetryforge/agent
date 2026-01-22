@@ -1420,7 +1420,7 @@ set(CPACK_PACKAGE_VERSION ${FLB_VERSION_STR})
 set(CPACK_PACKAGE_NAME "telemetryforge-agent")
 
 set(CPACK_PACKAGE_RELEASE 1)
-set(CPACK_PACKAGE_CONTACT "Telemetry Forge <info@fluent.do>")
+set(CPACK_PACKAGE_CONTACT "Telemetry Forge <info@telemetryforge.io>")
 set(CPACK_PACKAGE_VENDOR "Telemetry Forge <https://telemetryforge.io>")
 set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
 set(CPACK_PACKAGING_INSTALL_PREFIX "/")

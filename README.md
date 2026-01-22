@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://docs.fluent.do"><img src="https://img.shields.io/badge/docs-docs.fluent.do-blue" alt="Documentation"></a>
+  <a href="https://docs.telemetryforge.io"><img src="https://img.shields.io/badge/docs-docs.telemetryforge.io-blue" alt="Documentation"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License"></a>
   <a href="https://github.com/telemetryforge/agent/releases"><img src="https://img.shields.io/github/v/release/telemetryforge/agent?sort=semver" alt="Release"></a>
   <a href="https://telemetry.io/support"><img src="https://img.shields.io/badge/LTS-24%20months-green" alt="LTS"></a>
@@ -77,7 +77,7 @@ Once it transitions to an LTS release then we maintain the major and minor versi
   - Memory safety validation with Valgrind/AddressSanitizer
   - Performance benchmarks and regression testing
 
-[Learn more about features →](https://docs.fluent.do/features)
+[Learn more about features →](https://docs.telemetryforge.io/features)
 
 ---
 
@@ -96,7 +96,7 @@ To specify a different configuration just mount it in as well and pass it on the
 
 ### Package Installation
 
-All packages are available for download at <https://packages.fluent.do>.
+All packages are available for download at <https://packages.telemetryforge.io>.
 
 Linux and macOS packages are available for download and installation or using a simple install script:
 
@@ -145,8 +145,8 @@ make
 
 ## Resources
 
-- **[Documentation](https://docs.fluent.do)** - Complete documentation and guides
-- **[Downloads](https://fluent.do/downloads)** - Pre-built packages and containers
+- **[Documentation](https://docs.telemetryforge.io)** - Complete documentation and guides
+- **[Downloads](https://packages.telemetryforge.io)** - Pre-built packages and containers
 - **[Release Notes](https://github.com/telemetryforge/agent/releases)** - Version history and changelogs
 - **[OSS Fluent Bit Docs](https://docs.fluentbit.io)** - Core documentation reference
 
@@ -157,7 +157,7 @@ make
 - **[Slack](https://join.slack.com/share/enQtOTU4MDk0MTQ0OTYzNi03MTY5MTc2Y2I0Y2JhY2QxNzc5MDNkNDdhNTRhNTgzNjkwMDc4Mzk1YTRhZWUzNTE4ZjM3OTljOTA4MzAxYjBl)** - Join our community chat
 - **[GitHub Issues](https://github.com/telemetryforge/agent/issues)** - Bug reports and feature requests
 - **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to the project
-- **[Commercial Support](https://fluent.do)** - Enterprise support with SLA
+- **[Commercial Support](https://telemetryforge.io)** - Enterprise support with SLA
 
 ---
 
@@ -173,7 +173,7 @@ The GPG key is also [provided](./gpg.pub) that signs packages and checksums.
 
 If you discover a potential security issue, **DO NOT** create a public GitHub issue. Instead, report it directly:
 
-📧 **Email**: [security@fluent.do](mailto:security@fluent.do)
+📧 **Email**: [security@telemetryforge.io](mailto:security@telemetryforge.io)
 
 Please include:
 
@@ -203,7 +203,7 @@ We are grateful to the Fluent Bit community and all contributors who make this p
 
 <p align="center">
   <a href="https://telemetryforge.io">Website</a> •
-  <a href="https://docs.fluent.do">Docs</a> •
+  <a href="https://docs.telemetryforge.io">Docs</a> •
   <a href="https://twitter.com/telemetryforge">Twitter</a> •
   <a href="https://telemetryforge.io">Support</a>
 </p>

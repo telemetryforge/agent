@@ -19,7 +19,7 @@ export DISTRO=${DISTRO:-centos/6}
 export FLUENT_BIT_BINARY=${FLUENT_BIT_BINARY:-/opt/telemetryforge-agent/bin/fluent-bit}
 
 # Only used if no packages downloaded and running manually (not in CI)
-export TELEMETRY_FORGE_AGENT_URL=${TELEMETRY_FORGE_AGENT_URL:-https://staging.fluent.do}
+export TELEMETRY_FORGE_AGENT_URL=${TELEMETRY_FORGE_AGENT_URL:-https://staging.telemetryforge.io}
 export TELEMETRY_FORGE_AGENT_VERSION=${TELEMETRY_FORGE_AGENT_VERSION:-26.1.3}
 
 # Location of packages to test

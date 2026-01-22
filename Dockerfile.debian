@@ -60,7 +60,7 @@ COPY source/ /source/
 # Some components assume a git repository is present, so we create one otherwise it fails
 RUN git init -q /source/ && \
     git config user.name "Telemetry Forge Agent Builder" && \
-    git config user.email "info@fluent.do" && \
+    git config user.email "info@telemetryforge.io" && \
     git add -A && \
     git commit -q -a -m "Initial commit for Telemetry Forge Agent"
 

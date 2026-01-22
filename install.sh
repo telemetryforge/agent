@@ -2,19 +2,19 @@
 
 # Telemetry Forge Agent Installer
 #
-# Downloads and installs the Telemetry Forge Agent from packages.fluent.do
-# You can also download direct from https://packages.fluent.do/index.html
+# Downloads and installs the Telemetry Forge Agent from packages.telemetryforge.io
+# You can also download direct from https://packages.telemetryforge.io/index.html
 #
 # All packages follow the following URL format:
-# https://packages.fluent.do/<TELEMETRY_FORGE_AGENT_VERSION>/output/<OS + ARCH>/<PACKAGE NAME>
+# https://packages.telemetryforge.io/<TELEMETRY_FORGE_AGENT_VERSION>/output/<OS + ARCH>/<PACKAGE NAME>
 # e.g.
-# https://packages.fluent.do/26.1.3/output/package-debian-bookworm.arm64v8/telemetryforge-agent_26.1.3_arm64.deb
-# https://packages.fluent.do/26.1.3/output/package-almalinux-8/telemetryforge-agent-26.1.3-1.x86_64.rpm
+# https://packages.telemetryforge.io/26.1.3/output/package-debian-bookworm.arm64v8/telemetryforge-agent_26.1.3_arm64.deb
+# https://packages.telemetryforge.io/26.1.3/output/package-almalinux-8/telemetryforge-agent-26.1.3-1.x86_64.rpm
 
 set -e
 
 # The URL to get packages from
-TELEMETRY_FORGE_AGENT_URL="${TELEMETRY_FORGE_AGENT_URL:-https://packages.fluent.do}"
+TELEMETRY_FORGE_AGENT_URL="${TELEMETRY_FORGE_AGENT_URL:-https://packages.telemetryforge.io}"
 # Any logs from this script
 LOG_FILE="${LOG_FILE:-$PWD/telemetryforge-agent-install.log}"
 # The output binary to test
@@ -344,7 +344,7 @@ detect_distro() {
 # Version Management
 # ============================================================================
 
-# Fetch available versions from packages.fluent.do
+# Fetch available versions from packages.telemetryforge.io
 fetch_available_versions() {
     log "Fetching available versions from $TELEMETRY_FORGE_AGENT_URL..."
 
@@ -863,7 +863,7 @@ main() {
     fi
     echo ""
 	# Ensure we update once domain is ready: https://github.com/telemetryforge/agent/issues/184
-    log "Documentation: https://docs.fluent.do"
+    log "Documentation: https://docs.telemetryforge.io"
     echo ""
 }
 
@@ -899,7 +899,7 @@ Examples:
     $0 -i
 
     # Custom packages URL
-    $0 -u https://staging.fluent.do
+    $0 -u https://staging.telemetryforge.io
 
     # Install with debug output
     $0 --debug

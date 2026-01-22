@@ -12,4 +12,4 @@ You can start / stop @FLB_OUT_NAME@ via launchctl command.
 
 % sudo launchctl unload /Library/LaunchDaemons/@FLB_OUT_NAME@.plist
 
-If you require Enterprise support, please contact us via info@fluent.do
+If you require Enterprise support, please contact us via info@telemetryforge.io

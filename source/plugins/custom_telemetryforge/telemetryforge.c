@@ -36,7 +36,7 @@
 #endif
 
 /* Ensure we update the default once ready: https://github.com/telemetryforge/agent/issues/183 */
-#define TELEMETRY_FORGE_DEFAULT_URL "https://api.fluent.do/graphql"
+#define TELEMETRY_FORGE_DEFAULT_URL "https://api.telemetryforge.io/graphql"
 
 /* Cross-platform default session store path */
 #ifdef _WIN32

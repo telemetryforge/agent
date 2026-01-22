@@ -43,7 +43,7 @@
 #include <time.h>
 
 /* Ensure we update the default once ready: https://github.com/telemetryforge/agent/issues/183 */
-#define TELEMETRY_FORGE_DEFAULT_URL "https://api.fluent.do/graphql"
+#define TELEMETRY_FORGE_DEFAULT_URL "https://api.telemetryforge.io/graphql"
 #define TELEMETRY_FORGE_DEFAULT_INTERVAL 60
 #define TELEMETRY_FORGE_SESSION_FILE "session"
 
