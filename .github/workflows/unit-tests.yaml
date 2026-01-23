@@ -60,7 +60,7 @@ jobs:
             libsystemd-dev \
             flex bison \
             libsasl2-2 libsasl2-dev libssl-dev libssl3 libcurl4-openssl-dev \
-            libyaml-dev pkg-config zlib1g-dev libgit2-dev
+            libyaml-dev pkg-config zlib1g-dev libgit2-dev zlib1g-dev
         shell: bash
 
       - name: Install cmake
