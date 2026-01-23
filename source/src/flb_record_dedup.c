@@ -305,7 +305,9 @@ struct flb_record_dedup_context *flb_record_dedup_context_create(const char *pat
     rocksdb_options_set_target_file_size_base(ctx->options, 64 * 1024 * 1024);
 
     /* Enable ZSTD compression for better storage efficiency */
-    rocksdb_options_set_compression(ctx->options, rocksdb_zstd_compression);
+    // rocksdb_options_set_compression(ctx->options, rocksdb_zstd_compression);
+    // TODO: https://github.com/telemetryforge/agent/issues/192
+    rocksdb_options_set_compression(ctx->options, rocksdb_no_compression);
 
     /* Optimize for point lookups */
     rocksdb_options_optimize_for_point_lookup(ctx->options, ctx->opts.cache_size / (1024 * 1024));
