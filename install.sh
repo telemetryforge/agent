@@ -344,52 +344,128 @@ detect_distro() {
 # Version Management
 # ============================================================================
 
-# Fetch available versions from packages.telemetryforge.io
+# Fetch available versions from TELEMETRY_FORGE_AGENT_URL (Google Cloud Storage bucket)
 fetch_available_versions() {
     log "Fetching available versions from $TELEMETRY_FORGE_AGENT_URL..."
 
-    local versions_response
-    # Fetch the response
-    versions_response=$(curl -s -L "$TELEMETRY_FORGE_AGENT_URL/" 2>/dev/null || echo "")
+    local all_versions=""
+    local marker=""
+    local is_truncated="true"
+    local page_count=0
 
-    if [ -z "$versions_response" ]; then
-        log_error "Failed to fetch versions from $TELEMETRY_FORGE_AGENT_URL"
-        log_debug "curl returned empty response"
+    # Handle pagination for GCS bucket listings
+    while [ "$is_truncated" = "true" ]; do
+        page_count=$((page_count + 1))
+        local url="$TELEMETRY_FORGE_AGENT_URL/?delimiter=/"
+
+        if [ -n "$marker" ]; then
+            # URL encode the marker for pagination
+            local encoded_marker
+            encoded_marker=$(echo "$marker" | sed 's|/|%2F|g')
+            url="${url}&marker=${encoded_marker}"
+            log_debug "Fetching page $page_count with marker: $marker"
+        else
+            log_debug "Fetching page $page_count"
+        fi
+
+        local versions_response
+        versions_response=$(curl -s -L "$url" 2>/dev/null || echo "")
+
+        if [ -z "$versions_response" ]; then
+            log_error "Failed to fetch versions from $url"
+            log_debug "curl returned empty response"
+            return 1
+        fi
+
+        log_debug "Received response (${#versions_response} bytes)"
+
+        # Extract version directories from GCS XML response
+        # GCS returns XML with <CommonPrefixes><Prefix>VERSION/</Prefix></CommonPrefixes>
+        # We look for <Prefix> tags containing version-like patterns followed by /
+        local page_versions
+        page_versions=$(
+            echo "$versions_response" | \
+            grep -oE '<Prefix>[^<]+</Prefix>' | \
+            sed -E 's|<Prefix>([^<]+)</Prefix>|\1|' | \
+            sed 's|/$||' | \
+            grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | \
+            sort -u
+        )
+
+        if [ -n "$page_versions" ]; then
+            if [ -z "$all_versions" ]; then
+                all_versions="$page_versions"
+            else
+                all_versions=$(printf "%s\n%s" "$all_versions" "$page_versions")
+            fi
+            local version_count
+            version_count=$(echo "$page_versions" | wc -l)
+            log_debug "Found $version_count version(s) in page $page_count"
+        else
+            log_debug "No versions found in page $page_count"
+        fi
+
+        # Check if response is truncated (more pages available)
+        if echo "$versions_response" | grep -q '<IsTruncated>true</IsTruncated>'; then
+            is_truncated="true"
+
+            # Extract the marker for next page
+            # Try NextMarker first, then fall back to last Prefix from CommonPrefixes
+            marker=$(echo "$versions_response" | grep -oE '<NextMarker>[^<]+</NextMarker>' | sed -E 's|<NextMarker>([^<]+)</NextMarker>|\1|' | tail -1)
+
+            if [ -z "$marker" ]; then
+                # If NextMarker not present, use the last Prefix as marker
+                marker=$(echo "$versions_response" | grep -oE '<Prefix>[^<]+</Prefix>' | sed -E 's|<Prefix>([^<]+)</Prefix>|\1|' | tail -1)
+            fi
+
+            if [ -z "$marker" ]; then
+                log_warning "Response is truncated but no marker found, stopping pagination"
+                is_truncated="false"
+            else
+                log_debug "Response is truncated, will fetch next page"
+            fi
+        else
+            is_truncated="false"
+            log_debug "Response not truncated, pagination complete"
+        fi
+
+        # Safety check: prevent infinite loops
+        if [ $page_count -gt 100 ]; then
+            log_warning "Reached maximum page limit (100), stopping pagination"
+            break
+        fi
+    done
+
+    if [ -z "$all_versions" ]; then
+        log_error "No versions found at $TELEMETRY_FORGE_AGENT_URL"
+        if [ -n "$versions_response" ]; then
+            log_debug "Response preview (first 500 chars):"
+            log_debug "$(echo "$versions_response" | head -c 500)"
+        fi
         return 1
     fi
 
-    log_debug "Received response (${#versions_response} bytes)"
-
-    # Try multiple patterns to extract versions
+    # Sort versions by semantic versioning in descending order
+    # sort -V handles version numbers correctly (e.g., 2.10.0 > 2.9.0)
+    # Remove duplicates and sort in reverse semantic version order
     AVAILABLE_VERSIONS=$(
-        echo "$versions_response" | \
-        grep -oE '(href|data-version)="?([0-9]+\.[0-9]+\.[0-9]+)[^"]*"?' | \
-        sed -E 's/.*"?([0-9]+\.[0-9]+\.[0-9]+).*/\1/' | \
-        sort -V -r | \
-        uniq
+        echo "$all_versions" | \
+        sort -u | \
+        sort -V -r
     )
 
-    if [ -z "$AVAILABLE_VERSIONS" ]; then
-        log_debug "First pattern match failed, trying alternate pattern"
-        # Try alternate pattern: look for any version-like strings in links
-        AVAILABLE_VERSIONS=$(
-            echo "$versions_response" | \
-            grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | \
-            sort -V -r | \
-            uniq | \
-            head -10
-        )
-    fi
+    local total_count
+    total_count=$(echo "$AVAILABLE_VERSIONS" | wc -l)
+    log_debug "Found $total_count available version(s) total after deduplication and sorting"
 
-    if [ -z "$AVAILABLE_VERSIONS" ]; then
-        log_error "No versions found at $TELEMETRY_FORGE_AGENT_URL"
-        log_debug "Response preview (first 500 chars):"
-        log_debug "$(echo "$versions_response" | head -c 500)"
-        return 1
+    # Show first few versions for confirmation
+    local preview
+    preview=$(echo "$AVAILABLE_VERSIONS" | head -5 | tr '\n' ' ')
+    if [ "$total_count" -gt 5 ]; then
+        log_success "Found $total_count versions (latest: $preview...)"
+    else
+        log_success "Found versions: $(echo "$AVAILABLE_VERSIONS" | tr '\n' ' ')"
     fi
-
-    log_debug "Found $(echo "$AVAILABLE_VERSIONS" | wc -l) available versions"
-    log_success "Found versions: $(echo "$AVAILABLE_VERSIONS" | tr '\n' ' ')"
 }
 
 # Get the latest version
