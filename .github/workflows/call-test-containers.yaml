@@ -49,7 +49,7 @@ jobs:
     name: Run BATS tests for ${{ inputs.image }}/test:${{ inputs.image-tag }}
     runs-on: ubuntu-latest
     env:
-      FLUENTDO_AGENT_TAG: ${{ inputs.image-tag }}
+      TELEMETRY_FORGE_AGENT_TAG: ${{ inputs.image-tag }}
     permissions:
       packages: read
     steps:
@@ -68,11 +68,11 @@ jobs:
           password: ${{ secrets.github-token }}
 
       - name: Run all functional BATS tests
-        run: docker run --rm -t "${FLUENTDO_AGENT_IMAGE}:${FLUENTDO_AGENT_TAG}"
+        run: docker run --rm -t "${TELEMETRY_FORGE_AGENT_IMAGE}:${TELEMETRY_FORGE_AGENT_TAG}"
         shell: bash
         env:
           # Use the BATS functional test image here
-          FLUENTDO_AGENT_IMAGE: ${{ inputs.image }}/test
+          TELEMETRY_FORGE_AGENT_IMAGE: ${{ inputs.image }}/test
 
       - name: Install BATS
         uses: bats-core/bats-action@3.0.1
@@ -91,7 +91,7 @@ jobs:
         shell: bash
         env:
           # We use the actual image here for testing against
-          FLUENTDO_AGENT_IMAGE: ${{ inputs.image }}
+          TELEMETRY_FORGE_AGENT_IMAGE: ${{ inputs.image }}
           # allow for some parallelity without GNU parallel, since it is not installed by default
           BATS_NO_PARALLELIZE_ACROSS_FILES: 1
           BATS_NUMBER_OF_PARALLEL_JOBS: 4

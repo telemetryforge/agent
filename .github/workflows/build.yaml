@@ -62,7 +62,7 @@ jobs:
         # Look for the default line in the Dockerfile
         id: set-version
         run: |
-          VERSION=$(grep "ARG FLUENTDO_AGENT_VERSION=" Dockerfile.ubi | cut -d '=' -s -f 2 -)
+          VERSION=$(grep "ARG TELEMETRY_FORGE_AGENT_VERSION=" Dockerfile.ubi | cut -d '=' -s -f 2 -)
           # For releases we use the tag
           if [[ '${{ steps.set-build-type.outputs.build-type }}' == 'release' ]]; then
               TAG_NAME=${GITHUB_REF#refs/tags/}
@@ -462,7 +462,8 @@ jobs:
         uses: google-github-actions/upload-cloud-storage@v3
         with:
           path: output/
-          destination: telemetryforge-agent-${{ needs.get-meta.outputs.build-type }}/${{ needs.get-meta.outputs.version }}/
+          # We still use the old buckets from before our rename
+          destination: fluentdo-agent-${{ needs.get-meta.outputs.build-type }}/${{ needs.get-meta.outputs.version }}/
 
   update-docs:
     needs:

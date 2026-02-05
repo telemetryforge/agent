@@ -29,8 +29,8 @@ jobs:
     name: Test K8S version ${{ inputs.kind-version }} with ${{ inputs.image }}:${{ inputs.image-tag }}
     runs-on: ubuntu-latest
     env:
-      FLUENTDO_AGENT_IMAGE: ${{ inputs.image }}
-      FLUENTDO_AGENT_TAG: ${{ inputs.image-tag }}
+      TELEMETRY_FORGE_AGENT_IMAGE: ${{ inputs.image }}
+      TELEMETRY_FORGE_AGENT_TAG: ${{ inputs.image-tag }}
       KIND_VERSION: ${{ inputs.kind-version }}
     steps:
       - name: Checkout code

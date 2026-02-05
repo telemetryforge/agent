@@ -48,7 +48,7 @@ jobs:
         run: ./scripts/setup-code.sh
         shell: bash
         env:
-          FLUENTDO_AGENT_VERSION: ${{ inputs.version }}
+          TELEMETRY_FORGE_AGENT_VERSION: ${{ inputs.version }}
 
       - name: Deltas
         run: git diff
@@ -144,8 +144,8 @@ jobs:
             -DFLB_LIBYAML_DIR='C:\vcpkg\installed\${{ matrix.config.vcpkg_triplet }}' `
             -DLIBGIT2_INCLUDE_DIR='C:\vcpkg\installed\${{ matrix.config.vcpkg_triplet }}\include' `
             -DLIBGIT2_LIBRARY='C:\vcpkg\installed\${{ matrix.config.vcpkg_triplet }}\lib\git2.lib' `
-            -DFLUENTDO_AGENT_DISTRO=${{ matrix.config.distro }} `
-            -DFLUENTDO_AGENT_PACKAGE_TYPE=PACKAGE `
+            -DTELEMETRY_FORGE_AGENT_DISTRO=${{ matrix.config.distro }} `
+            -DTELEMETRY_FORGE_AGENT_PACKAGE_TYPE=PACKAGE `
             -DFLB_IN_CALYPTIA_FLEET=Off `
             -DFLB_IN_DOCKER=Off `
             -DFLB_IN_DOCKER_EVENTS=Off `
@@ -185,7 +185,7 @@ jobs:
         with:
           name: package-windows-${{ matrix.config.arch }}
           path: |
-            source/build/fluentdo-agent-*.exe
-            source/build/fluentdo-agent-*.msi
-            source/build/fluentdo-agent-*.zip
+            source/build/telemetryforge-agent-*.exe
+            source/build/telemetryforge-agent-*.msi
+            source/build/telemetryforge-agent-*.zip
           if-no-files-found: error
