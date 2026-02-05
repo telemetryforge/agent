@@ -463,7 +463,7 @@ jobs:
         with:
           path: output/
           # We still use the old buckets from before our rename
-          destination: fluentdo-${{ needs.get-meta.outputs.build-type }}/${{ needs.get-meta.outputs.version }}/
+          destination: fluentdo-agent-${{ needs.get-meta.outputs.build-type }}/${{ needs.get-meta.outputs.version }}/
 
   update-docs:
     needs:
