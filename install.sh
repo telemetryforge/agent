@@ -361,7 +361,7 @@ fetch_available_versions() {
         if [ -n "$marker" ]; then
             # URL encode the marker for pagination
             local encoded_marker
-            encoded_marker=$(echo "$marker" | sed 's|/|%2F|g')
+			encoded_marker=${marker//\//%2F}
             url="${url}&marker=${encoded_marker}"
             log_debug "Fetching page $page_count with marker: $marker"
         else
