@@ -656,68 +656,79 @@ find_package() {
     local package_dir="package-${target_os}-${DISTRO_VERSION}${target_arch_dir_suffix}"
 
     log_debug "Attempting to find package in: $package_dir"
-    # Build candidate package filenames based on format
-    local package_filenames=()
 
-    case "$pkg_format" in
-        deb)
-            # Debian package naming: telemetryforge-agent_<version>_<arch>.deb
-            package_filenames=(
-                "telemetryforge-agent_${version}_${arch_type}.deb"
-                "telemetryforge-agent_${version}_${deb_arch_type}.deb"
-                "telemetryforge-agent-${version}_${arch_type}.deb"
-                "telemetryforge-agent-${version}_${deb_arch_type}.deb"
-            )
-            log_debug "Looking for .deb files with patterns: ${package_filenames[*]}"
-            ;;
-        rpm)
-            # RPM package naming: telemetryforge-agent-<version>-1.<arch>.rpm
-            package_filenames=(
-                "telemetryforge-agent-${version}-1.${arch_type}.rpm"
-                "telemetryforge-agent-${version}-1.${rpm_arch_type}.rpm"
-                "telemetryforge-agent-${version}-1.noarch.rpm"
-            )
-            log_debug "Looking for .rpm files with patterns: ${package_filenames[*]}"
-            ;;
-        apk)
-            # Alpine package naming: telemetryforge-agent-<version>-r0_<arch>.apk
-            package_filenames=(
-                "telemetryforge-agent-${version}-r0.${arch_type}.apk"
-                "telemetryforge-agent-${version}.${arch_type}.apk"
-            )
-            log_debug "Looking for .apk files with patterns: ${package_filenames[*]}"
-            ;;
-    esac
-
-    # Try to find the package by attempting direct downloads
+    # Try telemetryforge-agent prefix first, then fluentdo-agent for legacy versions
+    local package_prefixes=("telemetryforge-agent" "fluentdo-agent")
+    local all_attempted_paths=()
     local found_package=""
     local found_dir=""
 
     log_debug "Trying directory: $package_dir"
-    for filename in "${package_filenames[@]}"; do
-        local package_url="${TELEMETRY_FORGE_AGENT_URL}/${version}/output/${package_dir}/${filename}"
-        log_debug "Attempting to access: $package_url"
 
-        # Use HEAD request to check if file exists without downloading
-        local http_code
-        http_code=$(curl -s -o /dev/null -w "%{http_code}" -L "$package_url" 2>/dev/null)
-        log_debug "HTTP response code: $http_code"
-
-        if [ "$http_code" = "200" ]; then
-            log_debug "Found package at: $package_url"
-            found_package="$filename"
-            found_dir="$package_dir"
-            break 2  # Break out of both loops
-        else
-            log_debug "Not found (HTTP $http_code): $package_url"
+    for prefix in "${package_prefixes[@]}"; do
+        if [ -n "$found_package" ]; then
+            break
         fi
+
+        if [ "$prefix" = "fluentdo-agent" ]; then
+            log_debug "Trying legacy prefix: $prefix"
+        fi
+
+        # Build candidate package filenames based on format and prefix
+        local package_filenames=()
+        case "$pkg_format" in
+            deb)
+                # Debian package naming: <prefix>_<version>_<arch>.deb
+                package_filenames=(
+                    "${prefix}_${version}_${arch_type}.deb"
+                    "${prefix}_${version}_${deb_arch_type}.deb"
+                    "${prefix}-${version}_${arch_type}.deb"
+                    "${prefix}-${version}_${deb_arch_type}.deb"
+                )
+                ;;
+            rpm)
+                # RPM package naming: <prefix>-<version>-1.<arch>.rpm
+                package_filenames=(
+                    "${prefix}-${version}-1.${arch_type}.rpm"
+                    "${prefix}-${version}-1.${rpm_arch_type}.rpm"
+                    "${prefix}-${version}-1.noarch.rpm"
+                )
+                ;;
+            apk)
+                # Alpine package naming: <prefix>-<version>-r0.<arch>.apk
+                package_filenames=(
+                    "${prefix}-${version}-r0.${arch_type}.apk"
+                    "${prefix}-${version}.${arch_type}.apk"
+                )
+                ;;
+        esac
+
+        for filename in "${package_filenames[@]}"; do
+            local package_url="${TELEMETRY_FORGE_AGENT_URL}/${version}/output/${package_dir}/${filename}"
+            log_debug "Attempting to access: $package_url"
+            all_attempted_paths+=("$package_url")
+
+            # Use HEAD request to check if file exists without downloading
+            local http_code
+            http_code=$(curl -s -o /dev/null -w "%{http_code}" -L "$package_url" 2>/dev/null)
+            log_debug "HTTP response code: $http_code"
+
+            if [ "$http_code" = "200" ]; then
+                log_debug "Found package at: $package_url"
+                found_package="$filename"
+                found_dir="$package_dir"
+                break 2  # Break out of both loops
+            else
+                log_debug "Not found (HTTP $http_code): $package_url"
+            fi
+        done
     done
 
     if [ -z "$found_package" ]; then
         log_error "No package file found for version=$version, os=$target_os, arch=$arch_type, format=$pkg_format"
         log_error "Attempted paths:"
-        for filename in "${package_filenames[@]}"; do
-            log_error "  ${TELEMETRY_FORGE_AGENT_URL}/${version}/output/${package_dir}/${filename}"
+        for path in "${all_attempted_paths[@]}"; do
+            log_error "  $path"
         done
         return 1
     fi
