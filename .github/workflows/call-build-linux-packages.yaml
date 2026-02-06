@@ -75,6 +75,8 @@ jobs:
         shell: bash
         env:
           TELEMETRY_FORGE_AGENT_VERSION: ${{ inputs.version }}
+          # Support legacy version variable for backwards compatibility
+          FLUENTDO_AGENT_VERSION: ${{ inputs.version }}
 
       - name: Deltas
         run: git diff

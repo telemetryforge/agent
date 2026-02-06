@@ -29,9 +29,12 @@ jobs:
     name: Test K8S version ${{ inputs.kind-version }} with ${{ inputs.image }}:${{ inputs.image-tag }}
     runs-on: ubuntu-latest
     env:
+      KIND_VERSION: ${{ inputs.kind-version }}
       TELEMETRY_FORGE_AGENT_IMAGE: ${{ inputs.image }}
       TELEMETRY_FORGE_AGENT_TAG: ${{ inputs.image-tag }}
-      KIND_VERSION: ${{ inputs.kind-version }}
+      # Support legacy image and tag variables for backwards compatibility
+      FLUENTDO_AGENT_IMAGE: ${{ inputs.image }}
+      FLUENTDO_AGENT_TAG: ${{ inputs.image-tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6

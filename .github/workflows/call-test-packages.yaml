@@ -34,6 +34,8 @@ on:
         required: true
 env:
   TELEMETRY_FORGE_AGENT_VERSION: ${{ inputs.version }}
+  # Support legacy version variable for backwards compatibility
+  FLUENTDO_AGENT_VERSION: ${{ inputs.version }}
 jobs:
   # This job converts the JSON build-matrix coming in to a matrix of test jobs.
   # We convert using the following rules:
@@ -189,6 +191,18 @@ jobs:
         with:
           repository: telemetryforge/agent
           ref: ${{ inputs.ref }}
+
+      - name: Override binary name for LTS branch
+        if: contains(github.ref, 'release/25.10-lts')
+        run: |
+          FLUENT_BIT_BINARY="/opt/fluentdo-agent/bin/fluent-bit"
+          echo "FLUENT_BIT_BINARY=$FLUENT_BIT_BINARY"
+          echo "FLUENT_BIT_BINARY=$FLUENT_BIT_BINARY" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Debug environment
+        run: env
+        shell: bash
 
       # Must be removed on Namespace runners
       - name: Set up QEMU
