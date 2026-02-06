@@ -101,6 +101,7 @@ jobs:
             CMAKE_EXPORT_COMPILE_COMMANDS=On
 
             TELEMETRY_FORGE_AGENT_TESTS=On
+            FLUENTDO_AGENT_TESTS=On
             FLB_TESTS_INTERNAL=On
             FLB_TESTS_RUNTIME=On
 

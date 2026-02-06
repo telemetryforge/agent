@@ -135,6 +135,8 @@ jobs:
               shell: bash
               env:
                   NEW_TELEMETRY_FORGE_AGENT_VERSION: ${{ steps.get-version.outputs.next_tag }}
+                  # Support legacy version variable for backwards compatibility
+                  NEW_FLUENTDO_AGENT_VERSION: ${{ steps.get-version.outputs.next_tag }}
 
             - name: Debug
               run: |

@@ -114,9 +114,17 @@ jobs:
               # Look for the default line in the Dockerfile
               id: set-version
               run: |
-                  set -euo pipefail
-                  VERSION=$(grep "ARG TELEMETRY_FORGE_AGENT_VERSION=" Dockerfile.ubi | cut -d '=' -s -f 2 -)
-                  echo "Using version: $VERSION"
+                  VERSION=""
+                  if grep -q "ARG TELEMETRY_FORGE_AGENT_VERSION=" Dockerfile.ubi; then
+                    VERSION=$(grep "ARG TELEMETRY_FORGE_AGENT_VERSION=" Dockerfile.ubi | cut -d '=' -s -f 2 -)
+                  elif grep -q "ARG FLUENTDO_AGENT_VERSION=" Dockerfile.ubi; then
+                    VERSION=$(grep "ARG FLUENTDO_AGENT_VERSION=" Dockerfile.ubi | cut -d '=' -s -f 2 -)
+                  else
+                      echo "ERROR: Could not find either version in Dockerfile."
+                      cat Dockerfile.ubi
+                      exit 1
+                  fi
+                  echo "version=$VERSION"
                   echo "version=$VERSION" >> $GITHUB_OUTPUT
               shell: bash
 

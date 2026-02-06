@@ -66,6 +66,8 @@ jobs:
               shell: bash
               env:
                   TELEMETRY_FORGE_AGENT_VERSION: ${{ inputs.version }}
+                  # Support legacy version variable for backwards compatibility
+                  FLUENTDO_AGENT_VERSION: ${{ inputs.version }}
 
             - name: Ensure we have a build directory
               run: mkdir -p source/build
@@ -90,10 +92,10 @@ jobs:
                   cpack -G productbuild
               working-directory: source/build
 
-            - name: Check linkage
+            - name: Check linkage of the built agents
               continue-on-error: true
               run: |
-                  DYLD_PRINT_LIBRARIES=1 DYLD_PRINT_LIBRARIES_POST_LAUNCH=1 DYLD_PRINT_RPATHS=1 bin/telemetryforge-agent --dry-run
+                  DYLD_PRINT_LIBRARIES=1 DYLD_PRINT_LIBRARIES_POST_LAUNCH=1 DYLD_PRINT_RPATHS=1 bin/*-agent --dry-run
               working-directory: source/build
 
             - name: Upload build packages
@@ -101,5 +103,5 @@ jobs:
               with:
                   name: package-macos-${{ matrix.config.package }}
                   path: |
-                      source/build/telemetryforge-agent-*.pkg
+                      source/build/*-agent-*.pkg
                   if-no-files-found: error
