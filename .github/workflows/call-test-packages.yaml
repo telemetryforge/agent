@@ -193,7 +193,7 @@ jobs:
           ref: ${{ inputs.ref }}
 
       - name: Override binary name for LTS branch
-        if: contains(github.ref, 'release/25.10-lts')
+        if: contains(github.ref, 'release/25.10-lts') || contains(github.base_ref, 'release/25.10-lts')
         run: |
           FLUENT_BIT_BINARY="/opt/fluentdo-agent/bin/fluent-bit"
           echo "FLUENT_BIT_BINARY=$FLUENT_BIT_BINARY"
