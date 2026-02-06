@@ -33,6 +33,8 @@ on:
         description: The Dockerhub token to use for authenticated pulls (not pushes).
         required: true
 env:
+  TELEMETRY_FORGE_AGENT_VERSION: ${{ inputs.version }}
+  # Support legacy version variable for backwards compatibility
   FLUENTDO_AGENT_VERSION: ${{ inputs.version }}
 jobs:
   # This job converts the JSON build-matrix coming in to a matrix of test jobs.
@@ -175,7 +177,7 @@ jobs:
             package-type: deb
             package: package-ubuntu-24.04
             name: ubuntu
-            binary: /opt/fluentdo-agent/bin/fluent-bit
+            binary: /opt/telemetryforge-agent/bin/fluent-bit
           # - runner: windows-latest
           #   package-type: msi
           #   package: package-windows
@@ -189,6 +191,18 @@ jobs:
         with:
           repository: telemetryforge/agent
           ref: ${{ inputs.ref }}
+
+      - name: Override binary name for LTS branch
+        if: contains(github.ref, 'release/25.10-lts') || contains(github.base_ref, 'release/25.10-lts')
+        run: |
+          FLUENT_BIT_BINARY="/opt/fluentdo-agent/bin/fluent-bit"
+          echo "FLUENT_BIT_BINARY=$FLUENT_BIT_BINARY"
+          echo "FLUENT_BIT_BINARY=$FLUENT_BIT_BINARY" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Debug environment
+        run: env
+        shell: bash
 
       # Must be removed on Namespace runners
       - name: Set up QEMU
