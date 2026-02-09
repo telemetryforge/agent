@@ -67,7 +67,7 @@ jobs:
           version: v0.30.0
 
       - name: Install BATS
-        uses: bats-core/bats-action@3.0.1
+        uses: bats-core/bats-action@4.0.0
         with:
           assert-install: false
           detik-install: false
