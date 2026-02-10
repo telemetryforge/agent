@@ -19,7 +19,7 @@ PATCH_LIST=${PATCH_LIST:-$PATCH_DIR/patches-agent.files}
 CUSTOM_DIR=${CUSTOM_DIR:-$REPO_ROOT/custom}
 
 # Change via ./scripts/update-version.sh only
-export TELEMETRY_FORGE_AGENT_VERSION=${TELEMETRY_FORGE_AGENT_VERSION:-26.2.2}
+export TELEMETRY_FORGE_AGENT_VERSION=${TELEMETRY_FORGE_AGENT_VERSION:-26.2.3}
 
 # Handle version string with or without a v prefix - we just want semver
 if [[ "$TELEMETRY_FORGE_AGENT_VERSION" =~ ^v?([0-9]+\.[0-9]+\.[0-9]+)$ ]] ; then
