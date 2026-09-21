@@ -5,4 +5,5 @@ gha-creds*.json
 .aider*
 downloads/
 upstream/
-# Trigger rebuild
+
+source/tests/integration/.venv/
