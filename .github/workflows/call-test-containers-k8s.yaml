@@ -41,7 +41,7 @@ jobs:
       FLUENTDO_AGENT_TAG: ${{ inputs.image-tag }}
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: ${{ env.STEP_SECURITY_EGRESS_POLICY }}
 
@@ -76,7 +76,7 @@ jobs:
           version: v0.30.0
 
       - name: Install BATS
-        uses: bats-core/bats-action@77d6fb60505b4d0d1d73e48bd035b55074bbfb43 # 4.0.0
+        uses: bats-core/bats-action@3566550e0f594451ac0f58fcbfdeca93aa29a45e # 4.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           assert-install: false
