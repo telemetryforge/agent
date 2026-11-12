@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM registry.access.redhat.com/ubi10:10.2 AS base-builder
+FROM registry.access.redhat.com/ubi10:10.3 AS base-builder
 
 # hadolint ignore=DL3041
 RUN dnf update -y && \
@@ -115,7 +115,7 @@ RUN [ -n "$MAKE_EXTRA_ARGS" ] && make ${MAKE_EXTRA_ARGS} || make -j "$(getconf _
     install bin/fluent-bit /fluent-bit/bin/fluent-bit
 
 # The release image now
-FROM registry.access.redhat.com/ubi10/ubi-minimal:10.2 AS production
+FROM registry.access.redhat.com/ubi10/ubi-minimal:10.3 AS production
 
 # hadolint ignore=DL3041
 RUN microdnf update -y && microdnf install -y openssl libyaml cyrus-sasl zstd && microdnf clean all
