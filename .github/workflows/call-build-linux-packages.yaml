@@ -48,7 +48,7 @@ jobs:
   build-packages:
     name: agent - ${{ matrix.distro }} package build and upload
     # Pick runner based on distro - override via repo variables to switch runner pools without workflow changes, otherwise defaults are used
-    runs-on: ${{ (contains(matrix.distro, 'arm') && (vars.LINUX_ARM_RUNNER || 'namespace-profile-ubuntu-latest-arm')) || (contains(matrix.distro, 'centos/6') && (vars.LINUX_AMD_LARGE_RUNNER || 'namespace-profile-ubuntu-latest-4cpu-16gb')) || (vars.LINUX_AMD_RUNNER || 'namespace-profile-ubuntu-latest') }}
+    runs-on: ${{ (contains(matrix.distro, 'arm') && (vars.LINUX_ARM_RUNNER || 'namespace-profile-ubuntu-latest-arm')) || (contains(matrix.distro, 'centos/6') && (vars.LINUX_AMD_LARGE_RUNNER || 'namespace-profile-ubuntu-latest-4cpu-16gb')) || (contains(matrix.distro, 'centos/7') && (vars.LINUX_AMD_MEMORY_RUNNER || vars.LINUX_AMD_RUNNER || 'namespace-profile-ubuntu-latest')) || (vars.LINUX_AMD_RUNNER || 'namespace-profile-ubuntu-latest') }}
     timeout-minutes: 60
     permissions:
       contents: read

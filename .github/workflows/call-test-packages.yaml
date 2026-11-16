@@ -108,8 +108,8 @@ jobs:
     name: functional tests - ${{ matrix.config.distro }} package test
     needs:
       - call-test-packages-get-meta
-    # We only run tests on AMD runners here
-    runs-on: ${{ vars.LINUX_AMD_RUNNER || 'namespace-profile-ubuntu-latest' }}
+    # Use the variable for the test runner if defined, otherwise the normal variable and fallback to namespace as a default.
+    runs-on: ${{ vars.LINUX_AMD_TEST_RUNNER || vars.LINUX_AMD_RUNNER || 'namespace-profile-ubuntu-latest' }}
     timeout-minutes: 30
     permissions:
       contents: read

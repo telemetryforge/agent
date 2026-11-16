@@ -1218,6 +1218,8 @@ Reusable workflows derive Linux runner labels from these repository variables:
 
 - `vars.LINUX_AMD_RUNNER` (default: `namespace-profile-ubuntu-latest`)
 - `vars.LINUX_AMD_LARGE_RUNNER` (default: `namespace-profile-ubuntu-latest-4cpu-16gb`)
+- `vars.LINUX_AMD_TEST_RUNNER` (default: `vars.LINUX_AMD_RUNNER`, for functional package tests)
+- `vars.LINUX_AMD_MEMORY_RUNNER` (default: `vars.LINUX_AMD_RUNNER`, for CentOS 7 package builds)
 - `vars.LINUX_ARM_RUNNER` (default: `namespace-profile-ubuntu-latest-arm`)
 - `vars.LINUX_S390X_RUNNER` (default: `ubuntu-24.04-s390x`)
 

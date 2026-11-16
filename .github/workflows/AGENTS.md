@@ -141,6 +141,8 @@ Runner labels for reusable workflows are defined inside those reusable workflows
 |---|---|---|---|
 | `LINUX_AMD_RUNNER` | `vars.LINUX_AMD_RUNNER` | `namespace-profile-ubuntu-latest` | Standard AMD64 Linux runner |
 | `LINUX_AMD_LARGE_RUNNER` | `vars.LINUX_AMD_LARGE_RUNNER` | `namespace-profile-ubuntu-latest-4cpu-16gb` | Large AMD64 Linux runner (package builds) |
+| `LINUX_AMD_TEST_RUNNER` | `vars.LINUX_AMD_TEST_RUNNER` | `vars.LINUX_AMD_RUNNER` | Functional package test runner |
+| `LINUX_AMD_MEMORY_RUNNER` | `vars.LINUX_AMD_MEMORY_RUNNER` | `vars.LINUX_AMD_RUNNER` | Memory-heavy AMD64 package runner (CentOS 7) |
 | `LINUX_ARM_RUNNER` | `vars.LINUX_ARM_RUNNER` | `namespace-profile-ubuntu-latest-arm` | ARM64 Linux runner (currently unused/commented out) |
 | `LINUX_S390X_RUNNER` | `vars.LINUX_S390X_RUNNER` | `ubuntu-24.04-s390x` | s390x Linux runner |
 
@@ -150,6 +152,8 @@ These env vars should be declared in the reusable workflows that schedule Linux 
 env:
   LINUX_AMD_RUNNER: ${{ vars.LINUX_AMD_RUNNER || 'namespace-profile-ubuntu-latest' }}
   LINUX_AMD_LARGE_RUNNER: ${{ vars.LINUX_AMD_LARGE_RUNNER || 'namespace-profile-ubuntu-latest-4cpu-16gb' }}
+  LINUX_AMD_TEST_RUNNER: ${{ vars.LINUX_AMD_TEST_RUNNER || vars.LINUX_AMD_RUNNER || 'namespace-profile-ubuntu-latest' }}
+  LINUX_AMD_MEMORY_RUNNER: ${{ vars.LINUX_AMD_MEMORY_RUNNER || vars.LINUX_AMD_RUNNER || 'namespace-profile-ubuntu-latest' }}
   LINUX_ARM_RUNNER: ${{ vars.LINUX_ARM_RUNNER || 'namespace-profile-ubuntu-latest-arm' }}
   LINUX_S390X_RUNNER: ${{ vars.LINUX_S390X_RUNNER || 'ubuntu-24.04-s390x' }}
 ```
