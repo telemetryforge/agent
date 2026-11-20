@@ -109,7 +109,7 @@ jobs:
           password: ${{ secrets.github-token }}
 
       - name: Set up preflight binary
-        uses: redhat-actions/openshift-tools-installer@1f130822bb0930e0ee02a119adcc3271a22b1499 # v3.2
+        uses: redhat-actions/openshift-tools-installer@bf1d8fd8fa963cff1d33688473e51f948748991e # v3.3
         with:
           preflight: latest
           source: github
